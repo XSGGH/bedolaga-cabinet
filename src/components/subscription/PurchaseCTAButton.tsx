@@ -8,11 +8,14 @@ interface PurchaseCTAButtonProps {
   subscription: Subscription | null;
   /** In multi-tariff mode, link to /subscriptions/:id/renew instead of /subscription/purchase */
   isMultiTariff?: boolean;
+  /** Компактная кнопка внутри карточки (без подсказки). */
+  inline?: boolean;
 }
 
 export default function PurchaseCTAButton({
   subscription,
   isMultiTariff = false,
+  inline = false,
 }: PurchaseCTAButtonProps) {
   const { t } = useTranslation();
 
@@ -65,6 +68,22 @@ export default function PurchaseCTAButton({
     isTrial ||
     requiresTariff ||
     (subscription !== null && !subscription.is_daily && subscription.days_left <= 7);
+
+  if (inline) {
+    return (
+      <Link
+        to={linkTo}
+        className={`group flex h-12 items-center justify-center gap-2 rounded-xl text-[15px] font-bold transition-colors ${
+          prominent
+            ? 'bg-accent-500 text-on-accent hover:bg-accent-400'
+            : 'border border-accent-500/60 bg-accent-500/10 text-accent-300 hover:border-accent-400'
+        }`}
+      >
+        {buttonText}
+        <ChevronRightIcon className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+      </Link>
+    );
+  }
 
   return (
     <Link

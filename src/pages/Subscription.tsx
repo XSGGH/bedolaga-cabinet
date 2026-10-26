@@ -560,6 +560,15 @@ export default function Subscription() {
                     </div>
                   )}
 
+                  {/* ─── Продлить: на телефоне сразу в карточке тарифа ─── */}
+                  <div className="mb-6 lg:hidden">
+                    <PurchaseCTAButton
+                      subscription={subscription}
+                      isMultiTariff={isMultiTariff}
+                      inline
+                    />
+                  </div>
+
                   {/* ─── Trial Info Banner ─── */}
                   {subscription.is_trial && subscription.is_active && (
                     <div
@@ -754,7 +763,7 @@ export default function Subscription() {
 
                   {/* ─── Buy traffic (action row) ─── */}
                   {showsAddonOptions(subscription) && subscription.traffic_limit_gb > 0 && (
-                    <div className="xsg-linkrow -mx-5 -mb-5 border-t border-accent-500/15 sm:-mx-8 sm:-mb-8">
+                    <div className="xsg-linkrow mt-5">
                       <TrafficTopupSheet
                         open={showTrafficTopup}
                         onOpen={() => setShowTrafficTopup(true)}
@@ -823,10 +832,10 @@ export default function Subscription() {
                 </div>
                 {showsAddonOptions(subscription) && (
                   <div
-                    className={`xsg-devactions mt-1 border-t border-accent-500/15 ${
+                    className={`xsg-devactions mt-1 p-4 ${
                       showDeviceTopup || showDeviceReduction
-                        ? 'space-y-3 p-4'
-                        : 'grid grid-cols-2 divide-x divide-accent-500/15'
+                        ? 'space-y-3'
+                        : 'grid grid-cols-2 gap-3'
                     }`}
                   >
                     <DeviceTopupSheet
@@ -857,8 +866,8 @@ export default function Subscription() {
           </div>
         </div>
         <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-5">
-          <div className="order-5 empty:hidden">
-            {/* Purchase / Renewal CTA */}
+          <div className="order-5 hidden empty:hidden lg:block">
+            {/* Purchase / Renewal CTA (на телефоне — внутри карточки тарифа) */}
             <PurchaseCTAButton subscription={subscription} isMultiTariff={isMultiTariff} />
           </div>
 

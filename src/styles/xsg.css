@@ -286,11 +286,11 @@ html:not(.light) .xsg-balance-hero::before {
 /* ── Подписка (мобильный макет v2) ── */
 html:not(.light) .xsg-linkrow > button {
   width: 100%;
-  min-height: 52px;
-  padding: 0 20px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid rgba(var(--color-accent-500), 0.4);
+  border-radius: 14px;
+  background: rgba(var(--color-accent-500), 0.1);
 }
 html:not(.light) .xsg-linkrow > button > div > div > div:nth-child(1) {
   color: rgb(var(--color-accent-300));
@@ -303,10 +303,14 @@ html:not(.light) .xsg-linkrow > button > div > div > div:nth-child(2) {
 /* два действия под списком устройств: подписи по центру, без пояснений */
 html:not(.light) .xsg-devactions > button {
   width: 100%;
-  min-height: 52px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 0;
+  min-height: 48px;
+  padding: 0 10px;
+  border: 1px solid rgba(var(--color-accent-500), 0.4);
+  border-radius: 14px;
+  background: rgba(var(--color-accent-500), 0.1);
+}
+html:not(.light) .xsg-devactions > button:last-child {
+  border-color: var(--xsg-line-strong);
   background: transparent;
 }
 html:not(.light) .xsg-devactions > button > div {
