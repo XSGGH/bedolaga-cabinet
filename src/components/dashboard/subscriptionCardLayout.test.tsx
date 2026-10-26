@@ -100,17 +100,16 @@ async function renderCard(sub: Subscription, connectedDevices = 0) {
 }
 
 describe('ряд «Тариф» + «Осталось»', () => {
-  it('обе плитки умеют сжиматься — длинное имя тарифа не выталкивает соседа', async () => {
+  it('имя тарифа сжимается, а «Осталось» не выталкивается за край', async () => {
     const container = await renderCard(subscription());
 
-    const row = container.querySelector('.mb-5.flex.gap-2\\.5');
+    const row = container.querySelector('.mb-7.flex.items-end');
     expect(row).toBeTruthy();
-    const plates = [...(row?.children ?? [])];
-    expect(plates).toHaveLength(2);
-    for (const plate of plates) {
-      expect(plate.className).toContain('min-w-0');
-      expect(plate.className).toContain('flex-1');
-    }
+    const [tariff, days] = [...(row?.children ?? [])];
+    expect(row?.children).toHaveLength(2);
+    expect(tariff?.className).toContain('min-w-0');
+    expect(tariff?.className).toContain('flex-1');
+    expect(days?.className).toContain('shrink-0');
   });
 
   it('имя тарифа переносится, а не обрезается в одну строку', async () => {

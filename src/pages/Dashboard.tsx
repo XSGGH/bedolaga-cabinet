@@ -24,7 +24,7 @@ import PendingGiftCard from '../components/dashboard/PendingGiftCard';
 import SubscriptionListCard from '../components/subscription/SubscriptionListCard';
 import { DeviceLimitSheet } from '../components/subscription/DeviceLimitSheet';
 import { API } from '../config/constants';
-import { ChevronRightIcon, StarIcon } from '@/components/icons';
+import { ChevronRightIcon, StarIcon, WheelIcon } from '@/components/icons';
 import { Skeleton, SkeletonGroup } from '@/components/ui/skeleton';
 import { safeLocal } from '../utils/safeStorage';
 import { getApiErrorMessage } from '../utils/api-error';
@@ -294,169 +294,183 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div data-onboarding="welcome">
-        <h1 className="text-2xl font-bold text-dark-50 sm:text-3xl">
-          {userName ? t('dashboard.welcome', { name: userName }) : t('dashboard.welcomeNoName')}
-        </h1>
-        <div className="mt-1 flex flex-wrap items-center gap-2">
-          <p className="text-dark-400">{t('dashboard.yourSubscription')}</p>
-          {promoGroupData?.group_name && (
-            <span
-              className="inline-flex max-w-[160px] items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-              style={{
-                background: 'rgba(var(--color-accent-400), 0.1)',
-                border: '1px solid rgba(var(--color-accent-400), 0.2)',
-                color: 'rgb(var(--color-accent-400))',
-              }}
-            >
-              <StarIcon filled className="h-2.5 w-2.5 shrink-0" />
-              <span className="truncate">{promoGroupData.group_name}</span>
-            </span>
-          )}
+      <div data-onboarding="welcome" className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-dark-50 sm:text-[32px] sm:leading-tight">
+            {userName ? t('dashboard.welcome', { name: userName }) : t('dashboard.welcomeNoName')}
+          </h1>
+          <p className="mt-2 text-sm text-dark-400">{t('dashboard.yourSubscription')}</p>
         </div>
+        {promoGroupData?.group_name && (
+          <span
+            className="mt-1 inline-flex max-w-[180px] shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11.5px] font-bold uppercase tracking-wider"
+            style={{
+              background: 'rgba(var(--color-accent-500), 0.14)',
+              border: '1px solid rgba(var(--color-accent-400), 0.45)',
+              color: 'rgb(var(--color-accent-300))',
+            }}
+          >
+            <StarIcon filled className="h-2.5 w-2.5 shrink-0" />
+            <span className="truncate">{promoGroupData.group_name}</span>
+          </span>
+        )}
       </div>
 
       {/* Pending Gift Activations */}
       {pendingGifts && pendingGifts.length > 0 && <PendingGiftCard gifts={pendingGifts} />}
 
-      {/* Multi-tariff: show subscription cards (max 3) — только когда подписки
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+        <div className="min-w-0 space-y-6">
+          {/* Multi-tariff: show subscription cards (max 3) — только когда подписки
           реально есть. Пустой случай (нет подписок) ведёт блок ниже (триал/покупка),
           иначе кнопка покупки дублировалась. */}
-      {isMultiTariff && multiSubData?.subscriptions && multiSubData.subscriptions.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-sm font-medium text-dark-400">
-              {t('dashboard.subscriptions', 'Подписки')}
-            </span>
-            <Link to="/subscriptions" className="text-xs text-accent-400 hover:underline">
-              {t('dashboard.manageAll', 'Управление')} →
-            </Link>
-          </div>
-          {visibleSubscriptions.map((sub, index) => (
-            <SubscriptionListCard
-              key={sub.id}
-              subscription={sub}
-              onClick={() => navigate(`/subscriptions/${sub.id}`)}
-              connect={{
-                connectedDevices: deviceQueries[index]?.data?.total,
-                onConnect: () => navigate(`/connection?sub=${sub.id}`),
-                onManage: () => setDeviceLimitSubId(sub.id),
-              }}
-            />
-          ))}
-          {multiSubData.subscriptions.length > 3 && (
-            <Link
-              to="/subscriptions"
-              className="flex w-full items-center justify-center rounded-2xl border border-dashed border-white/15 p-3 text-xs opacity-50 transition-opacity hover:opacity-80"
-            >
-              {t('dashboard.showAll', 'Показать все')} ({multiSubData.subscriptions.length})
-            </Link>
-          )}
-          {hasLegacy ? null : hasActivePaid ? (
-            <Link
-              to="/subscription/purchase"
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-500/15 p-3.5 text-sm font-medium text-accent-400 transition-all hover:bg-accent-500/25"
-            >
-              <span className="text-base">+</span>{' '}
-              {t('subscriptions.buyAnother', 'Купить ещё тариф')}
-            </Link>
-          ) : (
-            <Link
-              to="/subscription/purchase"
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-500 p-3.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-600"
-            >
-              <span className="text-base">+</span>{' '}
-              {t('subscriptions.browsePlans', 'Посмотреть тарифы и купить подписку')}
-            </Link>
-          )}
-        </div>
-      )}
+          {isMultiTariff &&
+            multiSubData?.subscriptions &&
+            multiSubData.subscriptions.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-sm font-medium text-dark-400">
+                    {t('dashboard.subscriptions', 'Подписки')}
+                  </span>
+                  <Link to="/subscriptions" className="text-xs text-accent-400 hover:underline">
+                    {t('dashboard.manageAll', 'Управление')} →
+                  </Link>
+                </div>
+                {visibleSubscriptions.map((sub, index) => (
+                  <SubscriptionListCard
+                    key={sub.id}
+                    subscription={sub}
+                    onClick={() => navigate(`/subscriptions/${sub.id}`)}
+                    connect={{
+                      connectedDevices: deviceQueries[index]?.data?.total,
+                      onConnect: () => navigate(`/connection?sub=${sub.id}`),
+                      onManage: () => setDeviceLimitSubId(sub.id),
+                    }}
+                  />
+                ))}
+                {multiSubData.subscriptions.length > 3 && (
+                  <Link
+                    to="/subscriptions"
+                    className="flex w-full items-center justify-center rounded-2xl border border-dashed border-white/15 p-3 text-xs opacity-50 transition-opacity hover:opacity-80"
+                  >
+                    {t('dashboard.showAll', 'Показать все')} ({multiSubData.subscriptions.length})
+                  </Link>
+                )}
+                {hasLegacy ? null : hasActivePaid ? (
+                  <Link
+                    to="/subscription/purchase"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-500/15 p-3.5 text-sm font-medium text-accent-400 transition-all hover:bg-accent-500/25"
+                  >
+                    <span className="text-base">+</span>{' '}
+                    {t('subscriptions.buyAnother', 'Купить ещё тариф')}
+                  </Link>
+                ) : (
+                  <Link
+                    to="/subscription/purchase"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-500 p-3.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-600"
+                  >
+                    <span className="text-base">+</span>{' '}
+                    {t('subscriptions.browsePlans', 'Посмотреть тарифы и купить подписку')}
+                  </Link>
+                )}
+              </div>
+            )}
 
-      {/* Subscription Status Card — hidden in multi-tariff (managed via /subscriptions) */}
-      {!isMultiTariff &&
-        (subLoading ? (
-          <SkeletonGroup className="bento-card">
-            <div className="mb-4 flex items-center justify-between">
-              <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-6 w-16 rounded-full" />
-            </div>
-            <Skeleton className="mb-3 h-10 w-32" />
-            <Skeleton className="mb-3 h-4 w-40" />
-            <Skeleton className="h-3 w-full rounded-full" />
-            <div className="mt-5">
-              <Skeleton className="h-12 w-full rounded-xl" />
-            </div>
-          </SkeletonGroup>
-        ) : subscription?.is_expired ||
-          subscription?.status === 'disabled' ||
-          subscription?.is_limited ? (
-          <SubscriptionCardExpired
-            subscription={subscription}
-            balanceKopeks={balanceData?.balance_kopeks ?? 0}
-            balanceRubles={balanceData?.balance_rubles ?? 0}
-          />
-        ) : subscription ? (
-          <SubscriptionCardActive
-            subscription={subscription}
-            trafficData={trafficData}
-            refreshTrafficMutation={refreshTrafficMutation}
-            trafficRefreshCooldown={trafficRefreshCooldown}
-            connectedDevices={devicesData?.total ?? 0}
-          />
-        ) : null)}
+          {/* Subscription Status Card — hidden in multi-tariff (managed via /subscriptions) */}
+          {!isMultiTariff &&
+            (subLoading ? (
+              <SkeletonGroup className="bento-card">
+                <div className="mb-4 flex items-center justify-between">
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                </div>
+                <Skeleton className="mb-3 h-10 w-32" />
+                <Skeleton className="mb-3 h-4 w-40" />
+                <Skeleton className="h-3 w-full rounded-full" />
+                <div className="mt-5">
+                  <Skeleton className="h-12 w-full rounded-xl" />
+                </div>
+              </SkeletonGroup>
+            ) : subscription?.is_expired ||
+              subscription?.status === 'disabled' ||
+              subscription?.is_limited ? (
+              <SubscriptionCardExpired
+                subscription={subscription}
+                balanceKopeks={balanceData?.balance_kopeks ?? 0}
+                balanceRubles={balanceData?.balance_rubles ?? 0}
+              />
+            ) : subscription ? (
+              <SubscriptionCardActive
+                subscription={subscription}
+                trafficData={trafficData}
+                refreshTrafficMutation={refreshTrafficMutation}
+                trafficRefreshCooldown={trafficRefreshCooldown}
+                connectedDevices={devicesData?.total ?? 0}
+              />
+            ) : null)}
 
-      {/* Нет подписок: показываем триал (если доступен) и ВСЕГДА одну явную
+          {/* Нет подписок: показываем триал (если доступен) и ВСЕГДА одну явную
           кнопку покупки. Триал не обязателен, чтобы попасть в витрину — раньше
           при доступном триале это был единственный экран без кнопки покупки
           (Telegram-баг #605056/#605063). Единственная кнопка тут (вместо дубля
           с мульти-тариф блоком). */}
-      {hasNoSubscription && !trialLoading && (
-        <div className="space-y-3">
-          {trialInfo?.is_available && (
-            <TrialOfferCard
-              trialInfo={trialInfo}
-              balanceKopeks={balanceData?.balance_kopeks || 0}
-              balanceRubles={balanceData?.balance_rubles || 0}
-              activateTrialMutation={activateTrialMutation}
-              trialError={trialError}
-            />
-          )}
-          <Link
-            to="/subscription/purchase"
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-500 p-3.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-600"
-          >
-            <span className="text-base">+</span>{' '}
-            {t('subscriptions.browsePlans', 'Посмотреть тарифы и купить подписку')}
-          </Link>
-        </div>
-      )}
-
-      {/* Promo Offers */}
-      <PromoOffersSection />
-
-      {/* Stats Grid */}
-      <StatsGrid
-        balanceRubles={balanceData?.balance_rubles || 0}
-        referralCount={referralInfo?.total_referrals || 0}
-        earningsRubles={referralInfo?.available_balance_rubles || 0}
-        refLoading={refLoading}
-      />
-
-      {/* Fortune Wheel Banner */}
-      {wheelConfig?.is_enabled && (
-        <Link to="/wheel" className="bento-card-hover group flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="text-3xl">🎰</span>
-            <div className="min-w-0 flex-1">
-              <h3 className="text-base font-semibold text-dark-100">{t('wheel.banner.title')}</h3>
-              <p className="text-sm text-dark-400">{t('wheel.banner.description')}</p>
+          {hasNoSubscription && !trialLoading && (
+            <div className="space-y-3">
+              {trialInfo?.is_available && (
+                <TrialOfferCard
+                  trialInfo={trialInfo}
+                  balanceKopeks={balanceData?.balance_kopeks || 0}
+                  balanceRubles={balanceData?.balance_rubles || 0}
+                  activateTrialMutation={activateTrialMutation}
+                  trialError={trialError}
+                />
+              )}
+              <Link
+                to="/subscription/purchase"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-500 p-3.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-600"
+              >
+                <span className="text-base">+</span>{' '}
+                {t('subscriptions.browsePlans', 'Посмотреть тарифы и купить подписку')}
+              </Link>
             </div>
-          </div>
-          <div className="flex-shrink-0 text-dark-500 transition-all duration-300 group-hover:translate-x-1 group-hover:text-accent-400">
-            <ChevronRightIcon />
-          </div>
-        </Link>
-      )}
+          )}
+
+          {/* Promo Offers */}
+          <PromoOffersSection />
+        </div>
+
+        {/* Правая колонка на десктопе: баланс, рефералы и колесо; на телефоне
+          идёт следом за карточкой подписки. */}
+        <div className="min-w-0 space-y-4">
+          {/* Stats Grid */}
+          <StatsGrid
+            balanceRubles={balanceData?.balance_rubles || 0}
+            referralCount={referralInfo?.total_referrals || 0}
+            earningsRubles={referralInfo?.available_balance_rubles || 0}
+            refLoading={refLoading}
+          />
+
+          {/* Fortune Wheel Banner */}
+          {wheelConfig?.is_enabled && (
+            <Link to="/wheel" className="xsg-wheel group block">
+              <div className="relative flex items-center gap-3.5">
+                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/25">
+                  <WheelIcon className="h-6 w-6" />
+                </span>
+                <h3 className="min-w-0 flex-1 text-lg font-extrabold tracking-tight text-white">
+                  {t('wheel.banner.title')}
+                </h3>
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/15 text-white transition-transform duration-300 group-hover:translate-x-0.5">
+                  <ChevronRightIcon className="h-4 w-4" />
+                </span>
+              </div>
+              <p className="relative mt-3 text-[13px] leading-relaxed text-white/80">
+                {t('wheel.banner.description')}
+              </p>
+            </Link>
+          )}
+        </div>
+      </div>
 
       {/* Напоминания (админка → Напоминания) */}
       <ReminderCards />

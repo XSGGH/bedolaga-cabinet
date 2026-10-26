@@ -1,0 +1,286 @@
+/*
+ * XSG VPN — дизайн-слой поверх стандартного кабинета.
+ *
+ * Все визуальные правки общих классов собраны здесь, чтобы при обновлении
+ * апстрима (rebase) конфликтов было минимум: globals.css не трогаем.
+ * Правила действуют только в тёмной теме (светлая у нас выключена).
+ *
+ * Принципы: плотные непрозрачные поверхности без «стекла», тонкая граница
+ * цвета акцента, никаких свечений и подъёма карточек при наведении.
+ */
+
+:root {
+  --bento-radius: 20px;
+  --bento-radius-lg: 24px;
+  --bento-padding: 22px;
+  --bento-padding-lg: 26px;
+}
+
+/*
+ * Палитра закреплена намертво (значения из утверждённого макета): цвета тёмной
+ * темы из админки на неё больше не влияют, иначе плитки сливаются с фоном.
+ * !important перебивает инлайн-переменные, которые ставит скрипт темы.
+ */
+html:not(.light) {
+  --color-dark-950: 6, 3, 12 !important;
+  --color-dark-900: 11, 6, 20 !important;
+  --color-dark-850: 15, 8, 28 !important;
+  --color-dark-800: 19, 10, 36 !important;
+  --color-dark-700: 42, 24, 72 !important;
+  --color-dark-600: 66, 46, 104 !important;
+  --color-dark-500: 138, 121, 166 !important;
+  --color-dark-400: 168, 150, 196 !important;
+  --color-dark-300: 200, 188, 222 !important;
+  --color-dark-200: 224, 214, 240 !important;
+  --color-dark-100: 245, 238, 254 !important;
+  --color-dark-50: 245, 238, 254 !important;
+  --xsg-line: #2a1848;
+  --xsg-line-strong: #4a2a80;
+}
+
+html:not(.light) body {
+  background-color: rgb(6 3 12);
+}
+
+/* Поверхности */
+html:not(.light) .card,
+html:not(.light) .bento-card {
+  background-color: rgb(var(--color-dark-800));
+  border-color: var(--xsg-line);
+  box-shadow: none;
+}
+
+html:not(.light) .glass {
+  background-color: rgb(var(--color-dark-800));
+  border-color: var(--xsg-line);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Наведение: без подъёма и «прожектора», только рамка и тон */
+html:not(.light) .bento-card-hover:hover,
+html:not(.light) .card-hover:hover {
+  transform: none;
+  background-color: rgb(var(--color-dark-800));
+  border-color: var(--xsg-line-strong);
+  box-shadow: none;
+}
+
+html:not(.light) .bento-card-hover::after {
+  display: none;
+}
+
+html:not(.light) .bento-card-hover:active,
+html:not(.light) .card-hover:active {
+  transform: scale(0.99);
+}
+
+html:not(.light) .bento-card-glow:hover,
+html:not(.light) .card-glow:hover {
+  transform: none;
+  border-color: var(--xsg-line-strong);
+  box-shadow: none;
+}
+
+/* Кнопки: без свечения */
+html:not(.light) .btn {
+  border-radius: 12px;
+}
+
+html:not(.light) .btn-primary,
+html:not(.light) .btn-primary:hover {
+  box-shadow: none;
+}
+
+html:not(.light) .btn-secondary {
+  background-color: rgb(var(--color-dark-900));
+  border-color: var(--xsg-line);
+}
+
+html:not(.light) .btn-secondary:hover {
+  background-color: rgb(var(--color-dark-850));
+  border-color: var(--xsg-line-strong);
+}
+
+/* Поля ввода */
+html:not(.light) .input {
+  background-color: rgb(var(--color-dark-900));
+  border-color: var(--xsg-line);
+  border-radius: 12px;
+}
+
+/* Подписи-разделы капсом, как на статус-странице */
+.xsg-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(var(--color-dark-500));
+}
+
+/* Боковое меню */
+.xsg-side-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--color-dark-400));
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.xsg-side-link:hover {
+  background-color: rgb(var(--color-dark-850));
+  color: rgb(var(--color-dark-100));
+}
+
+.xsg-side-link[data-active="true"] {
+  background-color: rgba(var(--color-accent-500), 0.14);
+  color: rgb(var(--color-dark-50));
+  box-shadow: inset 3px 0 0 rgb(var(--color-accent-500));
+}
+
+.xsg-side-link[data-admin="true"] {
+  color: rgb(var(--color-warning-400));
+}
+
+.xsg-side-link[data-admin="true"][data-active="true"] {
+  background-color: rgba(var(--color-warning-500), 0.12);
+  box-shadow: inset 3px 0 0 rgb(var(--color-warning-400));
+}
+
+/* Баннер «Колесо удачи» — единственный яркий блок главной */
+.xsg-wheel {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--bento-radius);
+  border: 1px solid rgba(var(--color-accent-400), 0.55);
+  background: linear-gradient(
+    145deg,
+    rgba(var(--color-accent-600), 0.95) 0%,
+    rgba(var(--color-accent-800), 0.9) 48%,
+    rgb(var(--color-dark-900)) 100%
+  );
+  padding: 22px;
+  transition: border-color 0.15s;
+}
+
+.xsg-wheel:hover {
+  border-color: rgba(var(--color-accent-300), 0.8);
+}
+
+.xsg-wheel::before {
+  content: "";
+  position: absolute;
+  right: -44px;
+  top: -44px;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  pointer-events: none;
+}
+
+.xsg-wheel::after {
+  content: "";
+  position: absolute;
+  right: -12px;
+  top: -12px;
+  width: 106px;
+  height: 106px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+/* Плитки-кнопки (было: бегущая градиентная рамка) — плоская плашка */
+html:not(.light) .hover-border-gradient {
+  border: 1px solid rgba(var(--color-accent-500), 0.35);
+  background: rgba(var(--color-accent-500), 0.1);
+  animation: none;
+  box-shadow: none;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+html:not(.light) .hover-border-gradient:hover,
+html:not(.light) .hover-border-gradient:active {
+  border-color: rgba(var(--color-accent-400), 0.6);
+  background: rgba(var(--color-accent-500), 0.14);
+  box-shadow: none;
+}
+
+/* Никаких свечений: цветные тени у кнопок и карточек убраны везде */
+html:not(.light) [class*="shadow-accent-"],
+html:not(.light) [class*="shadow-success-"],
+html:not(.light) [class*="shadow-warning-"],
+html:not(.light) [class*="shadow-yellow-"],
+html:not(.light) [class*="shadow-error-"],
+html:not(.light) .shadow-glow,
+html:not(.light) .hover\:shadow-glow:hover {
+  box-shadow: none !important;
+}
+
+/* Окна и шторки — плотные, без размытия содержимого панели */
+html:not(.light) [role="dialog"] {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Подписка: строки внутри одной карточки — без вложенных рамок, с разделителями */
+html:not(.light) .xsg-autopay > div,
+html:not(.light) .xsg-options .xsg-row > :is(button, div) {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+html:not(.light) .xsg-autopay > div {
+  margin: 0 !important;
+  padding-top: 15px !important;
+  padding-bottom: 15px !important;
+  border-bottom: 1px solid var(--xsg-line) !important;
+}
+
+html:not(.light) .xsg-autopay > div:last-child {
+  border-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+html:not(.light) .xsg-autopay > div:first-child {
+  padding-top: 0 !important;
+}
+
+html:not(.light) .xsg-options .xsg-row {
+  border-bottom: 1px solid var(--xsg-line);
+}
+
+html:not(.light) .xsg-options .xsg-row:last-child {
+  border-bottom: 0;
+}
+
+html:not(.light) .xsg-options .xsg-row [class*="text-base"],
+html:not(.light) .xsg-options .xsg-row [class*="text-lg"] {
+  font-size: 14px !important;
+}
+
+html:not(.light) .xsg-balance-hero {
+  position: relative;
+  overflow: hidden;
+}
+html:not(.light) .xsg-balance-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: rgb(var(--color-accent-500));
+}

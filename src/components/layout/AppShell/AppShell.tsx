@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
 
 import { useAuthStore } from '@/store/auth';
 import { useHaptic } from '@/platform';
@@ -115,8 +114,8 @@ export function AppShell({ children }: AppShellProps) {
     haptic.impact('light');
   };
 
-  // A single elegant nav link: icon + label always visible, with a shared
-  // framer-motion pill that slides to the active item on navigation.
+  // Пункт бокового меню (десктоп): иконка + подпись, активный подсвечен
+  // акцентной полоской слева (стили — .xsg-side-link в styles/xsg.css).
   const renderNavLink = (
     path: string,
     label: string,
@@ -130,32 +129,13 @@ export function AppShell({ children }: AppShellProps) {
         to={path}
         onClick={handleNavClick}
         aria-label={label}
-        className={cn(
-          'relative flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors duration-200',
-          active
-            ? admin
-              ? 'text-warning-300'
-              : 'text-dark-50'
-            : admin
-              ? 'text-warning-500 hover:bg-warning-500/10 hover:text-warning-300'
-              : 'text-dark-400 hover:bg-dark-800/60 hover:text-dark-100',
-        )}
+        aria-current={active ? 'page' : undefined}
+        data-active={active}
+        data-admin={admin}
+        className="xsg-side-link"
       >
-        {active && (
-          <motion.span
-            layoutId="desktop-nav-active"
-            className={cn(
-              // Подсветка-пилюля активного пункта — «приподнята» над треком капсулы
-              'absolute inset-0 rounded-full shadow-sm',
-              admin
-                ? 'bg-warning-500/15 ring-1 ring-warning-500/20'
-                : 'bg-dark-700/80 ring-1 ring-dark-600/40',
-            )}
-            transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-          />
-        )}
-        <Icon className="relative h-4 w-4 shrink-0" />
-        <span className="relative whitespace-nowrap">{label}</span>
+        <Icon className="h-[18px] w-[18px] shrink-0" />
+        <span className="truncate">{label}</span>
       </Link>
     );
   };
@@ -170,89 +150,74 @@ export function AppShell({ children }: AppShellProps) {
       <SuccessNotificationModal />
       <PromptDialogHost />
 
-      {/* Desktop Header */}
-      {/* w-screen вместо left-0 right-0: right-0 упирается в край вьюпорта БЕЗ
-          скроллбара, и капсула по центру прыгала бы на полширины скроллбара при
-          переходах между страницами со скроллом и без. 100vw даёт ту же ось
-          центрирования, что и у body (тоже 100vw). */}
-      <header className="fixed left-0 top-0 z-50 hidden w-screen border-b border-dark-800/50 bg-dark-950/95 lg:block">
-        {/* 3-зонный grid: лого | капсула | действия. Колонки 1fr_auto_1fr держат
-            капсулу строго по центру вьюпорта НЕЗАВИСИМО от ширины лого/действий,
-            а действия — у правого края. Поэтому ничего не «скачет» при переходах
-            (в т.ч. в админку): смена ширины в одной зоне не двигает другие. */}
-        <div className="mx-auto grid h-14 max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
-          {/* Logo */}
-          <Link
-            to="/"
-            className="flex shrink-0 items-center gap-2.5 justify-self-start"
-            onClick={handleNavClick}
-          >
-            <div className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-dark-800">
-              <span
-                className={cn(
-                  'absolute text-sm font-bold text-accent-400 transition-opacity duration-200',
-                  hasCustomLogo && isLogoPreloaded() ? 'opacity-0' : 'opacity-100',
-                )}
-              >
-                {logoLetter}
-              </span>
-              {hasCustomLogo && logoUrl && (
-                <img
-                  src={logoUrl}
-                  alt={appName || 'Logo'}
-                  className={cn(
-                    'absolute h-full w-full object-contain transition-opacity duration-200',
-                    isLogoPreloaded() ? 'opacity-100' : 'opacity-0',
-                  )}
-                />
-              )}
-            </div>
-            <span className="text-base font-semibold text-dark-100">{appName}</span>
-          </Link>
-
-          {/* Navigation — единая «капсула» (segmented control): все пункты видны
-              всегда, без скролла/сжатия/сворачивания. Центрируется средней
-              колонкой grid (justify-self-center), а не auto-margin'ами. */}
-          <nav className="flex items-center gap-0.5 justify-self-center rounded-full border border-dark-800/70 bg-dark-900/50 p-1 shadow-sm backdrop-blur-sm">
-            {desktopNav.map((item) => renderNavLink(item.path, item.label, item.icon))}
-            {isAdmin && (
-              <>
-                <div className="mx-1 h-5 w-px shrink-0 bg-dark-700/60" />
-                {renderNavLink('/admin', t('admin.nav.title'), ShieldIcon, true)}
-              </>
-            )}
-          </nav>
-
-          {/* Right side actions — правая колонка grid, прижата к краю, не сжимается */}
-          <div className="flex shrink-0 items-center gap-2 justify-self-end">
-            <button
-              onClick={() => {
-                haptic.impact('light');
-                toggleTheme();
-              }}
+      {/* Desktop sidebar */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-accent-500/15 bg-dark-900 lg:flex">
+        <Link
+          to="/"
+          className="flex shrink-0 items-center gap-3 px-6 pb-6 pt-7"
+          onClick={handleNavClick}
+        >
+          <div className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-accent-500/15 ring-1 ring-accent-500/30">
+            <span
               className={cn(
-                'rounded-xl border border-dark-700/50 bg-dark-800/50 p-2 text-dark-400 transition-colors duration-200 hover:bg-dark-700 hover:text-accent-400',
-                !canToggleTheme && 'hidden',
+                'absolute text-sm font-bold text-accent-400 transition-opacity duration-200',
+                hasCustomLogo && isLogoPreloaded() ? 'opacity-0' : 'opacity-100',
               )}
-              aria-label={
-                isDark ? t('theme.light') || 'Light mode' : t('theme.dark') || 'Dark mode'
-              }
-              title={isDark ? t('theme.light') || 'Light mode' : t('theme.dark') || 'Dark mode'}
             >
-              {isDark ? <MoonIcon className="h-5 w-5" /> : <SunIcon className="h-5 w-5" />}
-            </button>
-            <TicketNotificationBell isAdmin={location.pathname.startsWith('/admin')} />
-            <LanguageSwitcher />
-            <LogoutButton
-              variant="icon"
-              onLogout={() => {
-                haptic.impact('light');
-                logout();
-              }}
-            />
+              {logoLetter}
+            </span>
+            {hasCustomLogo && logoUrl && (
+              <img
+                src={logoUrl}
+                alt={appName || 'Logo'}
+                className={cn(
+                  'absolute h-full w-full object-contain transition-opacity duration-200',
+                  isLogoPreloaded() ? 'opacity-100' : 'opacity-0',
+                )}
+              />
+            )}
           </div>
+          <span className="truncate text-[13px] font-semibold uppercase tracking-[0.16em] text-dark-100">
+            {appName}
+          </span>
+        </Link>
+
+        <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3">
+          {desktopNav.map((item) => renderNavLink(item.path, item.label, item.icon))}
+          {isAdmin && (
+            <>
+              <div className="mx-3 my-2 h-px shrink-0 bg-dark-800" />
+              {renderNavLink('/admin', t('admin.nav.title'), ShieldIcon, true)}
+            </>
+          )}
+        </nav>
+
+        <div className="flex shrink-0 items-stretch gap-2 border-t border-dark-800 px-4 py-4 [&>*]:flex-1 [&_button]:flex [&_button]:w-full [&_button]:items-center [&_button]:justify-center">
+          <button
+            onClick={() => {
+              haptic.impact('light');
+              toggleTheme();
+            }}
+            className={cn(
+              'rounded-xl border border-accent-500/20 bg-dark-900 p-2 text-dark-400 transition-colors duration-200 hover:text-accent-400',
+              !canToggleTheme && 'hidden',
+            )}
+            aria-label={isDark ? t('theme.light') || 'Light mode' : t('theme.dark') || 'Dark mode'}
+            title={isDark ? t('theme.light') || 'Light mode' : t('theme.dark') || 'Dark mode'}
+          >
+            {isDark ? <MoonIcon className="h-5 w-5" /> : <SunIcon className="h-5 w-5" />}
+          </button>
+          <TicketNotificationBell isAdmin={location.pathname.startsWith('/admin')} />
+          <LanguageSwitcher />
+          <LogoutButton
+            variant="icon"
+            onLogout={() => {
+              haptic.impact('light');
+              logout();
+            }}
+          />
         </div>
-      </header>
+      </aside>
 
       {/* Mobile Header */}
       <AppHeader
@@ -271,9 +236,6 @@ export function AppShell({ children }: AppShellProps) {
         giftEnabled={giftEnabled}
       />
 
-      {/* Desktop spacer */}
-      <div className="hidden h-14 lg:block" />
-
       {/* Mobile spacer */}
       <div className="lg:hidden" style={{ height: headerHeight }} />
 
@@ -281,8 +243,8 @@ export function AppShell({ children }: AppShellProps) {
       {/* Боковые отступы не меньше вырезов (альбомная ориентация iPhone); снизу —
           просвет под панелью: фиксированные 112px в standalone iOS не хватало,
           и низ контента уходил под неё. */}
-      <main className="mx-auto max-w-6xl py-6 pb-[calc(var(--mobile-nav-clearance)+0.5rem)] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] lg:px-6 lg:pb-8">
-        {children}
+      <main className="mx-auto max-w-6xl py-6 pb-[calc(var(--mobile-nav-clearance)+0.5rem)] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] lg:ml-60 lg:max-w-none lg:px-10 lg:py-10 lg:pb-12">
+        <div className="mx-auto max-w-[1360px]">{children}</div>
       </main>
 
       {/* Mobile Bottom Navigation — только на экранах её кнопок */}

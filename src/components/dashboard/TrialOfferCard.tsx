@@ -47,47 +47,11 @@ export default function TrialOfferCard({
         padding: '32px 28px 28px',
       }}
     >
-      {/* Animated glow background */}
-      <div
-        className="pointer-events-none absolute left-1/2 -translate-x-1/2"
-        style={{
-          top: -100,
-          width: 300,
-          height: 300,
-          borderRadius: '50%',
-          background: isFree
-            ? 'radial-gradient(circle, rgba(var(--color-accent-400), 0.08) 0%, transparent 70%)'
-            : 'radial-gradient(circle, rgba(255,184,0,0.07) 0%, transparent 70%)',
-          transition: 'background 0.5s ease',
-        }}
-        aria-hidden="true"
-      />
-      {/* Grid pattern */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          opacity: isDark ? 0.025 : 0.04,
-          backgroundImage: isDark
-            ? `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-               linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`
-            : `linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
-               linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px)`,
-          backgroundSize: '40px 40px',
-        }}
-        aria-hidden="true"
-      />
-
       {/* Icon */}
       <div
         className="relative mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl"
         style={{
-          background: isDark
-            ? isFree
-              ? 'linear-gradient(135deg, rgba(var(--color-accent-900), 0.5), rgba(var(--color-accent-950), 0.6))'
-              : 'linear-gradient(135deg, #3a3020, #282418)'
-            : isFree
-              ? 'linear-gradient(135deg, rgba(var(--color-accent-400), 0.15), rgba(var(--color-accent-400), 0.08))'
-              : 'linear-gradient(135deg, rgba(255,184,0,0.15), rgba(255,184,0,0.08))',
+          background: isFree ? 'rgba(var(--color-accent-500), 0.14)' : 'rgba(255,184,0,0.12)',
           border: isFree
             ? '1px solid rgba(var(--color-accent-400), 0.25)'
             : '1px solid rgba(255,184,0,0.25)',
@@ -111,16 +75,6 @@ export default function TrialOfferCard({
             <BoltIcon className="h-[26px] w-[26px]" />
           </span>
         )}
-        {/* Glow effect */}
-        <div
-          className="absolute inset-[-1px] animate-trial-glow rounded-2xl"
-          style={{
-            boxShadow: isFree
-              ? '0 0 20px rgba(var(--color-accent-400), 0.15)'
-              : '0 0 20px rgba(255,184,0,0.12)',
-          }}
-          aria-hidden="true"
-        />
       </div>
 
       {/* Title */}
@@ -216,9 +170,8 @@ export default function TrialOfferCard({
             disabled={activateTrialMutation.isPending}
             className="w-full rounded-[14px] py-4 text-base font-bold tracking-tight transition-all duration-300 disabled:opacity-50"
             style={{
-              background: 'linear-gradient(135deg, #FFB800, #FF8C42)',
-              color: '#1a1200',
-              boxShadow: '0 4px 20px rgba(255,184,0,0.2)',
+              background: 'rgb(var(--color-accent-500))',
+              color: '#fff',
             }}
           >
             {activateTrialMutation.isPending
@@ -230,9 +183,8 @@ export default function TrialOfferCard({
             to="/balance"
             className="block w-full rounded-[14px] py-4 text-center text-base font-bold tracking-tight transition-all duration-300"
             style={{
-              background: 'linear-gradient(135deg, #FFB800, #FF8C42)',
-              color: '#1a1200',
-              boxShadow: '0 4px 20px rgba(255,184,0,0.2)',
+              background: 'rgb(var(--color-accent-500))',
+              color: '#fff',
             }}
           >
             {t('subscription.trial.topUpToActivate')}
@@ -243,21 +195,7 @@ export default function TrialOfferCard({
           onClick={() => !activateTrialMutation.isPending && activateTrialMutation.mutate()}
           disabled={activateTrialMutation.isPending}
           className="w-full rounded-[14px] py-4 text-base font-bold tracking-tight transition-all duration-300 disabled:opacity-50"
-          style={
-            isDark
-              ? {
-                  background:
-                    'linear-gradient(135deg, rgba(var(--color-accent-400), 0.12) 0%, rgba(var(--color-accent-400), 0.04) 100%)',
-                  border: '1px solid rgba(var(--color-accent-400), 0.25)',
-                  color: '#fff',
-                }
-              : {
-                  background:
-                    'linear-gradient(135deg, rgb(var(--color-accent-400)), rgb(var(--color-accent-500)))',
-                  color: '#0a2a1e',
-                  boxShadow: '0 4px 20px rgba(var(--color-accent-400), 0.25)',
-                }
-          }
+          style={{ background: 'rgb(var(--color-accent-500))', color: '#fff' }}
         >
           {activateTrialMutation.isPending ? t('common.loading') : t('subscription.trial.activate')}
         </button>

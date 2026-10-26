@@ -154,34 +154,6 @@ export default function SubscriptionCardExpired({
         padding: '28px 28px 24px',
       }}
     >
-      {/* Glow */}
-      <div
-        className="pointer-events-none absolute"
-        style={{
-          top: -60,
-          right: -60,
-          width: 200,
-          height: 200,
-          borderRadius: '50%',
-          background: `radial-gradient(circle, rgba(${accent.r},${accent.g},${accent.b},0.08) 0%, transparent 70%)`,
-        }}
-        aria-hidden="true"
-      />
-      {/* Grid pattern */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          opacity: isDark ? 0.02 : 0.04,
-          backgroundImage: isDark
-            ? `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-               linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`
-            : `linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
-               linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px)`,
-          backgroundSize: '40px 40px',
-        }}
-        aria-hidden="true"
-      />
-
       {/* Header */}
       <div className="mb-5 flex items-center gap-3">
         <div
@@ -271,10 +243,7 @@ export default function SubscriptionCardExpired({
                 : `/subscriptions/${subscription.id}`
             }
             className="flex flex-1 items-center justify-center gap-2 rounded-[14px] py-3.5 text-[15px] font-semibold tracking-tight text-white transition-all duration-300"
-            style={{
-              background: accent.gradient,
-              boxShadow: `0 4px 20px rgba(${accent.r},${accent.g},${accent.b},0.2)`,
-            }}
+            style={{ background: 'rgb(var(--color-accent-500))' }}
           >
             <PlusIcon className="h-4 w-4" />
             {requiresTariff ? t('subscription.cta.moveToTariff') : t('subscription.buyTraffic')}
@@ -293,10 +262,7 @@ export default function SubscriptionCardExpired({
                     }
                     onClick={() => haptic.buttonPressHeavy()}
                     className="flex flex-1 items-center justify-center gap-2 rounded-[14px] py-3.5 text-[15px] font-semibold tracking-tight text-white transition-all duration-300"
-                    style={{
-                      background: accent.gradient,
-                      boxShadow: `0 4px 20px rgba(${accent.r},${accent.g},${accent.b},0.2)`,
-                    }}
+                    style={{ background: 'rgb(var(--color-accent-500))' }}
                   >
                     <SubscriptionIcon className="h-4 w-4" />
                     {requiresTariff
@@ -309,10 +275,7 @@ export default function SubscriptionCardExpired({
                     onClick={handleQuickRenew}
                     disabled={isRenewing}
                     className="flex flex-1 items-center justify-center gap-2 rounded-[14px] py-3.5 text-[15px] font-semibold tracking-tight text-white transition-all duration-300 disabled:opacity-50"
-                    style={{
-                      background: accent.gradient,
-                      boxShadow: `0 4px 20px rgba(${accent.r},${accent.g},${accent.b},0.2)`,
-                    }}
+                    style={{ background: 'rgb(var(--color-accent-500))' }}
                   >
                     {isRenewing ? (
                       <span
@@ -333,10 +296,7 @@ export default function SubscriptionCardExpired({
                     type="button"
                     onClick={handleTopUp}
                     className="flex flex-1 items-center justify-center gap-2 rounded-[14px] py-3.5 text-[15px] font-semibold tracking-tight text-white transition-all duration-300"
-                    style={{
-                      background: accent.gradient,
-                      boxShadow: `0 4px 20px rgba(${accent.r},${accent.g},${accent.b},0.2)`,
-                    }}
+                    style={{ background: 'rgb(var(--color-accent-500))' }}
                   >
                     <PlusIcon className="h-4 w-4" />
                     {t('dashboard.expired.topUp')}
@@ -354,10 +314,7 @@ export default function SubscriptionCardExpired({
                 }`}
                 style={
                   subscription.is_trial
-                    ? {
-                        background: accent.gradient,
-                        boxShadow: `0 4px 20px rgba(${accent.r},${accent.g},${accent.b},0.2)`,
-                      }
+                    ? { background: 'rgb(var(--color-accent-500))' }
                     : {
                         background: g.innerBg,
                         border: `1px solid ${g.innerBorder}`,

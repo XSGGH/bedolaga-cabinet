@@ -70,7 +70,7 @@ export function StatCard({
   //   значение отдельной строкой во всю ширину. Рядом с чипом места не хватало ни
   //   сумме («100,0…», «12 34…» — цифры пропадали), ни подписи («Всего заработа…»).
   return (
-    <div className="h-full rounded-xl bg-dark-800/30 p-3 transition-colors [container:stat-tile/inline-size] hover:bg-dark-800/50">
+    <div className="h-full rounded-2xl border border-accent-500/20 bg-dark-800 p-4 transition-colors [container:stat-tile/inline-size] hover:border-accent-500/40">
       <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-1.5 gap-y-1.5 tile-wide:gap-x-2.5">
         <div
           className={cn(

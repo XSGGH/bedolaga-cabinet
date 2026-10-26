@@ -161,12 +161,12 @@ function TariffCard({
       aria-checked={isSelected}
       onClick={onSelect}
       className={cn(
-        'block w-full rounded-2xl p-4 text-start transition-all duration-200',
+        'block w-full rounded-2xl p-4 text-start transition-colors duration-200',
         tariff.is_highlighted
-          ? cn(bestValueFrame(isSelected), isSelected ? 'bg-accent-500/5' : 'bg-dark-900/50')
+          ? cn(bestValueFrame(isSelected), isSelected ? 'bg-accent-500/10' : 'bg-dark-800')
           : isSelected
-            ? 'border border-accent-500/50 bg-accent-500/5'
-            : 'border border-dark-800/50 bg-dark-900/50 hover:border-dark-700/50',
+            ? 'border border-accent-500 bg-accent-500/10'
+            : 'border border-dark-700 bg-dark-800 hover:border-accent-500/50',
       )}
     >
       {/* Отметка оператора первой строкой, как в покупке и продлении: этот тариф
@@ -177,7 +177,7 @@ function TariffCard({
         <div
           className={cn(
             'flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors',
-            isSelected ? 'bg-accent-500/20' : 'bg-dark-800/50',
+            isSelected ? 'bg-accent-500/20' : 'bg-dark-700',
           )}
         >
           <GiftIcon
@@ -240,12 +240,12 @@ function PeriodCard({
       // Выбор — подсветкой и голубой рамкой, как в покупке и продлении. Сплошная
       // голубая заливка выбранного съедала золотую плашку «Выгодно».
       className={cn(
-        'block w-full rounded-2xl p-4 text-start transition-all duration-200',
+        'block w-full rounded-2xl p-4 text-start transition-colors duration-200',
         period.is_highlighted
-          ? cn(bestValueFrame(isSelected), isSelected ? 'bg-accent-500/10' : 'bg-dark-800/50')
+          ? cn(bestValueFrame(isSelected), isSelected ? 'bg-accent-500/10' : 'bg-dark-800')
           : isSelected
             ? 'border border-accent-500 bg-accent-500/10'
-            : 'border border-transparent bg-dark-800/50 hover:bg-dark-700/50',
+            : 'border border-dark-700 bg-dark-800 hover:border-accent-500/50',
       )}
     >
       {/* Отметка оператора первой строкой: этот период выбран сразу — подпись
@@ -295,7 +295,7 @@ function PaymentModeToggle({
     <div
       role="group"
       aria-label={t('gift.paymentMode')}
-      className="flex rounded-xl bg-dark-800/50 p-1"
+      className="flex rounded-xl border border-dark-700 bg-dark-900 p-1"
     >
       <button
         type="button"
@@ -303,9 +303,7 @@ function PaymentModeToggle({
         aria-pressed={mode === 'balance'}
         className={cn(
           'flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200',
-          mode === 'balance'
-            ? 'bg-dark-700 text-dark-50 shadow-sm'
-            : 'text-dark-400 hover:text-dark-200',
+          mode === 'balance' ? 'bg-accent-500 text-on-accent' : 'text-dark-400 hover:text-dark-200',
         )}
       >
         {balanceLabel}
@@ -316,9 +314,7 @@ function PaymentModeToggle({
         aria-pressed={mode === 'gateway'}
         className={cn(
           'flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200',
-          mode === 'gateway'
-            ? 'bg-dark-700 text-dark-50 shadow-sm'
-            : 'text-dark-400 hover:text-dark-200',
+          mode === 'gateway' ? 'bg-accent-500 text-on-accent' : 'text-dark-400 hover:text-dark-200',
         )}
       >
         {t('gift.viaGateway')}
@@ -347,8 +343,8 @@ function PaymentMethodCard({
       className={cn(
         'rounded-2xl border transition-all duration-200',
         isSelected
-          ? 'border-accent-500/50 bg-accent-500/5'
-          : 'border-dark-800/50 bg-dark-900/50 hover:border-dark-700/50',
+          ? 'border-accent-500 bg-accent-500/10'
+          : 'border-dark-700 bg-dark-800 hover:border-accent-500/50',
       )}
     >
       <button
@@ -566,194 +562,203 @@ function BuyTabContent({
   }, [selectedTariff]);
 
   return (
-    <div className="space-y-6">
-      {/* Tariff selection */}
-      {showTariffCards && (
-        <div>
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-dark-400">
-            {t('gift.selectTariff')}
-          </h2>
-          <div role="radiogroup" aria-label={t('gift.chooseTariff')} className="space-y-2">
-            {config.tariffs.map((tariff) => (
-              <TariffCard
-                key={tariff.id}
-                tariff={tariff}
-                isSelected={tariff.id === selectedTariffId}
-                onSelect={() => setSelectedTariffId(tariff.id)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+      <div className="contents lg:block">
+        <div className="order-1 space-y-6">
+          {/* Tariff selection */}
+          {showTariffCards && (
+            <div>
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-dark-400">
+                {t('gift.selectTariff')}
+              </h2>
+              <div role="radiogroup" aria-label={t('gift.chooseTariff')} className="space-y-2">
+                {config.tariffs.map((tariff) => (
+                  <TariffCard
+                    key={tariff.id}
+                    tariff={tariff}
+                    isSelected={tariff.id === selectedTariffId}
+                    onSelect={() => setSelectedTariffId(tariff.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
-      {/* Selected tariff description */}
-      {selectedTariff?.description && (
-        <div className="rounded-xl border border-dark-800/30 bg-dark-800/20 px-4 py-3">
-          <p className="text-sm text-dark-300">{selectedTariff.description}</p>
+          {/* Selected tariff description */}
+          {selectedTariff?.description && (
+            <div className="rounded-xl border border-dark-800/30 bg-dark-800/20 px-4 py-3">
+              <p className="text-sm text-dark-300">{selectedTariff.description}</p>
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Promo group banner */}
-      {config.promo_group_name && (
-        <div className="flex items-center gap-3 rounded-xl border border-success-500/30 bg-success-500/10 p-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success-500/20">
-            <SparklesIcon className="h-4 w-4 text-success-400" />
-          </div>
+        <div className="order-2 space-y-6 empty:hidden lg:mt-6">
+          {/* Period selection */}
+          {periodsForDisplay.length > 0 && (
+            <div>
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-dark-400">
+                {t('gift.selectPeriod')}
+              </h2>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {periodsForDisplay.map((period) => (
+                  <PeriodCard
+                    key={period.days}
+                    period={period}
+                    isSelected={period.days === selectedPeriodDays}
+                    onSelect={() => setSelectedPeriodDays(period.days)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="order-3 space-y-6 lg:mt-6">
+          {/* Payment mode toggle */}
           <div>
-            <div className="text-sm font-medium text-success-400">
-              {t('subscription.promoGroup.yourGroup', { name: config.promo_group_name })}
-            </div>
-            <div className="text-xs text-dark-400">
-              {t('subscription.promoGroup.personalDiscountsApplied')}
-            </div>
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-dark-400">
+              {t('gift.paymentMode')}
+            </h2>
+            <PaymentModeToggle
+              mode={paymentMode}
+              onToggle={setPaymentMode}
+              balanceLabel={balanceLabel}
+            />
           </div>
-        </div>
-      )}
 
-      {/* Active discount banner */}
-      {config.active_discount_percent != null && config.active_discount_percent > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-warning-500/30 bg-warning-500/10 p-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-warning-500/20">
-            <SparklesIcon className="h-4 w-4 text-warning-400" />
-          </div>
-          <div className="text-sm font-medium text-warning-400">
-            {t('promo.discountApplied')} -{config.active_discount_percent}%
-          </div>
-        </div>
-      )}
-
-      {/* Period selection */}
-      {periodsForDisplay.length > 0 && (
-        <div>
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-dark-400">
-            {t('gift.selectPeriod')}
-          </h2>
-          <div className="space-y-2">
-            {periodsForDisplay.map((period) => (
-              <PeriodCard
-                key={period.days}
-                period={period}
-                isSelected={period.days === selectedPeriodDays}
-                onSelect={() => setSelectedPeriodDays(period.days)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Payment mode toggle */}
-      <div>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-dark-400">
-          {t('gift.paymentMode')}
-        </h2>
-        <PaymentModeToggle
-          mode={paymentMode}
-          onToggle={setPaymentMode}
-          balanceLabel={balanceLabel}
-        />
-      </div>
-
-      {/* Payment method cards (gateway mode only) */}
-      <AnimatePresence mode="wait">
-        {paymentMode === 'gateway' && config.payment_methods.length > 0 && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div role="radiogroup" aria-label={t('gift.paymentMethod')} className="space-y-2">
-              {config.payment_methods.map((method) => (
-                <PaymentMethodCard
-                  key={method.method_id}
-                  method={method}
-                  isSelected={method.method_id === selectedMethod}
-                  selectedSubOption={method.method_id === selectedMethod ? selectedSubOption : null}
-                  onSelect={() => {
-                    setSelectedMethod(method.method_id);
-                    if (method.sub_options && method.sub_options.length >= 1) {
-                      setSelectedSubOption(method.sub_options[0].id);
-                    } else {
-                      setSelectedSubOption(null);
-                    }
-                  }}
-                  onSelectSubOption={setSelectedSubOption}
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Summary / Balance info */}
-      {paymentMode === 'balance' && (
-        <div className="rounded-2xl border border-dark-800/50 bg-dark-900/50 p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-dark-400">{t('gift.yourBalance')}</span>
-            <span className="text-sm font-semibold text-dark-200">
-              {formatPrice(config.balance_kopeks)}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Insufficient balance warning */}
-      <AnimatePresence>
-        {insufficientBalance && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="rounded-xl border border-warning-500/20 bg-warning-500/5 p-3"
-          >
-            <p className="text-sm text-warning-400">
-              {t('gift.insufficientBalance')}{' '}
-              <Link
-                to="/balance"
-                className="font-medium text-accent-400 underline underline-offset-2"
+          {/* Payment method cards (gateway mode only) */}
+          <AnimatePresence mode="wait">
+            {paymentMode === 'gateway' && config.payment_methods.length > 0 && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
               >
-                {t('gift.topUpBalance')}
-              </Link>
-            </p>
-          </motion.div>
+                <div role="radiogroup" aria-label={t('gift.paymentMethod')} className="space-y-2">
+                  {config.payment_methods.map((method) => (
+                    <PaymentMethodCard
+                      key={method.method_id}
+                      method={method}
+                      isSelected={method.method_id === selectedMethod}
+                      selectedSubOption={
+                        method.method_id === selectedMethod ? selectedSubOption : null
+                      }
+                      onSelect={() => {
+                        setSelectedMethod(method.method_id);
+                        if (method.sub_options && method.sub_options.length >= 1) {
+                          setSelectedSubOption(method.sub_options[0].id);
+                        } else {
+                          setSelectedSubOption(null);
+                        }
+                      }}
+                      onSelectSubOption={setSelectedSubOption}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+      <div className="order-4 space-y-4 lg:sticky lg:top-6">
+        {/* Promo group banner */}
+        {config.promo_group_name && (
+          <div className="flex items-center gap-3 rounded-xl border border-success-500/30 bg-success-500/10 p-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success-500/20">
+              <SparklesIcon className="h-4 w-4 text-success-400" />
+            </div>
+            <div>
+              <div className="text-sm font-medium text-success-400">
+                {t('subscription.promoGroup.yourGroup', { name: config.promo_group_name })}
+              </div>
+              <div className="text-xs text-dark-400">
+                {t('subscription.promoGroup.personalDiscountsApplied')}
+              </div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
 
-      {/* Error */}
-      <AnimatePresence>
-        {submitError && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="rounded-xl border border-error-500/20 bg-error-500/5 p-3"
-          >
-            <p className="text-sm text-error-400">{submitError}</p>
-          </motion.div>
+        {/* Active discount banner */}
+        {config.active_discount_percent != null && config.active_discount_percent > 0 && (
+          <div className="flex items-center gap-3 rounded-xl border border-warning-500/30 bg-warning-500/10 p-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-warning-500/20">
+              <SparklesIcon className="h-4 w-4 text-warning-400" />
+            </div>
+            <div className="text-sm font-medium text-warning-400">
+              {t('promo.discountApplied')} -{config.active_discount_percent}%
+            </div>
+          </div>
         )}
-      </AnimatePresence>
 
-      {/* Submit button */}
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={!canSubmit || purchaseMutation.isPending}
-        className={cn(
-          'flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-semibold transition-all duration-200',
-          canSubmit && !purchaseMutation.isPending
-            ? 'bg-accent-500 text-on-accent shadow-lg shadow-accent-500/25 hover:bg-accent-400 hover:shadow-accent-500/40 active:scale-[0.98]'
-            : 'cursor-not-allowed bg-dark-800 text-dark-500',
+        {/* Summary / Balance info */}
+        {paymentMode === 'balance' && (
+          <div className="rounded-2xl border border-dark-700 bg-dark-800 p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-dark-400">{t('gift.yourBalance')}</span>
+              <span className="text-sm font-semibold text-dark-200">
+                {formatPrice(config.balance_kopeks)}
+              </span>
+            </div>
+          </div>
         )}
-      >
-        {purchaseMutation.isPending ? (
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-        ) : (
-          <>
-            {t('gift.giftButton')} {currentPrice > 0 ? formatPrice(currentPrice) : ''}
-          </>
-        )}
-      </button>
+
+        {/* Insufficient balance warning */}
+        <AnimatePresence>
+          {insufficientBalance && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="rounded-xl border border-warning-500/20 bg-warning-500/5 p-3"
+            >
+              <p className="text-sm text-warning-400">
+                {t('gift.insufficientBalance')}{' '}
+                <Link
+                  to="/balance"
+                  className="font-medium text-accent-400 underline underline-offset-2"
+                >
+                  {t('gift.topUpBalance')}
+                </Link>
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Error */}
+        <AnimatePresence>
+          {submitError && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="rounded-xl border border-error-500/20 bg-error-500/5 p-3"
+            >
+              <p className="text-sm text-error-400">{submitError}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Submit button */}
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!canSubmit || purchaseMutation.isPending}
+          className={cn(
+            'flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-semibold transition-all duration-200',
+            canSubmit && !purchaseMutation.isPending
+              ? 'bg-accent-500 text-on-accent hover:bg-accent-400'
+              : 'cursor-not-allowed bg-dark-800 text-dark-500',
+          )}
+        >
+          {purchaseMutation.isPending ? (
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          ) : (
+            <>
+              {t('gift.giftButton')} {currentPrice > 0 ? formatPrice(currentPrice) : ''}
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
@@ -1051,7 +1056,7 @@ function SentGiftCard({ gift }: { gift: SentGift }) {
   const handleDismissToast = useCallback(() => setShowToast(false), []);
 
   return (
-    <div className="rounded-2xl border border-dark-800/50 bg-dark-900/50 p-4">
+    <div className="rounded-2xl border border-dark-700 bg-dark-800 p-4">
       {/* Header: tariff name + status badge */}
       <div className="mb-3 flex items-start justify-between">
         <h3 className="text-base font-bold text-dark-50">{gift.tariff_name ?? t('gift.tariff')}</h3>
@@ -1132,7 +1137,7 @@ function ReceivedGiftCard({ gift }: { gift: ReceivedGift }) {
   const statusText = t(statusKey);
 
   return (
-    <div className="rounded-2xl border border-dark-800/50 bg-dark-900/50 p-4">
+    <div className="rounded-2xl border border-dark-700 bg-dark-800 p-4">
       {/* Header */}
       <div className="mb-3 flex items-start justify-between">
         <h3 className="text-base font-bold text-dark-50">{gift.tariff_name ?? t('gift.tariff')}</h3>
@@ -1338,8 +1343,8 @@ export default function GiftSubscription() {
   ];
 
   return (
-    <div className="min-h-dvh">
-      <div className="mx-auto max-w-2xl px-4 py-6">
+    <div>
+      <div>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1347,9 +1352,6 @@ export default function GiftSubscription() {
           transition={{ duration: 0.4 }}
           className="mb-6 flex items-center gap-3"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-500/20">
-            <GiftIcon className="h-5 w-5 text-accent-400" />
-          </div>
           <h1 className="text-2xl font-bold text-dark-50">{t('gift.pageTitle')}</h1>
         </motion.div>
 
@@ -1358,7 +1360,7 @@ export default function GiftSubscription() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.05 }}
-          className="mb-6 rounded-2xl bg-dark-800/50 p-1"
+          className="mb-6 rounded-2xl border border-dark-700 bg-dark-900 p-1 lg:max-w-md"
         >
           <div className="flex" role="tablist" aria-label={t('gift.pageTitle')}>
             {tabs.map((tab) => (
@@ -1375,7 +1377,7 @@ export default function GiftSubscription() {
                 className={cn(
                   'min-w-0 flex-1 basis-0 whitespace-nowrap rounded-xl px-1.5 py-2.5 text-[13px] font-medium transition-all duration-200 sm:px-3 sm:text-sm',
                   activeTab === tab.id
-                    ? 'bg-accent-500 text-on-accent shadow-sm'
+                    ? 'bg-accent-500 text-on-accent'
                     : 'text-dark-400 hover:text-dark-200',
                 )}
               >
@@ -1401,7 +1403,11 @@ export default function GiftSubscription() {
             {activeTab === 'buy' && (
               <BuyTabContent config={config} onPurchaseComplete={() => setActiveTab('myGifts')} />
             )}
-            {activeTab === 'activate' && <ActivateTabContent initialCode={urlCode} />}
+            {activeTab === 'activate' && (
+              <div className="lg:max-w-xl">
+                <ActivateTabContent initialCode={urlCode} />
+              </div>
+            )}
             {activeTab === 'myGifts' && <MyGiftsTabContent />}
           </motion.div>
         </AnimatePresence>

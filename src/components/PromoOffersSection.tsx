@@ -200,7 +200,7 @@ export default function PromoOffersSection({ className = '' }: PromoOffersSectio
     <div className={`space-y-4 ${className}`}>
       {/* Active Discount Banner with actions */}
       {activeDiscount && activeDiscount.is_active && activeDiscount.discount_percent > 0 && (
-        <div className="card border-success-500/30 bg-gradient-to-br from-success-500/10 to-accent-500/5">
+        <div className="card border-success-500/30 border-success-500/40">
           <div className="flex flex-col gap-4">
             {/* Header */}
             <div className="flex items-center gap-4">
@@ -237,7 +237,7 @@ export default function PromoOffersSection({ className = '' }: PromoOffersSectio
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 onClick={handleUseNow}
-                className="flex-1 rounded-xl bg-gradient-to-r from-success-500 to-success-600 px-4 py-2.5 font-semibold text-white shadow-lg shadow-success-500/25 transition-all hover:from-success-400 hover:to-success-500 active:from-success-600 active:to-success-700"
+                className="flex-1 rounded-xl bg-success-600 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-success-500 active:bg-success-700"
               >
                 {t('promo.useNow')}
               </button>
@@ -273,10 +273,10 @@ export default function PromoOffersSection({ className = '' }: PromoOffersSectio
           {availableOffers.map((offer) => (
             <div
               key={offer.id}
-              className="card border-warning-500/30 bg-gradient-to-br from-warning-500/5 to-transparent transition-colors hover:border-warning-500/50"
+              className="card border-warning-500/30 transition-colors hover:border-warning-500/50"
             >
               <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-warning-500/30 to-warning-500/20">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-warning-500/20">
                   {getOfferIcon(offer.effect_type, offer.discount_percent)}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -299,10 +299,8 @@ export default function PromoOffersSection({ className = '' }: PromoOffersSectio
                     <button
                       onClick={() => handleClaim(offer.id)}
                       disabled={claimingId === offer.id}
-                      className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-warning-500 to-warning-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-warning-500/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-warning-500/30 active:scale-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:w-auto"
+                      className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-warning-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-warning-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                     >
-                      {/* Shimmer effect */}
-                      <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
                       {claimingId === offer.id ? (
                         <>
                           <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

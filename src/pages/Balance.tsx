@@ -167,7 +167,7 @@ export default function Balance() {
 
   return (
     <motion.div
-      className="space-y-6"
+      className="space-y-5"
       variants={staggerContainer}
       initial="initial"
       animate="animate"
@@ -176,307 +176,327 @@ export default function Balance() {
         <h1 className="text-2xl font-bold text-dark-50 sm:text-3xl">{t('balance.title')}</h1>
       </motion.div>
 
-      {/* Balance Card — flat surface; the giant numeric carries the
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+        <div className="contents lg:flex lg:flex-col lg:gap-5">
+          <div className="order-1">
+            {/* Balance Card — flat surface; the giant numeric carries the
           weight. The previous accent gradient + glow leaked accent into
           decoration (DESIGN.md Tunable-but-Scarce Rule) and read as the
           SaaS hero-metric template. */}
-      <motion.div variants={staggerItem}>
-        <Card>
-          <div className="mb-2 text-sm text-dark-400">{t('balance.currentBalance')}</div>
-          <div className="text-4xl font-bold text-dark-50 sm:text-5xl">
-            {formatAmount(balanceData?.balance_rubles || 0)}
-            <span className="ml-2 text-2xl text-dark-400">{currencySymbol}</span>
-          </div>
-        </Card>
-      </motion.div>
-
-      {/* Promo Code Section */}
-      <motion.div variants={staggerItem}>
-        <Card>
-          <h2 className="mb-4 text-lg font-semibold text-dark-100">
-            {t('balance.promocode.title')}
-          </h2>
-          {/* На телефоне поле во всю ширину, кнопка под ним: рядом с «Активировать»
-              подсказка в поле обрезалась посреди слова. */}
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <input
-              type="text"
-              value={promocode}
-              onChange={(e) => setPromocode(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handlePromocodeActivate()}
-              placeholder={t('balance.promocode.placeholder')}
-              className="input min-w-0 flex-1"
-              disabled={promocodeLoading}
-            />
-            <Button
-              onClick={() => handlePromocodeActivate()}
-              disabled={!promocode.trim()}
-              loading={promocodeLoading}
-            >
-              {t('balance.promocode.activate')}
-            </Button>
-          </div>
-          <AnimatePresence mode="wait">
-            {promocodeError && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mt-3 rounded-linear border border-error-500/30 bg-error-500/10 p-3 text-sm text-error-400"
-              >
-                {promocodeError}
-              </motion.div>
-            )}
-            {promocodeSuccess && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mt-3 rounded-linear border border-success-500/30 bg-success-500/10 p-3 text-sm text-success-400"
-              >
-                <div className="font-medium">{promocodeSuccess.message}</div>
-                {promocodeSuccess.amount > 0 && (
-                  <div className="mt-1">
-                    {t('balance.promocode.balanceAdded', {
-                      amount: promocodeSuccess.amount.toFixed(2),
-                    })}
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-          {promoSelectSubs && promoSelectSubs.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-3 space-y-2 rounded-linear border border-accent-500/30 bg-accent-500/10 p-3"
-            >
-              <div className="text-sm font-medium text-dark-200">
-                {t('balance.promocode.selectSubscription', 'К какой подписке применить промокод?')}
-              </div>
-              {promoSelectSubs.map((sub) => (
-                <button
-                  key={sub.id}
-                  onClick={() => handlePromocodeActivate(sub.id)}
-                  disabled={promocodeLoading}
-                  className="flex w-full min-w-0 items-center justify-between gap-3 rounded-linear border border-dark-600 bg-dark-700 px-3 py-2 text-sm text-dark-200 transition-colors hover:border-accent-500/50 hover:bg-dark-600"
-                >
-                  <span className="truncate">{sub.tariff_name}</span>
-                  <span className="shrink-0 text-dark-400">
-                    {t('balance.promocode.daysLeft', '{{count}} дн.', { count: sub.days_left })}
-                  </span>
-                </button>
-              ))}
-              <button
-                onClick={() => {
-                  setPromoSelectSubs(null);
-                  setPromoSelectCode(null);
-                }}
-                className="text-xs text-dark-400 hover:text-dark-200"
-              >
-                {t('common.cancel', 'Отмена')}
-              </button>
+            <motion.div variants={staggerItem}>
+              <Card className="xsg-balance-hero">
+                <div className="xsg-eyebrow mb-3">{t('balance.currentBalance')}</div>
+                <div className="text-4xl font-bold tabular-nums text-dark-50 sm:text-5xl">
+                  {formatAmount(balanceData?.balance_rubles || 0)}
+                  <span className="ml-2 text-2xl text-accent-400">{currencySymbol}</span>
+                </div>
+              </Card>
             </motion.div>
-          )}
-        </Card>
-      </motion.div>
-
-      {/* Payment Methods — self-animated: mounts after its query resolves, when
+          </div>
+          <div className="order-2 empty:hidden">
+            {/* Payment Methods — self-animated: mounts after its query resolves, when
           the parent stagger orchestration has already finished and would leave
           it stuck at opacity 0 */}
-      {paymentMethods && paymentMethods.length > 0 && (
-        <motion.div variants={staggerItem} initial="initial" animate="animate">
-          <Card>
-            <h2 className="mb-4 text-lg font-semibold text-dark-100">
-              {t('balance.topUpBalance')}
-            </h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {paymentMethods.map((method) => {
-                const methodKey = method.id.toLowerCase().replace(/-/g, '_');
-                const translatedName = t(`balance.paymentMethods.${methodKey}.name`, {
-                  defaultValue: '',
-                });
-                const translatedDesc = t(`balance.paymentMethods.${methodKey}.description`, {
-                  defaultValue: '',
-                });
+            {paymentMethods && paymentMethods.length > 0 && (
+              <motion.div variants={staggerItem} initial="initial" animate="animate">
+                <Card>
+                  <h2 className="mb-4 text-lg font-semibold text-dark-100">
+                    {t('balance.topUpBalance')}
+                  </h2>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {paymentMethods.map((method) => {
+                      const methodKey = method.id.toLowerCase().replace(/-/g, '_');
+                      const translatedName = t(`balance.paymentMethods.${methodKey}.name`, {
+                        defaultValue: '',
+                      });
+                      const translatedDesc = t(`balance.paymentMethods.${methodKey}.description`, {
+                        defaultValue: '',
+                      });
 
-                return (
-                  <Card
-                    key={method.id}
-                    interactive={method.is_available}
-                    className={!method.is_available ? 'cursor-not-allowed opacity-50' : ''}
-                    onClick={() => method.is_available && navigate(`/balance/top-up/${method.id}`)}
-                  >
-                    <div className="font-semibold text-dark-100">
-                      {method.name || translatedName}
-                    </div>
-                    {(method.description || translatedDesc) && (
-                      <div className="mt-1 text-sm text-dark-500">
-                        {method.description || translatedDesc}
-                      </div>
-                    )}
-                    <div className="mt-3 text-xs text-dark-400">
-                      {formatAmount(method.min_amount_kopeks / 100, 0)} {t('common.rangeTo', 'to')}{' '}
-                      {formatAmount(method.max_amount_kopeks / 100, 0)}
-                      {'\u00A0'}
-                      {currencySymbol}
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </Card>
-        </motion.div>
-      )}
+                      return (
+                        <Card
+                          key={method.id}
+                          interactive={method.is_available}
+                          className={!method.is_available ? 'cursor-not-allowed opacity-50' : ''}
+                          onClick={() =>
+                            method.is_available && navigate(`/balance/top-up/${method.id}`)
+                          }
+                        >
+                          <div className="font-semibold text-dark-100">
+                            {method.name || translatedName}
+                          </div>
+                          {(method.description || translatedDesc) && (
+                            <div className="mt-1 text-sm text-dark-500">
+                              {method.description || translatedDesc}
+                            </div>
+                          )}
+                          <div className="mt-3 text-xs text-dark-400">
+                            {formatAmount(method.min_amount_kopeks / 100, 0)}{' '}
+                            {t('common.rangeTo', 'to')}{' '}
+                            {formatAmount(method.max_amount_kopeks / 100, 0)}
+                            {'\u00A0'}
+                            {currencySymbol}
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </Card>
+              </motion.div>
+            )}
+          </div>
+          <div className="order-3">
+            {/* Transaction History */}
+            <motion.div variants={staggerItem}>
+              <Card className="overflow-hidden">
+                <button
+                  onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                  className="flex w-full items-center justify-between text-left"
+                >
+                  <h2 className="text-lg font-semibold text-dark-100">
+                    {t('balance.transactionHistory')}
+                  </h2>
+                  <ChevronDownIcon
+                    className={`h-5 w-5 text-dark-400 transition-transform duration-200 ${isHistoryOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
 
-      {/* Transaction History */}
-      <motion.div variants={staggerItem}>
-        <Card className="overflow-hidden">
-          <button
-            onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-            className="flex w-full items-center justify-between text-left"
-          >
-            <h2 className="text-lg font-semibold text-dark-100">
-              {t('balance.transactionHistory')}
-            </h2>
-            <ChevronDownIcon
-              className={`h-5 w-5 text-dark-400 transition-transform duration-200 ${isHistoryOpen ? 'rotate-180' : ''}`}
-            />
-          </button>
-
-          <AnimatePresence>
-            {isHistoryOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="mt-4">
-                  {isLoading ? (
-                    <SkeletonGroup className="space-y-3">
-                      <Skeleton variant="card" count={3} className="h-16" />
-                    </SkeletonGroup>
-                  ) : transactions?.items && transactions.items.length > 0 ? (
+                <AnimatePresence>
+                  {isHistoryOpen && (
                     <motion.div
-                      className="space-y-3"
-                      variants={staggerContainer}
-                      initial="initial"
-                      animate="animate"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
                     >
-                      {transactions.items.map((tx) => {
-                        const isZero = tx.amount_rubles === 0;
-                        const isPositive = tx.amount_rubles > 0;
-                        const displayAmount = Math.abs(tx.amount_rubles);
-                        const sign = isZero ? '' : isPositive ? '+' : '-';
-                        const colorClass = isZero
-                          ? 'text-dark-400'
-                          : isPositive
-                            ? 'text-success-400'
-                            : 'text-error-400';
-
-                        return (
+                      <div className="mt-4">
+                        {isLoading ? (
+                          <SkeletonGroup className="space-y-3">
+                            <Skeleton variant="card" count={3} className="h-16" />
+                          </SkeletonGroup>
+                        ) : transactions?.items && transactions.items.length > 0 ? (
                           <motion.div
-                            key={tx.id}
-                            variants={staggerItem}
-                            className="rounded-linear border border-dark-700/30 bg-dark-800/30 p-4"
+                            className="space-y-3"
+                            variants={staggerContainer}
+                            initial="initial"
+                            animate="animate"
                           >
-                            {/* Сумма — в строке с типом и датой и держит свою ширину;
+                            {transactions.items.map((tx) => {
+                              const isZero = tx.amount_rubles === 0;
+                              const isPositive = tx.amount_rubles > 0;
+                              const displayAmount = Math.abs(tx.amount_rubles);
+                              const sign = isZero ? '' : isPositive ? '+' : '-';
+                              const colorClass = isZero
+                                ? 'text-dark-400'
+                                : isPositive
+                                  ? 'text-success-400'
+                                  : 'text-error-400';
+
+                              return (
+                                <motion.div
+                                  key={tx.id}
+                                  variants={staggerItem}
+                                  className="rounded-linear border border-dark-700/30 bg-dark-800/30 p-4"
+                                >
+                                  {/* Сумма — в строке с типом и датой и держит свою ширину;
                                 описание — под ними во всю ширину. Рядом с суммой
                                 описание сжималось в узкий столбик, а без запрета
                                 сжатия сумму уводило за край карточки, и карточка
                                 её обрезала. */}
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                                <span className={transactionTypeBadge(tx.type)}>
-                                  {t(transactionTypeLabelKey(tx.type))}
-                                </span>
-                                <span className="text-xs text-dark-500">
-                                  {new Date(tx.created_at).toLocaleDateString(uiLocale())}
-                                </span>
-                              </div>
-                              <div
-                                className={`shrink-0 whitespace-nowrap text-lg font-semibold ${colorClass}`}
-                              >
-                                {sign}
-                                {formatAmount(displayAmount)}
-                                {'\u00A0'}
-                                {currencySymbol}
-                              </div>
-                            </div>
-                            {/* Почта, ник, номер счёта — без пробелов, переносятся где угодно. */}
-                            {tx.description && (
-                              <div className="mt-2 text-sm text-dark-400 [overflow-wrap:anywhere]">
-                                {tx.description}
-                              </div>
-                            )}
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                                      <span className={transactionTypeBadge(tx.type)}>
+                                        {t(transactionTypeLabelKey(tx.type))}
+                                      </span>
+                                      <span className="text-xs text-dark-500">
+                                        {new Date(tx.created_at).toLocaleDateString(uiLocale())}
+                                      </span>
+                                    </div>
+                                    <div
+                                      className={`shrink-0 whitespace-nowrap text-lg font-semibold ${colorClass}`}
+                                    >
+                                      {sign}
+                                      {formatAmount(displayAmount)}
+                                      {'\u00A0'}
+                                      {currencySymbol}
+                                    </div>
+                                  </div>
+                                  {/* Почта, ник, номер счёта — без пробелов, переносятся где угодно. */}
+                                  {tx.description && (
+                                    <div className="mt-2 text-sm text-dark-400 [overflow-wrap:anywhere]">
+                                      {tx.description}
+                                    </div>
+                                  )}
+                                </motion.div>
+                              );
+                            })}
                           </motion.div>
-                        );
-                      })}
-                    </motion.div>
-                  ) : (
-                    <div className="py-12 text-center">
-                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-linear-lg bg-dark-800">
-                        <WalletIcon className="h-8 w-8 text-dark-500" />
-                      </div>
-                      <div className="text-dark-400">{t('balance.noTransactions')}</div>
-                    </div>
-                  )}
+                        ) : (
+                          <div className="py-12 text-center">
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-linear-lg bg-dark-800">
+                              <WalletIcon className="h-8 w-8 text-dark-500" />
+                            </div>
+                            <div className="text-dark-400">{t('balance.noTransactions')}</div>
+                          </div>
+                        )}
 
-                  {transactions && transactions.pages > 1 && (
-                    // Три колонки: «Далее» не уезжает отдельной строкой на всю ширину.
-                    <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-sm text-dark-500">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setTransactionsPage((prev) => Math.max(1, prev - 1))}
-                        disabled={transactions.page <= 1}
-                      >
-                        {t('common.back')}
-                      </Button>
-                      <div className="whitespace-nowrap text-center">
-                        {t('balance.page', {
-                          current: transactions.page,
-                          total: transactions.pages,
-                        })}
+                        {transactions && transactions.pages > 1 && (
+                          // Три колонки: «Далее» не уезжает отдельной строкой на всю ширину.
+                          <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-sm text-dark-500">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => setTransactionsPage((prev) => Math.max(1, prev - 1))}
+                              disabled={transactions.page <= 1}
+                            >
+                              {t('common.back')}
+                            </Button>
+                            <div className="whitespace-nowrap text-center">
+                              {t('balance.page', {
+                                current: transactions.page,
+                                total: transactions.pages,
+                              })}
+                            </div>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() =>
+                                setTransactionsPage((prev) =>
+                                  transactions.pages
+                                    ? Math.min(transactions.pages, prev + 1)
+                                    : prev + 1,
+                                )
+                              }
+                              disabled={transactions.page >= transactions.pages}
+                            >
+                              {t('common.next')}
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() =>
-                          setTransactionsPage((prev) =>
-                            transactions.pages ? Math.min(transactions.pages, prev + 1) : prev + 1,
-                          )
-                        }
-                        disabled={transactions.page >= transactions.pages}
-                      >
-                        {t('common.next')}
-                      </Button>
-                    </div>
+                    </motion.div>
                   )}
-                </div>
+                </AnimatePresence>
+              </Card>
+            </motion.div>
+          </div>
+          <div className="order-5 empty:hidden">
+            {/* Saved Cards Navigation — self-animated: mounts after its query resolves
+          (see Payment Methods above) */}
+            {savedCardsData?.recurrent_enabled && (
+              <motion.div variants={staggerItem} initial="initial" animate="animate">
+                <Card interactive onClick={() => navigate('/balance/saved-cards')}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <CreditCardIcon className="h-5 w-5 text-dark-400" />
+                      <span className="font-medium text-dark-100">
+                        {t('balance.savedCards.title')}
+                      </span>
+                    </div>
+                    <ChevronRightIcon className="h-5 w-5 text-dark-400" />
+                  </div>
+                </Card>
               </motion.div>
             )}
-          </AnimatePresence>
-        </Card>
-      </motion.div>
-
-      {/* Saved Cards Navigation — self-animated: mounts after its query resolves
-          (see Payment Methods above) */}
-      {savedCardsData?.recurrent_enabled && (
-        <motion.div variants={staggerItem} initial="initial" animate="animate">
-          <Card interactive onClick={() => navigate('/balance/saved-cards')}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CreditCardIcon className="h-5 w-5 text-dark-400" />
-                <span className="font-medium text-dark-100">{t('balance.savedCards.title')}</span>
+          </div>
+        </div>
+        <div className="order-4">
+          {/* Promo Code Section */}
+          <motion.div variants={staggerItem}>
+            <Card>
+              <h2 className="mb-4 text-lg font-semibold text-dark-100">
+                {t('balance.promocode.title')}
+              </h2>
+              {/* На телефоне поле во всю ширину, кнопка под ним: рядом с «Активировать»
+              подсказка в поле обрезалась посреди слова. */}
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  type="text"
+                  value={promocode}
+                  onChange={(e) => setPromocode(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handlePromocodeActivate()}
+                  placeholder={t('balance.promocode.placeholder')}
+                  className="input min-w-0 flex-1"
+                  disabled={promocodeLoading}
+                />
+                <Button
+                  onClick={() => handlePromocodeActivate()}
+                  disabled={!promocode.trim()}
+                  loading={promocodeLoading}
+                >
+                  {t('balance.promocode.activate')}
+                </Button>
               </div>
-              <ChevronRightIcon className="h-5 w-5 text-dark-400" />
-            </div>
-          </Card>
-        </motion.div>
-      )}
+              <AnimatePresence mode="wait">
+                {promocodeError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="mt-3 rounded-linear border border-error-500/30 bg-error-500/10 p-3 text-sm text-error-400"
+                  >
+                    {promocodeError}
+                  </motion.div>
+                )}
+                {promocodeSuccess && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="mt-3 rounded-linear border border-success-500/30 bg-success-500/10 p-3 text-sm text-success-400"
+                  >
+                    <div className="font-medium">{promocodeSuccess.message}</div>
+                    {promocodeSuccess.amount > 0 && (
+                      <div className="mt-1">
+                        {t('balance.promocode.balanceAdded', {
+                          amount: promocodeSuccess.amount.toFixed(2),
+                        })}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {promoSelectSubs && promoSelectSubs.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-3 space-y-2 rounded-linear border border-accent-500/30 bg-accent-500/10 p-3"
+                >
+                  <div className="text-sm font-medium text-dark-200">
+                    {t(
+                      'balance.promocode.selectSubscription',
+                      'К какой подписке применить промокод?',
+                    )}
+                  </div>
+                  {promoSelectSubs.map((sub) => (
+                    <button
+                      key={sub.id}
+                      onClick={() => handlePromocodeActivate(sub.id)}
+                      disabled={promocodeLoading}
+                      className="flex w-full min-w-0 items-center justify-between gap-3 rounded-linear border border-dark-600 bg-dark-700 px-3 py-2 text-sm text-dark-200 transition-colors hover:border-accent-500/50 hover:bg-dark-600"
+                    >
+                      <span className="truncate">{sub.tariff_name}</span>
+                      <span className="shrink-0 text-dark-400">
+                        {t('balance.promocode.daysLeft', '{{count}} дн.', { count: sub.days_left })}
+                      </span>
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => {
+                      setPromoSelectSubs(null);
+                      setPromoSelectCode(null);
+                    }}
+                    className="text-xs text-dark-400 hover:text-dark-200"
+                  >
+                    {t('common.cancel', 'Отмена')}
+                  </button>
+                </motion.div>
+              )}
+            </Card>
+          </motion.div>
+        </div>
+      </div>
     </motion.div>
   );
 }

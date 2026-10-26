@@ -15,6 +15,8 @@ import { BackgroundRenderer } from './BackgroundRenderer';
  * один потребитель. Страницы без AppShell (логин, QuickPurchase со своим
  * экземпляром) фон, как и раньше, не получают.
  */
+const XSG_FLAT_BACKGROUND = true;
+
 const useBackgroundConsumers = create<{ count: number }>(() => ({ count: 0 }));
 
 /** Вызывается из AppShell: «на этом роуте должен быть анимированный фон». */
@@ -41,5 +43,6 @@ export function BackgroundHost() {
     return () => clearTimeout(timer);
   }, [active]);
 
-  return mounted ? <BackgroundRenderer /> : null;
+  // XSG: анимированный фон отключён — строгий плоский фон, как на статус-странице.
+  return XSG_FLAT_BACKGROUND ? null : mounted ? <BackgroundRenderer /> : null;
 }

@@ -10,13 +10,13 @@ export function getGlassColors(isDark: boolean) {
   return {
     // Card container
     cardBg: isDark
-      ? 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)'
+      ? 'rgb(var(--color-dark-800))'
       : 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.88) 100%)',
-    cardBorder: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.1)',
+    cardBorder: isDark ? 'rgba(var(--color-accent-500), 0.2)' : 'rgba(0,0,0,0.1)',
 
     // Inner sections (cards within cards)
-    innerBg: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
-    innerBorder: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)',
+    innerBg: isDark ? 'rgb(var(--color-dark-900))' : 'rgba(0,0,0,0.03)',
+    innerBorder: isDark ? 'rgba(var(--color-accent-500), 0.14)' : 'rgba(0,0,0,0.06)',
 
     // Hover states
     hoverBg: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
@@ -38,8 +38,8 @@ export function getGlassColors(isDark: boolean) {
     textGhost: `rgba(var(${TEXT_VAR}), ${isDark ? 0.08 : 0.06})`,
 
     // Progress bar track
-    trackBg: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-    trackBorder: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)',
+    trackBg: isDark ? 'rgb(var(--color-dark-700))' : 'rgba(0,0,0,0.06)',
+    trackBorder: isDark ? 'transparent' : 'rgba(0,0,0,0.06)',
 
     // Code blocks
     codeBg: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)',

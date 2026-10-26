@@ -44,8 +44,8 @@ export function MobileBottomNav({ items, isMenuOpen = false }: MobileBottomNavPr
     <nav
       className={cn(
         'fixed z-50 transition-all duration-200 lg:hidden',
-        'bg-dark-900/95 backdrop-blur-linear',
-        'border border-dark-700/30',
+        'bg-dark-800',
+        'border border-accent-500/20',
         isKeyboardOpen || isMenuOpen ? HIDDEN_UNDER_KEYBOARD : 'opacity-100',
       )}
       style={{
@@ -59,7 +59,7 @@ export function MobileBottomNav({ items, isMenuOpen = false }: MobileBottomNavPr
         right: 'max(16px, env(safe-area-inset-right, 0px))',
         borderRadius: 'var(--bento-radius, 24px)',
         padding: '8px 4px',
-        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset',
+        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.45)',
       }}
     >
       <div className="flex justify-around">

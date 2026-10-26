@@ -9,11 +9,9 @@ import { buttonTap, buttonHover, springTransition } from '@/components/motion/tr
 const cardVariants = cva(
   [
     'relative overflow-hidden',
-    'border border-dark-700/40 bg-dark-900/70',
-    'rounded-[var(--bento-radius)]',
+    'border border-dark-700 bg-dark-800',
+    'rounded-[20px]',
     'transition-[border-color,background-color,box-shadow,transform,opacity] duration-200',
-    // Glass border inset
-    'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]',
   ],
   {
     variants: {
@@ -25,16 +23,12 @@ const cardVariants = cva(
       },
       variant: {
         default: '',
-        glass: 'backdrop-blur-linear bg-dark-900/50',
-        solid: 'bg-dark-900',
+        glass: 'bg-dark-800',
+        solid: 'bg-dark-800',
         outline: 'bg-transparent',
       },
       interactive: {
-        true: [
-          'cursor-pointer',
-          'hover:border-dark-600/50 hover:bg-dark-800/60',
-          'active:scale-[0.98]',
-        ],
+        true: ['cursor-pointer', 'hover:border-accent-500/50'],
         false: '',
       },
       glow: {

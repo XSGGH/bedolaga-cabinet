@@ -21,7 +21,7 @@ export default function PendingGiftCard({ gifts, className }: PendingGiftCardPro
           key={gift.token}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl border border-accent-500/30 bg-gradient-to-r from-accent-500/10 via-purple-500/10 to-accent-500/10 p-5"
+          className="relative overflow-hidden rounded-2xl border border-accent-500/30 bg-accent-500/10 p-5"
         >
           {/* Subtle glow effect */}
           <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-accent-500/10 blur-2xl" />

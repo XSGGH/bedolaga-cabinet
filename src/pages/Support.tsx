@@ -410,10 +410,10 @@ export default function Support() {
                     setFormError(null);
                     clearReplyAttachments();
                   }}
-                  className={`w-full rounded-bento border p-4 text-left transition-all ${
+                  className={`w-full rounded-2xl border p-4 text-left transition-colors ${
                     selectedTicket?.id === ticket.id
                       ? 'border-accent-500 bg-accent-500/10'
-                      : 'border-dark-700/50 bg-dark-800/30 hover:border-dark-600'
+                      : 'border-dark-700 bg-dark-900 hover:border-accent-500/50'
                   }`}
                 >
                   <div className="mb-2 flex items-start justify-between gap-2">
@@ -560,7 +560,7 @@ export default function Support() {
             </div>
           ) : selectedTicket ? (
             <div className="flex h-full flex-col">
-              <div className="mb-6 flex flex-col gap-2 border-b border-dark-800/50 pb-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="mb-6 flex flex-col gap-2 border-b border-dark-700 pb-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-dark-100">
                     {ticketDetail?.title || selectedTicket.title}
@@ -587,10 +587,10 @@ export default function Support() {
                   {ticketDetail.messages.map((msg) => (
                     <div
                       key={msg.id}
-                      className={`rounded-xl p-4 ${
+                      className={`rounded-2xl p-4 ${
                         msg.is_from_admin
-                          ? 'ml-4 border border-accent-500/20 bg-accent-500/10'
-                          : 'mr-4 border border-dark-700/30 bg-dark-800/50'
+                          ? 'ml-4 border border-accent-500/30 bg-accent-500/10'
+                          : 'mr-4 border border-dark-700 bg-dark-900'
                       }`}
                     >
                       <div className="mb-2 flex items-center justify-between">
@@ -633,7 +633,7 @@ export default function Support() {
                     }
                     replyMutation.mutate();
                   }}
-                  className="border-t border-dark-800/50 pt-4"
+                  className="border-t border-dark-700 pt-4"
                 >
                   <div className="space-y-3">
                     <div className="flex gap-3">
@@ -707,7 +707,7 @@ export default function Support() {
               )}
 
               {ticketDetail?.is_reply_blocked && (
-                <div className="border-t border-dark-800/50 py-4 text-center text-sm text-dark-500">
+                <div className="border-t border-dark-700 py-4 text-center text-sm text-dark-500">
                   {t('support.repliesDisabled')}
                 </div>
               )}

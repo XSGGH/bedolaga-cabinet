@@ -30,7 +30,7 @@ export default function TrafficProgressBar({
   // Gradient always starts from the accent color (normal zone)
   const startColor = 'rgb(var(--color-accent-400))';
   const clampedPercent = Math.min(percent, 100);
-  const barHeight = compact ? 8 : 14;
+  const barHeight = compact ? 6 : 10;
 
   // Multi-segment gradient matching prototype
   // Warning/danger hex colors are intentional — they represent fixed threshold tints,
@@ -52,7 +52,7 @@ export default function TrafficProgressBar({
           className="relative overflow-hidden"
           style={{
             height: barHeight,
-            borderRadius: 10,
+            borderRadius: 999,
             background: g.trackBg,
             border: `1px solid rgba(${zone.mainVarRaw}, 0.12)`,
           }}
@@ -63,24 +63,6 @@ export default function TrafficProgressBar({
               background: `linear-gradient(90deg, rgba(${zone.mainVarRaw}, 0.31), ${zone.mainVar}, rgba(${zone.mainVarRaw}, 0.31))`,
               backgroundSize: '200% 100%',
             }}
-          />
-          <div
-            className="absolute inset-0 animate-traffic-shimmer"
-            style={{
-              background:
-                'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)',
-            }}
-            aria-hidden="true"
-          />
-          {/* Top highlight */}
-          <div
-            className="absolute left-0 right-0 top-0"
-            style={{
-              height: '50%',
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%)',
-              borderRadius: '10px 10px 0 0',
-            }}
-            aria-hidden="true"
           />
         </div>
       </div>
@@ -100,7 +82,7 @@ export default function TrafficProgressBar({
         className="relative overflow-hidden"
         style={{
           height: barHeight,
-          borderRadius: 10,
+          borderRadius: 999,
           background: g.trackBg,
           border: `1px solid ${g.trackBorder}`,
         }}
@@ -118,8 +100,8 @@ export default function TrafficProgressBar({
         <div
           className="absolute bottom-0 left-0 top-0 w-full origin-left overflow-hidden"
           style={{
-            transform: `scaleX(${clampedPercent / 100})`,
-            borderRadius: 10,
+            transform: `scaleX(${Math.max(clampedPercent, 2.5) / 100})`,
+            borderRadius: 999,
             transition: 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
@@ -130,25 +112,6 @@ export default function TrafficProgressBar({
               background: fillGradient,
               transition: 'background 0.8s ease',
             }}
-          />
-          {/* Shimmer overlay */}
-          <div
-            className="absolute inset-0 animate-traffic-shimmer"
-            style={{
-              background:
-                'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
-            }}
-            aria-hidden="true"
-          />
-          {/* Top highlight */}
-          <div
-            className="absolute left-0 right-0 top-0"
-            style={{
-              height: '50%',
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 100%)',
-              borderRadius: '10px 10px 0 0',
-            }}
-            aria-hidden="true"
           />
         </div>
 
@@ -165,30 +128,12 @@ export default function TrafficProgressBar({
             aria-hidden="true"
           />
         ))}
-
-        {/* Glow at fill edge */}
-        {clampedPercent > 2 && (
-          <div
-            className="pointer-events-none absolute"
-            style={{
-              top: -4,
-              bottom: -4,
-              left: `calc(${clampedPercent}% - 8px)`,
-              width: 16,
-              borderRadius: '50%',
-              background: `radial-gradient(circle, rgba(${zone.mainVarRaw}, 0.38), transparent)`,
-              filter: 'blur(4px)',
-              transition: 'left 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-            aria-hidden="true"
-          />
-        )}
       </div>
 
       {/* Scale labels */}
       {!compact && limitGb > 0 && (
         <div
-          className="mt-1.5 flex justify-between px-0.5 font-mono text-[10px] font-medium text-dark-400"
+          className="mt-2 flex justify-between px-0.5 text-[11px] font-medium tabular-nums text-dark-500"
           aria-hidden="true"
         >
           {[0, 25, 50, 75, 100].map((v) => (

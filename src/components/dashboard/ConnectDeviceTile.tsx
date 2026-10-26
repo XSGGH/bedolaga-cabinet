@@ -2,9 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useHaptic } from '../../platform';
 import { useTheme } from '../../hooks/useTheme';
-import { useTrafficZone } from '../../hooks/useTrafficZone';
 import { getGlassColors } from '../../utils/glassTheme';
-import { HoverBorderGradient } from '../ui/hover-border-gradient';
 import { MonitorIcon } from '@/components/icons';
 
 /**
@@ -38,14 +36,12 @@ interface ConnectDeviceTileProps {
 export default function ConnectDeviceTile({
   subscription,
   connectedDevices,
-  usedPercent = 0,
 }: ConnectDeviceTileProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const haptic = useHaptic();
   const { isDark } = useTheme();
   const g = getGlassColors(isDark);
-  const zone = useTrafficZone(usedPercent);
 
   const isAtDeviceLimit =
     subscription.device_limit > 0 && connectedDevices >= subscription.device_limit;
@@ -53,9 +49,8 @@ export default function ConnectDeviceTile({
   if (!subscription.subscription_url) return null;
 
   return (
-    <HoverBorderGradient
-      as="button"
-      accentColor={zone.mainHex}
+    <button
+      type="button"
       disabled={isAtDeviceLimit}
       onClick={() => {
         if (isAtDeviceLimit) {
@@ -64,24 +59,21 @@ export default function ConnectDeviceTile({
         }
         navigate(`/connection?sub=${subscription.id}`);
       }}
-      className={`mb-2.5 flex w-full items-center gap-3.5 rounded-[14px] p-3.5 text-left transition-shadow duration-300 ${isAtDeviceLimit ? 'cursor-not-allowed opacity-50' : ''}`}
+      className={`mb-3 flex w-full items-center gap-4 rounded-2xl border border-accent-500/35 bg-accent-500/10 p-4 text-left transition-colors duration-200 hover:border-accent-400/60 hover:bg-accent-500/[0.14] ${isAtDeviceLimit ? 'cursor-not-allowed opacity-50' : ''}`}
       data-onboarding="connect-devices"
       style={{ fontFamily: 'inherit' }}
     >
       {/* Monitor icon */}
-      <div
-        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors duration-500"
-        style={{ background: `rgba(${zone.mainVarRaw}, 0.07)`, color: zone.mainVar }}
-      >
-        <MonitorIcon className="h-4 w-4" />
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent-500/15 text-accent-300">
+        <MonitorIcon className="h-[18px] w-[18px]" />
       </div>
 
       {/* Text */}
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold tracking-tight text-dark-50">
+        <div className="text-[15px] font-bold tracking-tight text-dark-50">
           {t('dashboard.connectDevice')}
         </div>
-        <div className="mt-0.5 text-[11px] text-dark-400">
+        <div className="mt-0.5 text-xs text-dark-400">
           {subscription.device_limit === 0
             ? t('dashboard.devicesConnectedUnlimited', { used: connectedDevices })
             : t('dashboard.devicesOfMax', {
@@ -111,8 +103,7 @@ export default function ConnectDeviceTile({
               key={i}
               className="h-[7px] w-[7px] rounded-full transition-all duration-300"
               style={{
-                background: i < connectedDevices ? zone.mainVar : g.textGhost,
-                boxShadow: i < connectedDevices ? `0 0 6px rgba(${zone.mainVarRaw}, 0.31)` : 'none',
+                background: i < connectedDevices ? 'rgb(var(--color-accent-400))' : g.textGhost,
               }}
             />
           ))}
@@ -127,14 +118,16 @@ export default function ConnectDeviceTile({
               className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${Math.round((connectedDevices / subscription.device_limit) * 100)}%`,
-                background: zone.mainVar,
-                boxShadow: `0 0 8px rgba(${zone.mainVarRaw}, 0.25)`,
+                background: 'rgb(var(--color-accent-400))',
                 minWidth: connectedDevices > 0 ? '4px' : '0px',
               }}
             />
           </div>
         </div>
       )}
-    </HoverBorderGradient>
+      <span className="flex-shrink-0 text-lg text-dark-400" aria-hidden="true">
+        &rsaquo;
+      </span>
+    </button>
   );
 }

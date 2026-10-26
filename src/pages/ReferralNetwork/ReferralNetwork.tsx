@@ -47,7 +47,7 @@ export function ReferralNetwork() {
   return createPortal(
     <div
       id="referral-network-container"
-      className="fixed inset-x-0 bottom-0 z-50 grid grid-rows-[auto_1fr] bg-[#0a0a0f] lg:!top-14"
+      className="fixed inset-x-0 bottom-0 z-50 grid grid-rows-[auto_1fr] bg-[#0a0a0f] lg:!left-60 lg:!top-0"
       style={
         {
           top: mobileHeaderHeight,
