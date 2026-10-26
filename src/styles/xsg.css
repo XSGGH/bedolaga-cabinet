@@ -234,7 +234,8 @@ html:not(.light) [role="dialog"] {
 }
 
 /* Подписка: строки внутри одной карточки — без вложенных рамок, с разделителями */
-html:not(.light) .xsg-autopay > div,
+html:not(.light) .xsg-autopay > div:first-child,
+html:not(.light) .xsg-autopay .xsg-rec-body > div,
 html:not(.light) .xsg-options .xsg-row > :is(button, div) {
   background: transparent !important;
   border: 0 !important;
@@ -244,20 +245,17 @@ html:not(.light) .xsg-options .xsg-row > :is(button, div) {
   padding-right: 0 !important;
 }
 
-html:not(.light) .xsg-autopay > div {
+html:not(.light) .xsg-autopay > div:first-child {
+  margin: 0 !important;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+}
+
+html:not(.light) .xsg-autopay .xsg-rec-body > div {
   margin: 0 !important;
   padding-top: 15px !important;
   padding-bottom: 15px !important;
-  border-bottom: 1px solid var(--xsg-line) !important;
-}
-
-html:not(.light) .xsg-autopay > div:last-child {
-  border-bottom: 0 !important;
-  padding-bottom: 0 !important;
-}
-
-html:not(.light) .xsg-autopay > div:first-child {
-  padding-top: 0 !important;
+  border-top: 1px solid var(--xsg-line) !important;
 }
 
 html:not(.light) .xsg-options .xsg-row {
@@ -283,4 +281,65 @@ html:not(.light) .xsg-balance-hero::before {
   inset: 0 auto 0 0;
   width: 3px;
   background: rgb(var(--color-accent-500));
+}
+
+/* ── Подписка (мобильный макет v2) ── */
+html:not(.light) .xsg-linkrow > button {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+html:not(.light) .xsg-linkrow > button > div > div > div:nth-child(1) {
+  color: rgb(var(--color-accent-300));
+  font-size: 14px;
+  font-weight: 600;
+}
+html:not(.light) .xsg-linkrow > button > div > div > div:nth-child(2) {
+  display: none;
+}
+/* два действия под списком устройств: подписи по центру, без пояснений */
+html:not(.light) .xsg-devactions > button {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+html:not(.light) .xsg-devactions > button > div {
+  justify-content: center;
+}
+html:not(.light) .xsg-devactions > button > div > div > div:nth-child(1) {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgb(var(--color-accent-300));
+  text-align: center;
+}
+html:not(.light) .xsg-devactions > button:last-child > div > div > div:nth-child(1) {
+  color: rgb(var(--color-dark-300));
+}
+html:not(.light) .xsg-devactions > button > div > div > div:nth-child(2),
+html:not(.light) .xsg-devactions > button > div > svg {
+  display: none;
+}
+/* список устройств: строки с разделителями вместо плиток */
+html:not(.light) .xsg-devices .space-y-2 > div[style] {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--xsg-line) !important;
+  border-radius: 0 !important;
+  padding: 13px 0 !important;
+}
+html:not(.light) .xsg-devices .space-y-2 > div[style]:last-child {
+  border-bottom: 0 !important;
+}
+/* автопродление: переключатель и свёрнутые способы */
+html:not(.light) .xsg-autopay .xsg-rec {
+  border-top: 1px solid var(--xsg-line);
+}
+html:not(.light) .xsg-autopay .xsg-rec:has(.xsg-rec-body:empty) {
+  display: none;
 }

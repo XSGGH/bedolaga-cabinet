@@ -133,7 +133,7 @@ export default function TrafficProgressBar({
       {/* Scale labels */}
       {!compact && limitGb > 0 && (
         <div
-          className="mt-2 flex justify-between px-0.5 text-[11px] font-medium tabular-nums text-dark-500"
+          className="mt-2 hidden justify-between sm:flex px-0.5 text-[11px] font-medium tabular-nums text-dark-500"
           aria-hidden="true"
         >
           {[0, 25, 50, 75, 100].map((v) => (
