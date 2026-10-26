@@ -14,6 +14,13 @@ interface PublicServer {
   uptime30: number | null;
   load: number[];
   loadNow?: number;
+  /** Итог проверки мобильного сервера из сетей операторов РФ (дополняет обычную доступность). */
+  mobile?: {
+    ok: number;
+    total: number;
+    at?: number;
+    ops: { op: string; ok: number; total: number }[];
+  };
 }
 
 interface PublicStatus {
@@ -107,6 +114,42 @@ const GREEN = 'rgb(var(--color-success-400))';
 const RED = 'rgb(var(--color-critical-500))';
 const AMBER = 'rgb(var(--color-warning-400))';
 
+/** Часовая подпись «HH:00» для момента `hoursAgo` часов назад. */
+function hourLabel(hoursAgo: number): string {
+  const d = new Date(Date.now() - hoursAgo * 3600_000);
+  return `${String(d.getHours()).padStart(2, '0')}:00`;
+}
+
+function MobileLine({ m, label }: { m: NonNullable<PublicServer['mobile']>; label: string }) {
+  const ratio = m.total > 0 ? m.ok / m.total : 0;
+  const color = ratio >= 0.95 ? GREEN : ratio > 0 ? AMBER : RED;
+  const detail = m.ops.map((o) => `${o.op}: ${o.ok}/${o.total}`).join(' · ');
+  return (
+    <span
+      className="flex items-center gap-1.5 text-[11px] leading-none text-dark-400"
+      title={`${label}\n${detail}`}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        className="h-3 w-3 shrink-0"
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="7" y="2" width="10" height="20" rx="2.5" />
+        <path d="M11 18h2" />
+      </svg>
+      <span className="truncate">{label}</span>
+      <span className="tabular-nums" style={{ color }}>
+        {m.ok}/{m.total}
+      </span>
+    </span>
+  );
+}
+
 /**
  * Блок «Статус серверов» на главной: общий статус, общая нагрузка за сутки и
  * по каждой локации — онлайн/недоступен, аптайм за 30 дней и мини-график.
@@ -164,33 +207,39 @@ export default function ServerStatus() {
         </a>
       </div>
 
-      <div className="grid gap-3 rounded-2xl border border-[var(--xsg-line)] bg-dark-900/60 p-4 sm:grid-cols-[200px_minmax(0,1fr)] sm:items-center sm:gap-7 sm:px-5">
+      <div className="grid gap-3 rounded-2xl border border-[var(--xsg-line)] bg-dark-900/60 p-4 sm:grid-cols-[180px_minmax(0,1fr)] sm:items-center sm:gap-6 sm:px-5">
         <div className="flex items-baseline justify-between sm:block">
           <div className="xsg-eyebrow">{t('dashboard.serverStatus.load', 'Общая нагрузка')}</div>
-          <div className="sm:mt-2">
-            <span className="text-[26px] font-extrabold tabular-nums text-dark-50 sm:text-[32px]">
+          <div className="sm:mt-1.5">
+            <span className="text-[26px] font-extrabold tabular-nums text-dark-50 sm:text-[30px]">
               {data.load.now}
             </span>
             <span className="ml-0.5 text-sm text-dark-400">%</span>
-            <div className="mt-0.5 hidden text-xs text-dark-400 sm:block">
-              {t('dashboard.serverStatus.last24h', 'за последние 24 часа')}
-            </div>
           </div>
         </div>
-        <Spark
-          values={data.load.series}
-          color="rgb(var(--color-accent-500))"
-          height={64}
-          label={t('dashboard.serverStatus.loadChart', 'График общей нагрузки за 24 часа')}
-          area
-          id="srv-load-area"
-        />
+        <div>
+          <Spark
+            values={data.load.series}
+            color="rgb(var(--color-accent-500))"
+            height={60}
+            label={t('dashboard.serverStatus.loadChart', 'График общей нагрузки за 24 часа')}
+            area
+            id="srv-load-area"
+          />
+          <div className="mt-1.5 flex justify-between text-[10.5px] tabular-nums text-dark-500">
+            <span>{hourLabel(24)}</span>
+            <span>{hourLabel(18)}</span>
+            <span>{hourLabel(12)}</span>
+            <span>{hourLabel(6)}</span>
+            <span>{t('dashboard.serverStatus.now', 'сейчас')}</span>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-0 lg:grid-cols-5 lg:gap-3">
+      <div className="grid gap-0 lg:grid-cols-4 lg:gap-3 xl:grid-cols-4">
         {data.servers.map((s) => {
           const color = s.maintenance ? AMBER : s.online ? GREEN : RED;
-          const label = s.maintenance
+          const state = s.maintenance
             ? t('dashboard.serverStatus.maintenance', 'работы')
             : s.online
               ? t('dashboard.serverStatus.online', 'онлайн')
@@ -198,31 +247,39 @@ export default function ServerStatus() {
           return (
             <div
               key={s.name}
-              className="grid grid-cols-[minmax(0,1fr)_96px] items-center gap-3 border-t border-[var(--xsg-line)] py-3 lg:grid-cols-1 lg:gap-2.5 lg:rounded-[14px] lg:border lg:bg-dark-900/60 lg:p-4"
+              className="grid grid-cols-[minmax(0,1fr)_92px] items-center gap-3 border-t border-[var(--xsg-line)] py-2.5 lg:grid-cols-1 lg:gap-2 lg:rounded-[14px] lg:border lg:bg-dark-900/60 lg:px-3.5 lg:py-3"
             >
-              <div className="flex min-w-0 flex-col gap-1 lg:gap-2.5">
+              <div className="flex min-w-0 flex-col gap-1.5">
                 <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ background: color, boxShadow: `0 0 8px ${color}` }}
+                    title={state}
+                    role="img"
+                    aria-label={state}
+                  />
                   <b className="truncate text-sm text-dark-50">{s.name}</b>
                 </span>
-                <span className="flex flex-wrap items-center justify-between gap-x-2 pl-4 text-xs text-dark-300 lg:pl-0">
-                  <span className="font-semibold" style={{ color }}>
-                    {label}
-                  </span>
-                  {s.uptime30 != null && (
-                    <span className="tabular-nums">
-                      {s.uptime30.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} %
-                    </span>
-                  )}
-                </span>
+                {s.mobile && (
+                  <MobileLine
+                    m={s.mobile}
+                    label={t('dashboard.serverStatus.mobile', 'Мобильные операторы')}
+                  />
+                )}
               </div>
-              <Spark
-                values={s.load}
-                color={s.online ? 'rgb(var(--color-accent-500))' : RED}
-                height={30}
-                label={`${t('dashboard.serverStatus.loadOf', 'Нагрузка')}: ${s.name}`}
-                id={`srv-${s.name}`}
-              />
+              <div>
+                <Spark
+                  values={s.load}
+                  color={s.online ? 'rgb(var(--color-accent-500))' : RED}
+                  height={28}
+                  label={`${t('dashboard.serverStatus.loadOf', 'Нагрузка')}: ${s.name}`}
+                  id={`srv-${s.name}`}
+                />
+                <div className="mt-0.5 flex justify-between text-[9.5px] tabular-nums text-dark-500">
+                  <span>{hourLabel(24)}</span>
+                  <span>{t('dashboard.serverStatus.now', 'сейчас')}</span>
+                </div>
+              </div>
             </div>
           );
         })}
