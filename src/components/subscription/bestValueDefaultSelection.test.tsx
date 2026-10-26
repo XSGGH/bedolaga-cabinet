@@ -90,7 +90,7 @@ afterEach(() => {
 // Признак выбора у покупки — заливка accent; рамка выбранного варианта
 // остаётся жёлтой, если оператор отметил его выгодным.
 const SELECTED = 'bg-accent-500/10';
-const BEST_VALUE_RING = 'border-urgent-400';
+const BEST_VALUE_RING = 'border-accent-300';
 // Продление красит рамку и заливку инлайновым стилем, а не классом.
 const SELECTED_BORDER = '--color-accent-400';
 
@@ -119,7 +119,7 @@ describe('покупка: выбранный по умолчанию перио�
     expect(harness.cardFor('12 месяцев').className).not.toContain(SELECTED);
   });
 
-  it('выбранный выгодный период сохраняет жёлтый контур: выбран И выгоден', async () => {
+  it('выбранный выгодный период сохраняет контур «Выгодно»: выбран И выгоден', async () => {
     const harness = await import('./purchase/tariffPurchaseHarness');
     harness.render([
       harness.period({ days: 30, label: '1 месяц' }),
@@ -162,7 +162,7 @@ describe('продление: выбранный по умолчанию пер�
 
     // Рамка выбранного выгодного остаётся жёлтой, выбор виден заливкой и
     // внутренним контуром — обе метки сразу.
-    expect(cardFor(360).style.borderColor).toContain('--color-urgent-400');
+    expect(cardFor(360).style.borderColor).toContain('--color-accent-300');
     expect(cardFor(360).style.background).toContain(SELECTED_BORDER);
     expect(cardFor(30).style.background).not.toContain(SELECTED_BORDER);
   });
