@@ -39,7 +39,12 @@ html:not(.light) {
 }
 
 html:not(.light) body {
-  background-color: rgb(6 3 12);
+  /* Фон чуть светлее и с мягким фиолетовым свечением — чтобы не был «чёрной ямой» */
+  background-color: rgb(12 7 24);
+  background-image:
+    radial-gradient(1000px 560px at 72% -6%, rgba(125, 70, 230, 0.22), transparent 70%),
+    radial-gradient(800px 520px at 0% 105%, rgba(90, 45, 180, 0.16), transparent 70%);
+  background-attachment: fixed;
 }
 
 /* Поверхности */
