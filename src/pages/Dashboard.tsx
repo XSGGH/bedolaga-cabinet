@@ -17,6 +17,7 @@ import SubscriptionCardExpired from '../components/dashboard/SubscriptionCardExp
 import { hasLegacySubscription } from '../utils/legacySubscription';
 import TrialOfferCard from '../components/dashboard/TrialOfferCard';
 import ReminderCards from '../components/dashboard/ReminderCards';
+import ServerStatus from '../components/dashboard/ServerStatus';
 import StatsGrid from '../components/dashboard/StatsGrid';
 import { giftApi } from '../api/gift';
 import { promoApi } from '../api/promo';
@@ -470,6 +471,9 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Статус серверов (данные с сайта аптайма) */}
+      <ServerStatus />
 
       {/* Напоминания (админка → Напоминания) */}
       <ReminderCards />
