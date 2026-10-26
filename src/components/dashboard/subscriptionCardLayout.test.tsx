@@ -103,10 +103,10 @@ describe('ряд «Тариф» + «Осталось»', () => {
   it('имя тарифа сжимается, а «Осталось» не выталкивается за край', async () => {
     const container = await renderCard(subscription());
 
-    const row = container.querySelector('.mb-7.flex.items-end');
+    const row = container.querySelector('.mb-6.flex.items-end');
     expect(row).toBeTruthy();
     const [tariff, days] = [...(row?.children ?? [])];
-    expect(row?.children).toHaveLength(2);
+    expect(row?.children).toHaveLength(3);
     expect(tariff?.className).toContain('min-w-0');
     expect(tariff?.className).toContain('flex-1');
     expect(days?.className).toContain('shrink-0');

@@ -166,7 +166,7 @@ html:not(.light) .input {
     rgba(var(--color-accent-800), 0.9) 48%,
     rgb(var(--color-dark-900)) 100%
   );
-  padding: 22px;
+  padding: 16px 18px;
   transition: border-color 0.15s;
 }
 

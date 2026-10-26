@@ -299,7 +299,6 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold tracking-tight text-dark-50 sm:text-[32px] sm:leading-tight">
             {userName ? t('dashboard.welcome', { name: userName }) : t('dashboard.welcomeNoName')}
           </h1>
-          <p className="mt-2 text-sm text-dark-400">{t('dashboard.yourSubscription')}</p>
         </div>
         {promoGroupData?.group_name && (
           <span
@@ -319,7 +318,7 @@ export default function Dashboard() {
       {/* Pending Gift Activations */}
       {pendingGifts && pendingGifts.length > 0 && <PendingGiftCard gifts={pendingGifts} />}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+      <div className="space-y-6">
         <div className="min-w-0 space-y-6">
           {/* Multi-tariff: show subscription cards (max 3) — только когда подписки
           реально есть. Пустой случай (нет подписок) ведёт блок ниже (триал/покупка),
@@ -439,10 +438,8 @@ export default function Dashboard() {
           <PromoOffersSection />
         </div>
 
-        {/* Правая колонка на десктопе: баланс, рефералы и колесо; на телефоне
-          идёт следом за карточкой подписки. */}
-        <div className="min-w-0 space-y-4">
-          {/* Stats Grid */}
+        {/* Плитки под карточкой подписки: баланс, рефералы, колесо — в один ряд. */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4">
           <StatsGrid
             balanceRubles={balanceData?.balance_rubles || 0}
             referralCount={referralInfo?.total_referrals || 0}
@@ -452,21 +449,23 @@ export default function Dashboard() {
 
           {/* Fortune Wheel Banner */}
           {wheelConfig?.is_enabled && (
-            <Link to="/wheel" className="xsg-wheel group block">
+            <Link to="/wheel" className="xsg-wheel group col-span-2 block lg:col-span-1">
               <div className="relative flex items-center gap-3.5">
                 <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/25">
                   <WheelIcon className="h-6 w-6" />
                 </span>
-                <h3 className="min-w-0 flex-1 text-lg font-extrabold tracking-tight text-white">
-                  {t('wheel.banner.title')}
-                </h3>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-lg font-extrabold tracking-tight text-white">
+                    {t('wheel.banner.title')}
+                  </h3>
+                  <p className="mt-0.5 text-[13px] leading-snug text-white/80 lg:hidden">
+                    {t('wheel.banner.description')}
+                  </p>
+                </div>
                 <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/15 text-white transition-transform duration-300 group-hover:translate-x-0.5">
                   <ChevronRightIcon className="h-4 w-4" />
                 </span>
               </div>
-              <p className="relative mt-3 text-[13px] leading-relaxed text-white/80">
-                {t('wheel.banner.description')}
-              </p>
             </Link>
           )}
         </div>

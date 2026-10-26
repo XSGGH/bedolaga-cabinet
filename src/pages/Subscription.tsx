@@ -640,21 +640,23 @@ export default function Subscription() {
                         <h3 className="text-base font-bold tracking-tight text-dark-50">
                           {t('dashboard.trafficUsageTitle')}
                         </h3>
-                        <span
-                          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
-                          style={{
-                            color: `rgb(${pillRaw})`,
-                            background: `rgba(${pillRaw}, 0.12)`,
-                            border: `1px solid rgba(${pillRaw}, 0.35)`,
-                          }}
-                        >
+                        {(isUnlimited || zone.colorKey !== 'accent') && (
                           <span
-                            className="h-1.5 w-1.5 rounded-full"
-                            style={{ background: `rgb(${pillRaw})` }}
-                            aria-hidden="true"
-                          />
-                          {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
-                        </span>
+                            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
+                            style={{
+                              color: `rgb(${pillRaw})`,
+                              background: `rgba(${pillRaw}, 0.12)`,
+                              border: `1px solid rgba(${pillRaw}, 0.35)`,
+                            }}
+                          >
+                            <span
+                              className="h-1.5 w-1.5 rounded-full"
+                              style={{ background: `rgb(${pillRaw})` }}
+                              aria-hidden="true"
+                            />
+                            {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
+                          </span>
+                        )}
                       </div>
                       <button
                         onClick={() => refreshTrafficMutation.mutate()}
@@ -790,7 +792,7 @@ export default function Subscription() {
 
           <div className="order-3 empty:hidden">
             {/* Daily Subscription Pause */}
-            {subscription && subscription.is_daily && !subscription.is_trial && (
+            {subscription?.is_daily && !subscription.is_trial && (
               <div
                 className="relative overflow-hidden rounded-[20px]"
                 style={{

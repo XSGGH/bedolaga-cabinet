@@ -22,16 +22,16 @@ export default function StatsGrid({
 
   const chevron = <ChevronRightIcon className="h-4 w-4 shrink-0 text-dark-500" />;
   const tile =
-    'block h-full rounded-2xl border border-[var(--xsg-line)] bg-dark-800 p-5 transition-colors hover:border-[var(--xsg-line-strong)]';
+    'block h-full rounded-2xl border border-[var(--xsg-line)] bg-dark-800 p-4 transition-colors hover:border-[var(--xsg-line-strong)]';
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
+    <>
       <Link to="/balance" className={tile} data-onboarding="balance">
         <div className="flex items-center justify-between gap-2">
           <span className="xsg-eyebrow">{t('dashboard.stats.balance')}</span>
           {chevron}
         </div>
-        <div className="mt-3 text-[28px] font-bold leading-none tracking-tight tabular-nums text-dark-50 [overflow-wrap:anywhere]">
+        <div className="mt-2.5 text-[22px] font-bold leading-none tracking-tight tabular-nums text-dark-50 [overflow-wrap:anywhere]">
           {formatAmount(balanceRubles)}
           <span className="ml-1.5 text-accent-400">{currencySymbol}</span>
         </div>
@@ -42,10 +42,10 @@ export default function StatsGrid({
           {chevron}
         </div>
         {refLoading ? (
-          <Skeleton className="mt-3 h-7 w-20 rounded" />
+          <Skeleton className="mt-2.5 h-6 w-20 rounded" />
         ) : (
-          <div className="mt-3 flex items-baseline gap-2.5">
-            <span className="text-[28px] font-bold leading-none tabular-nums text-dark-50">
+          <div className="mt-2.5 flex items-baseline gap-2.5">
+            <span className="text-[22px] font-bold leading-none tabular-nums text-dark-50">
               {referralCount}
             </span>
             <span className="text-xs tabular-nums text-dark-400">
@@ -54,6 +54,6 @@ export default function StatsGrid({
           </div>
         )}
       </Link>
-    </div>
+    </>
   );
 }

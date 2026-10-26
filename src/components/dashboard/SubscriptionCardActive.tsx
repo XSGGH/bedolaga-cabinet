@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
+import { copyToClipboard } from '@/utils/clipboard';
 import { uiLocale } from '@/utils/uiLocale';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import type { UseMutationResult } from '@tanstack/react-query';
 import TrafficProgressBar from './TrafficProgressBar';
 import Sparkline from './Sparkline';
@@ -10,7 +12,14 @@ import { useTheme } from '../../hooks/useTheme';
 import { useTrafficZone } from '../../hooks/useTrafficZone';
 import { formatTraffic } from '../../utils/formatTraffic';
 import { getGlassColors } from '../../utils/glassTheme';
-import { CalendarIcon, RefreshIcon, SparklesIcon } from '@/components/icons';
+import {
+  CalendarIcon,
+  CheckIcon,
+  CopyIcon,
+  MonitorIcon,
+  RefreshIcon,
+  SparklesIcon,
+} from '@/components/icons';
 import type { Subscription } from '../../types';
 
 interface SubscriptionCardActiveProps {
@@ -33,6 +42,19 @@ export default function SubscriptionCardActive({
   connectedDevices,
 }: SubscriptionCardActiveProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [copied, setCopied] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => setIsDesktop(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  const isAtDeviceLimit =
+    subscription.device_limit > 0 && connectedDevices >= subscription.device_limit;
   const { isDark } = useTheme();
   const g = getGlassColors(isDark);
 
@@ -71,13 +93,12 @@ export default function SubscriptionCardActive({
       />
 
       <div className="p-6 sm:p-8">
-        {/* ─── Тариф и остаток — самое важное, поэтому первым и крупно ─── */}
-        {/* `min-w-0` нужен обеим колонкам: без него длинное имя тарифа
-            («🟡 Компания - 10 устройств») выпихивает «Осталось» за край. */}
-        <div className="mb-7 flex items-end justify-between gap-5">
+        {/* ─── Тариф и остаток ─── */}
+        {/* На десктопе — три равные колонки-«факта» с вертикальными разделителями. */}
+        <div className="mb-6 flex items-end justify-between gap-5 lg:grid lg:grid-cols-3 lg:items-stretch lg:gap-0">
           <Link
             to={`/subscriptions/${subscription.id}`}
-            className="min-w-0 flex-1 transition-opacity hover:opacity-90"
+            className="min-w-0 flex-1 transition-opacity hover:opacity-90 lg:pr-8"
           >
             <div className="xsg-eyebrow mb-2 flex items-center gap-2">
               {t('dashboard.tariff')}
@@ -88,7 +109,7 @@ export default function SubscriptionCardActive({
                 </span>
               )}
             </div>
-            <div className="line-clamp-2 min-w-0 break-words text-2xl font-bold leading-tight tracking-tight text-dark-50 sm:text-[32px]">
+            <div className="line-clamp-2 min-w-0 break-words text-2xl font-bold leading-tight tracking-tight text-dark-50 sm:text-[30px]">
               {subscription.tariff_name || t('subscription.currentPlan')}
             </div>
             <div className="mt-1.5 text-[13px] text-dark-400">
@@ -96,12 +117,12 @@ export default function SubscriptionCardActive({
             </div>
           </Link>
 
-          <div className="shrink-0 text-right">
-            <div className="xsg-eyebrow mb-2 flex items-center justify-end gap-1.5">
+          <div className="shrink-0 text-right lg:border-l lg:border-accent-500/15 lg:px-8 lg:text-left">
+            <div className="xsg-eyebrow mb-2 flex items-center justify-end gap-1.5 lg:justify-start">
               <CalendarIcon className="h-3.5 w-3.5" />
               {t('dashboard.remaining')}
             </div>
-            <div className="flex items-baseline justify-end gap-1.5">
+            <div className="flex items-baseline justify-end gap-1.5 lg:justify-start">
               <span
                 className="text-[32px] font-bold leading-none tracking-tight tabular-nums"
                 style={{
@@ -115,6 +136,19 @@ export default function SubscriptionCardActive({
               </span>
             </div>
           </div>
+
+          {/* Устройства — только десктоп (на телефоне это плитка подключения ниже) */}
+          <div className="hidden border-l border-accent-500/15 pl-8 lg:block">
+            <div className="xsg-eyebrow mb-2 flex items-center gap-1.5">
+              <MonitorIcon className="h-3.5 w-3.5" />
+              {t('subscription.myDevices')}
+            </div>
+            <div className="text-[30px] font-bold leading-none tracking-tight tabular-nums text-dark-50">
+              {subscription.device_limit === 0
+                ? connectedDevices
+                : `${connectedDevices} / ${subscription.device_limit}`}
+            </div>
+          </div>
         </div>
 
         <div aria-hidden="true" className="mb-6 h-px bg-accent-500/15" />
@@ -125,21 +159,25 @@ export default function SubscriptionCardActive({
             <h2 className="text-base font-bold tracking-tight text-dark-50">
               {t('dashboard.trafficUsageTitle')}
             </h2>
-            <span
-              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
-              style={{
-                color: `rgb(${pillColor})`,
-                background: `rgba(${pillColor}, 0.12)`,
-                border: `1px solid rgba(${pillColor}, 0.35)`,
-              }}
-            >
+            {/* Плашку показываем только когда есть о чём сказать: безлимит или
+                повышенный расход. В спокойной зоне («Норма») она — шум. */}
+            {(isUnlimited || zone.colorKey !== 'accent') && (
               <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ background: `rgb(${pillColor})` }}
-                aria-hidden="true"
-              />
-              {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
-            </span>
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
+                style={{
+                  color: `rgb(${pillColor})`,
+                  background: `rgba(${pillColor}, 0.12)`,
+                  border: `1px solid rgba(${pillColor}, 0.35)`,
+                }}
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: `rgb(${pillColor})` }}
+                  aria-hidden="true"
+                />
+                {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
+              </span>
+            )}
           </div>
 
           <div className="flex items-baseline gap-3 tabular-nums">
@@ -179,11 +217,52 @@ export default function SubscriptionCardActive({
         </div>
 
         {/* ─── Подключить устройство ─── */}
-        <ConnectDeviceTile
-          subscription={subscription}
-          connectedDevices={connectedDevices}
-          usedPercent={usedPercent}
-        />
+        {isDesktop ? (
+          subscription.subscription_url && (
+            <>
+              <div aria-hidden="true" className="mb-6 h-px bg-accent-500/15" />
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  disabled={isAtDeviceLimit}
+                  data-onboarding="connect-devices"
+                  onClick={() => navigate(`/connection?sub=${subscription.id}`)}
+                  className="flex h-12 shrink-0 items-center gap-2.5 rounded-xl bg-accent-500 px-6 text-[15px] font-bold text-on-accent transition-colors hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <MonitorIcon className="h-[18px] w-[18px]" />
+                  {t('dashboard.connectDevice')}
+                </button>
+                <div className="flex h-12 min-w-0 flex-1 items-center rounded-xl border border-[var(--xsg-line)] bg-dark-900 px-4 font-mono text-[13px] text-dark-400">
+                  <span className="truncate">{subscription.subscription_url}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void copyToClipboard(subscription.subscription_url ?? '');
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 1500);
+                  }}
+                  aria-label={t('common.copy', 'Копировать')}
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[var(--xsg-line)] bg-dark-800 text-dark-300 transition-colors hover:border-[var(--xsg-line-strong)] hover:text-dark-50"
+                >
+                  {copied ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+                </button>
+                <Link
+                  to={`/subscriptions/${subscription.id}`}
+                  className="shrink-0 pl-2 text-sm font-semibold text-accent-300 transition-colors hover:text-accent-200"
+                >
+                  {t('dashboard.manageShort', 'Управление')} &rsaquo;
+                </Link>
+              </div>
+            </>
+          )
+        ) : (
+          <ConnectDeviceTile
+            subscription={subscription}
+            connectedDevices={connectedDevices}
+            usedPercent={usedPercent}
+          />
+        )}
 
         {/* ─── Обновить / управление ─── */}
         <div className="mt-1 flex items-center justify-between px-0.5">
@@ -203,7 +282,7 @@ export default function SubscriptionCardActive({
           </button>
           <Link
             to={`/subscriptions/${subscription.id}`}
-            className="text-xs font-semibold text-accent-300 transition-colors hover:text-accent-200"
+            className="text-xs font-semibold text-accent-300 transition-colors hover:text-accent-200 lg:hidden"
           >
             {t('dashboard.viewSubscription')} &rarr;
           </Link>
