@@ -12,6 +12,7 @@ import { getGlassColors } from '../utils/glassTheme';
 import { copyToClipboard } from '../utils/clipboard';
 import { useTheme } from '../hooks/useTheme';
 import { useCloseOnSuccessNotification } from '../store/successNotification';
+import { useIsDesktop } from '../hooks/useIsDesktop';
 import PurchaseCTAButton from '../components/subscription/PurchaseCTAButton';
 import { planTitle, showsAddonOptions } from '../utils/legacySubscription';
 import {
@@ -138,6 +139,7 @@ export default function Subscription() {
   const [targetDeviceLimit, setTargetDeviceLimit] = useState<number>(1);
   const [showTrafficTopup, setShowTrafficTopup] = useState(false);
   const [showRecurring, setShowRecurring] = useState(false);
+  const isDesktop = useIsDesktop();
   const [selectedTrafficPackage, setSelectedTrafficPackage] = useState<number | null>(null);
 
   // Traffic refresh state
@@ -376,6 +378,101 @@ export default function Subscription() {
     </span>
   );
 
+  const autopayInner = subscription ? (
+    <>
+      <AutopayToggle
+        subscription={subscription}
+        subscriptionId={subscriptionId}
+        accentColor={zone.mainHex}
+        offColor={g.textGhost}
+      />
+
+      <div className="xsg-rec">
+        <button
+          type="button"
+          onClick={() => setShowRecurring((v) => !v)}
+          aria-expanded={showRecurring}
+          className="xsg-rec-btn flex min-h-[54px] w-full items-center justify-between gap-3 text-left text-[13.5px] font-semibold text-accent-300"
+        >
+          <span>{t('subscription.recurring.methods', 'Способы автоплатежа')}</span>
+          <ChevronDownIcon
+            className={`h-4 w-4 text-dark-400 transition-transform duration-200 ${showRecurring ? 'rotate-180' : ''}`}
+          />
+        </button>
+        <div className={`xsg-rec-body ${showRecurring ? '' : 'hidden'}`}>
+          <RecurringPanels subscription={subscription} subscriptionId={subscriptionId} />
+        </div>
+      </div>
+    </>
+  ) : null;
+
+  const connectInner = subscription ? (
+    <>
+      {subscription.subscription_url &&
+        (() => {
+          const connectedDevices = devicesData?.total ?? 0;
+          const isAtDeviceLimit =
+            subscription.device_limit > 0 && connectedDevices >= subscription.device_limit;
+          return (
+            <button
+              type="button"
+              disabled={isAtDeviceLimit}
+              onClick={() => {
+                if (isAtDeviceLimit) {
+                  haptic.notification('error');
+                  return;
+                }
+                navigate(subscriptionId ? `/connection?sub=${subscriptionId}` : '/connection');
+              }}
+              className={`flex min-h-16 w-full items-center gap-3.5 rounded-2xl border border-accent-500/40 bg-accent-500/15 px-4 text-left text-dark-50 transition-colors hover:border-accent-400/60 hover:bg-accent-500/25 ${isAtDeviceLimit ? 'cursor-not-allowed opacity-50' : ''}`}
+            >
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent-500/20 text-accent-300">
+                <DevicesIcon className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-base font-extrabold tracking-tight">
+                  {t('dashboard.connectDevice')}
+                </div>
+                <div className="mt-0.5 text-[12.5px] font-medium text-dark-300">
+                  {subscription.device_limit === 0
+                    ? t('dashboard.devicesConnectedUnlimited', { used: connectedDevices })
+                    : t('dashboard.devicesOfMax', {
+                        used: connectedDevices,
+                        max: subscription.device_limit,
+                      })}
+                </div>
+                {isAtDeviceLimit && (
+                  <div className="mt-0.5 text-[11px] font-bold">
+                    {t('dashboard.deviceLimitReached')}
+                  </div>
+                )}
+              </div>
+              <ChevronRightIcon className="h-5 w-5 flex-shrink-0" />
+            </button>
+          );
+        })()}
+      {displayedConnectionUrl && !shouldHideConnectionLink && (
+        <div className="flex gap-2.5">
+          <code
+            className="flex h-12 min-w-0 flex-1 items-center truncate whitespace-nowrap rounded-[14px] px-4 font-mono text-[13px] text-dark-300"
+            style={{ background: g.codeBg, border: `1px solid ${g.codeBorder}` }}
+            title={displayedConnectionUrl}
+          >
+            <span className="truncate">{displayedConnectionUrl}</span>
+          </code>
+          <button
+            onClick={copyUrl}
+            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[14px] border border-accent-500/40 bg-dark-700 text-accent-300 transition-colors hover:border-accent-400"
+            aria-label={t('subscription.copyLink')}
+            title={t('subscription.copyLink')}
+          >
+            {copied ? <CheckIcon /> : <CopyIcon />}
+          </button>
+        </div>
+      )}
+    </>
+  ) : null;
+
   return (
     <div className="space-y-6">
       {/* Page title */}
@@ -393,79 +490,6 @@ export default function Subscription() {
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
         <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-5">
-          {/* Connect device (primary action) + subscription link */}
-          {subscription && (subscription.subscription_url || displayedConnectionUrl) && (
-            <div
-              className="order-2 relative flex flex-col gap-3 overflow-hidden rounded-[20px] p-4"
-              style={{ background: g.cardBg, border: `1px solid ${g.cardBorder}` }}
-            >
-              {subscription.subscription_url &&
-                (() => {
-                  const connectedDevices = devicesData?.total ?? 0;
-                  const isAtDeviceLimit =
-                    subscription.device_limit > 0 && connectedDevices >= subscription.device_limit;
-                  return (
-                    <button
-                      type="button"
-                      disabled={isAtDeviceLimit}
-                      onClick={() => {
-                        if (isAtDeviceLimit) {
-                          haptic.notification('error');
-                          return;
-                        }
-                        navigate(
-                          subscriptionId ? `/connection?sub=${subscriptionId}` : '/connection',
-                        );
-                      }}
-                      className={`flex min-h-16 w-full items-center gap-3.5 rounded-2xl bg-accent-500 px-4 text-left text-on-accent transition-colors hover:bg-accent-400 ${isAtDeviceLimit ? 'cursor-not-allowed opacity-50' : ''}`}
-                    >
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-black/15">
-                        <DevicesIcon className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-base font-extrabold tracking-tight">
-                          {t('dashboard.connectDevice')}
-                        </div>
-                        <div className="mt-0.5 text-[12.5px] font-semibold opacity-75">
-                          {subscription.device_limit === 0
-                            ? t('dashboard.devicesConnectedUnlimited', { used: connectedDevices })
-                            : t('dashboard.devicesOfMax', {
-                                used: connectedDevices,
-                                max: subscription.device_limit,
-                              })}
-                        </div>
-                        {isAtDeviceLimit && (
-                          <div className="mt-0.5 text-[11px] font-bold">
-                            {t('dashboard.deviceLimitReached')}
-                          </div>
-                        )}
-                      </div>
-                      <ChevronRightIcon className="h-5 w-5 flex-shrink-0" />
-                    </button>
-                  );
-                })()}
-              {displayedConnectionUrl && !shouldHideConnectionLink && (
-                <div className="flex gap-2.5">
-                  <code
-                    className="flex h-12 min-w-0 flex-1 items-center truncate whitespace-nowrap rounded-[14px] px-4 font-mono text-[13px] text-dark-300"
-                    style={{ background: g.codeBg, border: `1px solid ${g.codeBorder}` }}
-                    title={displayedConnectionUrl}
-                  >
-                    <span className="truncate">{displayedConnectionUrl}</span>
-                  </code>
-                  <button
-                    onClick={copyUrl}
-                    className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[14px] border border-accent-500/40 bg-dark-700 text-accent-300 transition-colors hover:border-accent-400"
-                    aria-label={t('subscription.copyLink')}
-                    title={t('subscription.copyLink')}
-                  >
-                    {copied ? <CheckIcon /> : <CopyIcon />}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Current Subscription */}
           {subscription ? (
             (() => {
@@ -559,15 +583,6 @@ export default function Subscription() {
                       </div>
                     </div>
                   )}
-
-                  {/* ─── Продлить: на телефоне сразу в карточке тарифа ─── */}
-                  <div className="mb-6 lg:hidden">
-                    <PurchaseCTAButton
-                      subscription={subscription}
-                      isMultiTariff={isMultiTariff}
-                      inline
-                    />
-                  </div>
 
                   {/* ─── Trial Info Banner ─── */}
                   {subscription.is_trial && subscription.is_active && (
@@ -796,6 +811,20 @@ export default function Subscription() {
                       />
                     </div>
                   )}
+
+                  {/* ─── Продлить + автопродление: на телефоне внизу карточки тарифа ─── */}
+                  <div className="mt-4 lg:hidden">
+                    <PurchaseCTAButton
+                      subscription={subscription}
+                      isMultiTariff={isMultiTariff}
+                      inline
+                    />
+                  </div>
+                  {!isDesktop && (
+                    <div className="xsg-autopay mt-4 border-t border-accent-500/15">
+                      {autopayInner}
+                    </div>
+                  )}
                 </div>
               );
             })()
@@ -846,6 +875,11 @@ export default function Subscription() {
                   boxShadow: g.shadow,
                 }}
               >
+                {(subscription.subscription_url || displayedConnectionUrl) && (
+                  <div className="flex flex-col gap-3 border-b border-accent-500/15 p-4">
+                    {connectInner}
+                  </div>
+                )}
                 <div className="px-5 pt-5 sm:px-7 sm:pt-6">
                   <DevicesPanel subscription={subscription} subscriptionId={subscriptionId} />
                 </div>
@@ -890,8 +924,8 @@ export default function Subscription() {
             <PurchaseCTAButton subscription={subscription} isMultiTariff={isMultiTariff} />
           </div>
 
-          {/* Autopay + recurring (способы автоплатежа свёрнуты) */}
-          {subscription && (
+          {/* Autopay + recurring (способы автоплатежа свёрнуты) — на телефоне внутри карточки тарифа */}
+          {isDesktop && subscription && (
             <div
               className="xsg-autopay order-6 relative overflow-hidden rounded-[20px] empty:hidden"
               style={{
@@ -900,29 +934,7 @@ export default function Subscription() {
                 padding: '0 20px',
               }}
             >
-              <AutopayToggle
-                subscription={subscription}
-                subscriptionId={subscriptionId}
-                accentColor={zone.mainHex}
-                offColor={g.textGhost}
-              />
-
-              <div className="xsg-rec">
-                <button
-                  type="button"
-                  onClick={() => setShowRecurring((v) => !v)}
-                  aria-expanded={showRecurring}
-                  className="xsg-rec-btn flex min-h-[54px] w-full items-center justify-between gap-3 text-left text-[13.5px] font-semibold text-accent-300"
-                >
-                  <span>{t('subscription.recurring.methods', 'Способы автоплатежа')}</span>
-                  <ChevronDownIcon
-                    className={`h-4 w-4 text-dark-400 transition-transform duration-200 ${showRecurring ? 'rotate-180' : ''}`}
-                  />
-                </button>
-                <div className={`xsg-rec-body ${showRecurring ? '' : 'hidden'}`}>
-                  <RecurringPanels subscription={subscription} subscriptionId={subscriptionId} />
-                </div>
-              </div>
+              {autopayInner}
             </div>
           )}
 
