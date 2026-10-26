@@ -448,7 +448,7 @@
     "trafficUsed": "Traffic used",
     "timeLeft": "Time left",
     "getConfig": "Connect Devices",
-    "autoRenewal": "Auto-renewal",
+    "autoRenewal": "Auto-renewal from balance",
     "daysBeforeExpiry": "days before expiry",
     "daysBeforeExpiry_one": "{{count}} day before expiry",
     "daysBeforeExpiry_other": "{{count}} days before expiry",

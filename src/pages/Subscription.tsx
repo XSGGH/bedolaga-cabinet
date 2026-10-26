@@ -12,6 +12,7 @@ import { getGlassColors } from '../utils/glassTheme';
 import { copyToClipboard } from '../utils/clipboard';
 import { useTheme } from '../hooks/useTheme';
 import { useCloseOnSuccessNotification } from '../store/successNotification';
+import CollapsibleSection from '../components/subscription/CollapsibleSection';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import PurchaseCTAButton from '../components/subscription/PurchaseCTAButton';
 import { planTitle, showsAddonOptions } from '../utils/legacySubscription';
@@ -497,21 +498,22 @@ export default function Subscription() {
               const isUnlimited =
                 (trafficData?.is_unlimited ?? false) || subscription.traffic_limit_gb === 0;
               return (
-                <div
-                  className="relative order-1 overflow-hidden rounded-[20px] p-5 sm:p-8"
-                  style={{
-                    background: g.cardBg,
-                    border: subscription.is_trial
-                      ? '1px solid rgba(var(--color-accent-400), 0.15)'
-                      : isDark
-                        ? `1px solid ${g.cardBorder}`
-                        : `1px solid ${zone.mainHex}25`,
-                    boxShadow: isDark
-                      ? g.shadow
-                      : `0 2px 16px ${zone.mainHex}12, 0 0 0 1px ${zone.mainHex}08`,
-                  }}
-                >
-                  {/* Decorative ambient radial + trial shimmer border were
+                <>
+                  <div
+                    className="relative order-1 overflow-hidden rounded-[20px] p-5 sm:p-8"
+                    style={{
+                      background: g.cardBg,
+                      border: subscription.is_trial
+                        ? '1px solid rgba(var(--color-accent-400), 0.15)'
+                        : isDark
+                          ? `1px solid ${g.cardBorder}`
+                          : `1px solid ${zone.mainHex}25`,
+                      boxShadow: isDark
+                        ? g.shadow
+                        : `0 2px 16px ${zone.mainHex}12, 0 0 0 1px ${zone.mainHex}08`,
+                    }}
+                  >
+                    {/* Decorative ambient radial + trial shimmer border were
                   removed: they carried no information, leaked zone/accent
                   hue into pure decoration (violates DESIGN.md
                   Tunable-but-Scarce + Status-Hue Lockout rules), and the
@@ -519,313 +521,364 @@ export default function Subscription() {
                   earlier in this branch. Trial state is conveyed by the
                   header badge. */}
 
-                  {/* ─── Header ─── */}
-                  <div className="mb-4 flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="xsg-eyebrow mb-2">{t('dashboard.tariff')}</div>
-                      <h2 className="break-words text-[28px] font-bold leading-tight tracking-tight text-dark-50 sm:text-[32px]">
-                        {planTitle(subscription, t)}
-                      </h2>
-                    </div>
-                    <CountdownTimer
-                      endDate={subscription.end_date}
-                      isActive={subscription.is_active || subscription.is_limited}
-                      glassColors={g}
-                    />
-                  </div>
-                  <div className="mb-5 flex items-center justify-between gap-3 text-[12.5px] text-dark-400">
-                    <span>
-                      {t('subscription.expiresAt')}{' '}
-                      {new Date(subscription.end_date).toLocaleDateString(uiLocale(), {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                    </span>
-                    <CountdownTimer
-                      part="time"
-                      endDate={subscription.end_date}
-                      isActive={subscription.is_active || subscription.is_limited}
-                      glassColors={g}
-                    />
-                  </div>
-
-                  <div aria-hidden="true" className="-mx-5 mb-5 h-px bg-accent-500/15 sm:-mx-8" />
-
-                  {/* ─── Traffic Limited Banner ─── */}
-                  {subscription.is_limited && (
-                    <div
-                      className="mb-6 rounded-[14px] p-4"
-                      style={{
-                        background:
-                          'linear-gradient(135deg, rgba(255,184,0,0.08), rgba(255,184,0,0.03))',
-                        border: '1px solid rgba(255,184,0,0.2)',
-                      }}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px]"
-                          style={{ background: 'rgba(255,184,0,0.12)' }}
-                        >
-                          <WarningIcon className="h-4 w-4 text-urgent-400" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p
-                            className="text-sm font-semibold"
-                            style={{ color: 'rgb(var(--color-urgent-400))' }}
-                          >
-                            {t('subscription.trafficLimitedTitle')}
-                          </p>
-                          <p className="mt-1 text-xs text-dark-400">
-                            {t('subscription.trafficLimitedDescription')}
-                          </p>
-                        </div>
+                    {/* ─── Header ─── */}
+                    <div className="mb-4 flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="xsg-eyebrow mb-2">{t('dashboard.tariff')}</div>
+                        <h2 className="break-words text-[28px] font-bold leading-tight tracking-tight text-dark-50 sm:text-[32px]">
+                          {planTitle(subscription, t)}
+                        </h2>
                       </div>
-                    </div>
-                  )}
-
-                  {/* ─── Trial Info Banner ─── */}
-                  {subscription.is_trial && subscription.is_active && (
-                    <div
-                      className="mb-6 rounded-[14px] p-4"
-                      style={{
-                        background:
-                          'linear-gradient(135deg, rgba(var(--color-accent-400), 0.08), rgba(var(--color-accent-400), 0.03))',
-                        border: '1px solid rgba(var(--color-accent-400), 0.12)',
-                      }}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px]"
-                          style={{ background: 'rgba(var(--color-accent-400), 0.12)' }}
-                        >
-                          <ClockIcon className="h-4 w-4 text-accent-400" />
-                        </div>
-                        <div className="flex-1">
-                          <div
-                            className="text-sm font-semibold"
-                            style={{ color: 'rgb(var(--color-accent-400))' }}
-                          >
-                            {t('subscription.trialInfo.title')}
-                          </div>
-                          <div className="mt-1 text-[12px] text-dark-400">
-                            {t('subscription.trialInfo.description')}
-                          </div>
-                          <div className="mt-3 flex flex-wrap gap-4">
-                            <div className="flex items-center gap-1.5">
-                              <span
-                                className="font-mono text-[12px] font-semibold"
-                                style={{ color: 'rgb(var(--color-accent-400))' }}
-                              >
-                                {subscription.days_left > 0
-                                  ? t('subscription.days', { count: subscription.days_left })
-                                  : `${subscription.hours_left}${t('subscription.hours')} ${subscription.minutes_left}${t('subscription.minutes')}`}
-                              </span>
-                              <span className="text-[11px] text-dark-400">
-                                {t('subscription.trialInfo.remaining')}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <span
-                                className="font-mono text-[12px] font-semibold"
-                                style={{ color: 'rgb(var(--color-accent-400))' }}
-                              >
-                                {subscription.traffic_limit_gb || '∞'} {t('common.units.gb')}
-                              </span>
-                              <span className="text-[11px] text-dark-400">
-                                {t('subscription.traffic')}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <span
-                                className="font-mono text-[12px] font-semibold"
-                                style={{ color: 'rgb(var(--color-accent-400))' }}
-                              >
-                                {subscription.device_limit === 0 ? '∞' : subscription.device_limit}
-                              </span>
-                              {/* Слово по числу: было «1 Устройства». Безлимит — «∞ устройств». */}
-                              <span className="text-[11px] text-dark-400">
-                                {t('subscription.devicesWord', {
-                                  count:
-                                    subscription.device_limit === 0 ? 5 : subscription.device_limit,
-                                })}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ─── Traffic Progress ─── */}
-                  {!isUnlimited && (
-                    <>
-                      <div className="mb-5">
-                        <div className="mb-2 flex items-center justify-between gap-x-4 gap-y-2">
-                          <div className="flex min-w-0 items-center gap-3">
-                            <h3 className="text-base font-bold tracking-tight text-dark-50">
-                              {t('dashboard.trafficUsageTitle')}
-                            </h3>
-                            {!isUnlimited && subscription.traffic_limit_gb > 0 && (
-                              <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
-                                {t('subscription.trafficScope.badge', 'только 📡 серверы')}
-                              </span>
-                            )}
-                            {(isUnlimited || zone.colorKey !== 'accent') && (
-                              <span
-                                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
-                                style={{
-                                  color: `rgb(${pillRaw})`,
-                                  background: `rgba(${pillRaw}, 0.12)`,
-                                  border: `1px solid rgba(${pillRaw}, 0.35)`,
-                                }}
-                              >
-                                <span
-                                  className="h-1.5 w-1.5 rounded-full"
-                                  style={{ background: `rgb(${pillRaw})` }}
-                                  aria-hidden="true"
-                                />
-                                {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
-                              </span>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => refreshTrafficMutation.mutate()}
-                            disabled={
-                              refreshTrafficMutation.isPending || trafficRefreshCooldown > 0
-                            }
-                            className="-mr-2 flex h-10 items-center justify-center gap-1 rounded-full px-2.5 text-xs font-medium text-dark-400 transition-colors hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
-                            aria-label={t('common.refresh')}
-                            title={t('common.refresh')}
-                          >
-                            <RefreshIcon
-                              className="h-4 w-4"
-                              spinning={refreshTrafficMutation.isPending}
-                            />
-                            {trafficRefreshCooldown > 0 && (
-                              <span className="tabular-nums text-dark-500">
-                                {trafficRefreshCooldown}s
-                              </span>
-                            )}
-                          </button>
-                        </div>
-                        <div className="mb-3 flex items-baseline justify-between gap-3 tabular-nums">
-                          <span className="text-[13px] text-dark-400">
-                            <b className="text-[15px] font-bold text-dark-50">
-                              {formatTraffic(usedGb)}
-                            </b>
-                            {!isUnlimited && ` / ${formatTraffic(subscription.traffic_limit_gb)}`}
-                          </span>
-                          {!isUnlimited && (
-                            <span className="text-[13px] text-dark-400">
-                              {Math.round(usedPercent)}%
-                            </span>
-                          )}
-                        </div>
-                        <TrafficProgressBar
-                          usedGb={usedGb}
-                          limitGb={subscription.traffic_limit_gb}
-                          percent={usedPercent}
-                          isUnlimited={isUnlimited}
-                        />
-                        <div className="mt-3 flex items-center justify-between gap-3">
-                          <span className="text-xs text-dark-500">
-                            {subscription.traffic_reset_mode &&
-                            subscription.traffic_reset_mode !== 'NO_RESET'
-                              ? t(`subscription.trafficReset.${subscription.traffic_reset_mode}`)
-                              : ''}
-                          </span>
-                        </div>
-                        {!isUnlimited && subscription.traffic_limit_gb > 0 && (
-                          <p className="mt-3 text-[13px] leading-relaxed text-dark-300">
-                            {t(
-                              'subscription.trafficScope.note',
-                              'Трафик списывается только на серверах с отметкой 📡. На остальных серверах расход не считается — они безлимитные.',
-                            )}
-                          </p>
-                        )}
-                      </div>
-                    </>
-                  )}
-
-                  {/* ─── Purchased Traffic Packages ─── */}
-                  {subscription.traffic_purchases && subscription.traffic_purchases.length > 0 && (
-                    <div className="mb-5 space-y-2">
-                      {subscription.traffic_purchases.map((purchase) => (
-                        <div
-                          key={purchase.id}
-                          className="rounded-[12px] px-3.5 py-3"
-                          style={{ background: g.innerBg, border: `1px solid ${g.innerBorder}` }}
-                        >
-                          <div className="flex items-center justify-between gap-3 text-[12.5px] tabular-nums">
-                            <span className="text-dark-400">
-                              {t('subscription.purchasedTraffic')}{' '}
-                              <b className="font-bold text-dark-50">
-                                {purchase.traffic_gb} {t('common.units.gb')}
-                              </b>
-                            </span>
-                            <span
-                              style={{
-                                color:
-                                  purchase.days_remaining === 0
-                                    ? 'rgb(var(--color-warning-400))'
-                                    : g.textMuted,
-                              }}
-                            >
-                              {purchase.days_remaining === 0
-                                ? t('subscription.expired')
-                                : new Date(purchase.expires_at).toLocaleDateString(uiLocale(), {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric',
-                                  })}
-                            </span>
-                          </div>
-                          <div
-                            className="relative mt-2.5 h-1.5 overflow-hidden rounded-full"
-                            style={{ background: g.trackBg }}
-                          >
-                            <div
-                              className="absolute inset-0 origin-left rounded-full bg-accent-500 transition-transform duration-500"
-                              style={{ transform: `scaleX(${purchase.progress_percent / 100})` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* ─── Продлить + автопродление: на телефоне внизу карточки тарифа ─── */}
-                  <div className="mt-5 lg:hidden">
-                    <PurchaseCTAButton
-                      subscription={subscription}
-                      isMultiTariff={isMultiTariff}
-                      inline
-                    />
-                  </div>
-                  {/* ─── Buy traffic (action row) ─── */}
-                  {showsAddonOptions(subscription) && subscription.traffic_limit_gb > 0 && (
-                    <div className="xsg-linkrow mt-3 lg:mt-5">
-                      <TrafficTopupSheet
-                        open={showTrafficTopup}
-                        onOpen={() => setShowTrafficTopup(true)}
-                        onClose={() => setShowTrafficTopup(false)}
-                        subscription={subscription}
-                        subscriptionId={subscriptionId}
-                        selectedTrafficPackage={selectedTrafficPackage}
-                        onSelectedTrafficPackageChange={setSelectedTrafficPackage}
-                        purchaseOptions={purchaseOptions}
-                        isDark={isDark}
+                      <CountdownTimer
+                        endDate={subscription.end_date}
+                        isActive={subscription.is_active || subscription.is_limited}
+                        glassColors={g}
                       />
                     </div>
-                  )}
+                    <div className="mb-5 flex items-center justify-between gap-3 text-[12.5px] text-dark-400">
+                      <span>
+                        {t('subscription.expiresAt')}{' '}
+                        {new Date(subscription.end_date).toLocaleDateString(uiLocale(), {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })}
+                      </span>
+                      <CountdownTimer
+                        part="time"
+                        endDate={subscription.end_date}
+                        isActive={subscription.is_active || subscription.is_limited}
+                        glassColors={g}
+                      />
+                    </div>
 
-                  {!isDesktop && (
-                    <div className="xsg-autopay mt-4 border-t border-accent-500/15">
-                      {autopayInner}
+                    <div
+                      aria-hidden="true"
+                      className="-mx-5 mb-5 h-px bg-accent-500/15 sm:-mx-8 lg:hidden"
+                    />
+
+                    {/* ─── Traffic Limited Banner ─── */}
+                    {subscription.is_limited && (
+                      <div
+                        className="mb-6 rounded-[14px] p-4"
+                        style={{
+                          background:
+                            'linear-gradient(135deg, rgba(255,184,0,0.08), rgba(255,184,0,0.03))',
+                          border: '1px solid rgba(255,184,0,0.2)',
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px]"
+                            style={{ background: 'rgba(255,184,0,0.12)' }}
+                          >
+                            <WarningIcon className="h-4 w-4 text-urgent-400" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className="text-sm font-semibold"
+                              style={{ color: 'rgb(var(--color-urgent-400))' }}
+                            >
+                              {t('subscription.trafficLimitedTitle')}
+                            </p>
+                            <p className="mt-1 text-xs text-dark-400">
+                              {t('subscription.trafficLimitedDescription')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ─── Trial Info Banner ─── */}
+                    {subscription.is_trial && subscription.is_active && (
+                      <div
+                        className="mb-6 rounded-[14px] p-4"
+                        style={{
+                          background:
+                            'linear-gradient(135deg, rgba(var(--color-accent-400), 0.08), rgba(var(--color-accent-400), 0.03))',
+                          border: '1px solid rgba(var(--color-accent-400), 0.12)',
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px]"
+                            style={{ background: 'rgba(var(--color-accent-400), 0.12)' }}
+                          >
+                            <ClockIcon className="h-4 w-4 text-accent-400" />
+                          </div>
+                          <div className="flex-1">
+                            <div
+                              className="text-sm font-semibold"
+                              style={{ color: 'rgb(var(--color-accent-400))' }}
+                            >
+                              {t('subscription.trialInfo.title')}
+                            </div>
+                            <div className="mt-1 text-[12px] text-dark-400">
+                              {t('subscription.trialInfo.description')}
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-4">
+                              <div className="flex items-center gap-1.5">
+                                <span
+                                  className="font-mono text-[12px] font-semibold"
+                                  style={{ color: 'rgb(var(--color-accent-400))' }}
+                                >
+                                  {subscription.days_left > 0
+                                    ? t('subscription.days', { count: subscription.days_left })
+                                    : `${subscription.hours_left}${t('subscription.hours')} ${subscription.minutes_left}${t('subscription.minutes')}`}
+                                </span>
+                                <span className="text-[11px] text-dark-400">
+                                  {t('subscription.trialInfo.remaining')}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span
+                                  className="font-mono text-[12px] font-semibold"
+                                  style={{ color: 'rgb(var(--color-accent-400))' }}
+                                >
+                                  {subscription.traffic_limit_gb || '∞'} {t('common.units.gb')}
+                                </span>
+                                <span className="text-[11px] text-dark-400">
+                                  {t('subscription.traffic')}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span
+                                  className="font-mono text-[12px] font-semibold"
+                                  style={{ color: 'rgb(var(--color-accent-400))' }}
+                                >
+                                  {subscription.device_limit === 0
+                                    ? '∞'
+                                    : subscription.device_limit}
+                                </span>
+                                {/* Слово по числу: было «1 Устройства». Безлимит — «∞ устройств». */}
+                                <span className="text-[11px] text-dark-400">
+                                  {t('subscription.devicesWord', {
+                                    count:
+                                      subscription.device_limit === 0
+                                        ? 5
+                                        : subscription.device_limit,
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ─── Продлить + автопродление: на телефоне внизу карточки тарифа ─── */}
+                    <div className="mt-5 lg:hidden">
+                      <PurchaseCTAButton
+                        subscription={subscription}
+                        isMultiTariff={isMultiTariff}
+                        inline
+                      />
+                    </div>
+                    {!isDesktop && (
+                      <div className="xsg-autopay mt-4 border-t border-accent-500/15">
+                        {autopayInner}
+                      </div>
+                    )}
+                  </div>
+
+                  {!isUnlimited && (
+                    <div
+                      className="xsg-traffic order-2 overflow-hidden rounded-[20px]"
+                      style={{
+                        background: g.cardBg,
+                        border: `1px solid ${g.cardBorder}`,
+                        boxShadow: g.shadow,
+                      }}
+                    >
+                      <CollapsibleSection
+                        title={t('dashboard.trafficUsageTitle')}
+                        summary={
+                          <span>
+                            <b className="font-bold text-dark-50">{formatTraffic(usedGb)}</b>
+                            {` / ${formatTraffic(subscription.traffic_limit_gb)}`}
+                          </span>
+                        }
+                        collapsedPreview={
+                          <span
+                            aria-hidden="true"
+                            className="block h-1.5 w-full overflow-hidden rounded-full bg-accent-500/15"
+                          >
+                            <span
+                              className="block h-full rounded-full bg-accent-500"
+                              style={{ width: `${Math.min(100, Math.max(2, usedPercent))}%` }}
+                            />
+                          </span>
+                        }
+                      >
+                        <div className="px-5 pb-5 sm:px-7 sm:pb-7">
+                          {/* ─── Traffic Progress ─── */}
+                          {!isUnlimited && (
+                            <>
+                              <div className="mb-5">
+                                <div className="mb-2 flex items-center justify-between gap-x-4 gap-y-2">
+                                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                    {subscription.traffic_limit_gb > 0 && (
+                                      <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
+                                        {t('subscription.trafficScope.badge', 'только 📡 серверы')}
+                                      </span>
+                                    )}
+                                    {(isUnlimited || zone.colorKey !== 'accent') && (
+                                      <span
+                                        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
+                                        style={{
+                                          color: `rgb(${pillRaw})`,
+                                          background: `rgba(${pillRaw}, 0.12)`,
+                                          border: `1px solid rgba(${pillRaw}, 0.35)`,
+                                        }}
+                                      >
+                                        <span
+                                          className="h-1.5 w-1.5 rounded-full"
+                                          style={{ background: `rgb(${pillRaw})` }}
+                                          aria-hidden="true"
+                                        />
+                                        {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <button
+                                    onClick={() => refreshTrafficMutation.mutate()}
+                                    disabled={
+                                      refreshTrafficMutation.isPending || trafficRefreshCooldown > 0
+                                    }
+                                    className="-mr-2 flex h-10 items-center justify-center gap-1 rounded-full px-2.5 text-xs font-medium text-dark-400 transition-colors hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                    aria-label={t('common.refresh')}
+                                    title={t('common.refresh')}
+                                  >
+                                    <RefreshIcon
+                                      className="h-4 w-4"
+                                      spinning={refreshTrafficMutation.isPending}
+                                    />
+                                    {trafficRefreshCooldown > 0 && (
+                                      <span className="tabular-nums text-dark-500">
+                                        {trafficRefreshCooldown}s
+                                      </span>
+                                    )}
+                                  </button>
+                                </div>
+                                <div className="mb-3 flex items-baseline justify-between gap-3 tabular-nums">
+                                  <span className="text-[13px] text-dark-400">
+                                    <b className="text-[15px] font-bold text-dark-50">
+                                      {formatTraffic(usedGb)}
+                                    </b>
+                                    {!isUnlimited &&
+                                      ` / ${formatTraffic(subscription.traffic_limit_gb)}`}
+                                  </span>
+                                  {!isUnlimited && (
+                                    <span className="text-[13px] text-dark-400">
+                                      {Math.round(usedPercent)}%
+                                    </span>
+                                  )}
+                                </div>
+                                <TrafficProgressBar
+                                  usedGb={usedGb}
+                                  limitGb={subscription.traffic_limit_gb}
+                                  percent={usedPercent}
+                                  isUnlimited={isUnlimited}
+                                />
+                                <div className="mt-3 flex items-center justify-between gap-3">
+                                  <span className="text-xs text-dark-500">
+                                    {subscription.traffic_reset_mode &&
+                                    subscription.traffic_reset_mode !== 'NO_RESET'
+                                      ? t(
+                                          `subscription.trafficReset.${subscription.traffic_reset_mode}`,
+                                        )
+                                      : ''}
+                                  </span>
+                                </div>
+                                {!isUnlimited && subscription.traffic_limit_gb > 0 && (
+                                  <p className="mt-3 text-[13px] leading-relaxed text-dark-300">
+                                    {t(
+                                      'subscription.trafficScope.note',
+                                      'Трафик списывается только на серверах с отметкой 📡. На остальных серверах расход не считается — они безлимитные.',
+                                    )}
+                                  </p>
+                                )}
+                              </div>
+                            </>
+                          )}
+
+                          {/* ─── Purchased Traffic Packages ─── */}
+                          {subscription.traffic_purchases &&
+                            subscription.traffic_purchases.length > 0 && (
+                              <div className="mb-5 space-y-2">
+                                {subscription.traffic_purchases.map((purchase) => (
+                                  <div
+                                    key={purchase.id}
+                                    className="rounded-[12px] px-3.5 py-3"
+                                    style={{
+                                      background: g.innerBg,
+                                      border: `1px solid ${g.innerBorder}`,
+                                    }}
+                                  >
+                                    <div className="flex items-center justify-between gap-3 text-[12.5px] tabular-nums">
+                                      <span className="text-dark-400">
+                                        {t('subscription.purchasedTraffic')}{' '}
+                                        <b className="font-bold text-dark-50">
+                                          {purchase.traffic_gb} {t('common.units.gb')}
+                                        </b>
+                                      </span>
+                                      <span
+                                        style={{
+                                          color:
+                                            purchase.days_remaining === 0
+                                              ? 'rgb(var(--color-warning-400))'
+                                              : g.textMuted,
+                                        }}
+                                      >
+                                        {purchase.days_remaining === 0
+                                          ? t('subscription.expired')
+                                          : new Date(purchase.expires_at).toLocaleDateString(
+                                              uiLocale(),
+                                              {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric',
+                                              },
+                                            )}
+                                      </span>
+                                    </div>
+                                    <div
+                                      className="relative mt-2.5 h-1.5 overflow-hidden rounded-full"
+                                      style={{ background: g.trackBg }}
+                                    >
+                                      <div
+                                        className="absolute inset-0 origin-left rounded-full bg-accent-500 transition-transform duration-500"
+                                        style={{
+                                          transform: `scaleX(${purchase.progress_percent / 100})`,
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                          {/* ─── Buy traffic (action row) ─── */}
+                          {showsAddonOptions(subscription) && subscription.traffic_limit_gb > 0 && (
+                            <div className="xsg-linkrow mt-3 lg:mt-5">
+                              <TrafficTopupSheet
+                                open={showTrafficTopup}
+                                onOpen={() => setShowTrafficTopup(true)}
+                                onClose={() => setShowTrafficTopup(false)}
+                                subscription={subscription}
+                                subscriptionId={subscriptionId}
+                                selectedTrafficPackage={selectedTrafficPackage}
+                                onSelectedTrafficPackageChange={setSelectedTrafficPackage}
+                                purchaseOptions={purchaseOptions}
+                                isDark={isDark}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </CollapsibleSection>
                     </div>
                   )}
-                </div>
+                </>
               );
             })()
           ) : (
@@ -880,40 +933,57 @@ export default function Subscription() {
                     {connectInner}
                   </div>
                 )}
-                <div className="px-5 pt-5 sm:px-7 sm:pt-6">
-                  <DevicesPanel subscription={subscription} subscriptionId={subscriptionId} />
-                </div>
-                {showsAddonOptions(subscription) && (
-                  <div
-                    className={`xsg-devactions mt-1 p-4 ${
-                      showDeviceTopup || showDeviceReduction
-                        ? 'space-y-3'
-                        : 'grid grid-cols-2 gap-3'
-                    }`}
-                  >
-                    <DeviceTopupSheet
-                      open={showDeviceTopup}
-                      onOpen={() => setShowDeviceTopup(true)}
-                      onClose={() => setShowDeviceTopup(false)}
+                <CollapsibleSection
+                  title={t('subscription.myDevices')}
+                  summary={
+                    devicesData ? (
+                      <span>
+                        {devicesData.device_limit === 0
+                          ? `${devicesData.total ?? devicesData.devices?.length ?? 0} · ∞`
+                          : `${devicesData.total ?? devicesData.devices?.length ?? 0} / ${devicesData.device_limit}`}
+                      </span>
+                    ) : null
+                  }
+                >
+                  <div className="px-5 pt-5 sm:px-7 sm:pt-6">
+                    <DevicesPanel
                       subscription={subscription}
                       subscriptionId={subscriptionId}
-                      devicesToAdd={devicesToAdd}
-                      onDevicesToAddChange={setDevicesToAdd}
-                      purchaseOptions={purchaseOptions}
-                      isDark={isDark}
-                    />
-                    <DeviceReductionSheet
-                      open={showDeviceReduction}
-                      onOpen={() => setShowDeviceReduction(true)}
-                      onClose={() => setShowDeviceReduction(false)}
-                      subscriptionPresent={!!subscription}
-                      subscriptionId={subscriptionId}
-                      targetDeviceLimit={targetDeviceLimit}
-                      onTargetDeviceLimitChange={setTargetDeviceLimit}
-                      isDark={isDark}
+                      hideTitle
                     />
                   </div>
-                )}
+                  {showsAddonOptions(subscription) && (
+                    <div
+                      className={`xsg-devactions mt-1 p-4 ${
+                        showDeviceTopup || showDeviceReduction
+                          ? 'space-y-3'
+                          : 'grid grid-cols-2 gap-3'
+                      }`}
+                    >
+                      <DeviceTopupSheet
+                        open={showDeviceTopup}
+                        onOpen={() => setShowDeviceTopup(true)}
+                        onClose={() => setShowDeviceTopup(false)}
+                        subscription={subscription}
+                        subscriptionId={subscriptionId}
+                        devicesToAdd={devicesToAdd}
+                        onDevicesToAddChange={setDevicesToAdd}
+                        purchaseOptions={purchaseOptions}
+                        isDark={isDark}
+                      />
+                      <DeviceReductionSheet
+                        open={showDeviceReduction}
+                        onOpen={() => setShowDeviceReduction(true)}
+                        onClose={() => setShowDeviceReduction(false)}
+                        subscriptionPresent={!!subscription}
+                        subscriptionId={subscriptionId}
+                        targetDeviceLimit={targetDeviceLimit}
+                        onTargetDeviceLimitChange={setTargetDeviceLimit}
+                        isDark={isDark}
+                      />
+                    </div>
+                  )}
+                </CollapsibleSection>
               </div>
             )}
           </div>

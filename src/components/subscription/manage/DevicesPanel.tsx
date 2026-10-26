@@ -15,6 +15,8 @@ import { useTheme } from '@/hooks/useTheme';
 export interface DevicesPanelProps {
   subscription: Subscription;
   subscriptionId: number | undefined;
+  /** Заголовок уже есть снаружи (сворачиваемая шапка) — не дублируем. */
+  hideTitle?: boolean;
 }
 
 /**
@@ -27,7 +29,11 @@ export interface DevicesPanelProps {
  * Одновременно редактируется одно устройство: `editingDeviceHwid` служит и
  * переключателем, и признаком того, какая строка сейчас правится.
  */
-export function DevicesPanel({ subscription, subscriptionId }: DevicesPanelProps) {
+export function DevicesPanel({
+  subscription,
+  subscriptionId,
+  hideTitle = false,
+}: DevicesPanelProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const haptic = useHaptic();
@@ -78,10 +84,12 @@ export function DevicesPanel({ subscription, subscriptionId }: DevicesPanelProps
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-base font-bold tracking-tight text-dark-50">
-          {t('subscription.myDevices')}
-        </h2>
+      <div className={`mb-4 flex items-center ${hideTitle ? 'justify-end' : 'justify-between'}`}>
+        {!hideTitle && (
+          <h2 className="text-base font-bold tracking-tight text-dark-50">
+            {t('subscription.myDevices')}
+          </h2>
+        )}
         {devicesData && devicesData.devices.length > 0 && (
           <button
             onClick={async () => {

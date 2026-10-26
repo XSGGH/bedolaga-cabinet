@@ -463,7 +463,7 @@
     "trafficUsed": "Использовано трафика",
     "timeLeft": "Осталось времени",
     "getConfig": "Подключить устройства",
-    "autoRenewal": "Автопродление",
+    "autoRenewal": "Автопродление с баланса",
     "daysBeforeExpiry": "дней до окончания",
     "daysBeforeExpiry_one": "{{count}} день до окончания",
     "daysBeforeExpiry_few": "{{count}} дня до окончания",
