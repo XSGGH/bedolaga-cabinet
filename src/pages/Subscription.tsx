@@ -488,7 +488,7 @@ export default function Subscription() {
         {subscription && statusBadge(subscription)}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
         <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-5">
           {/* Current Subscription */}
           {subscription ? (
