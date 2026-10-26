@@ -13,9 +13,14 @@ import { Skeleton, SkeletonGroup } from '@/components/ui/skeleton';
 
 interface TicketNotificationBellProps {
   isAdmin?: boolean;
+  /** 'sidebar' — колокольчик в нижней части боковой панели: список раскрывается вверх и вправо. */
+  placement?: 'below' | 'sidebar';
 }
 
-export default function TicketNotificationBell({ isAdmin = false }: TicketNotificationBellProps) {
+export default function TicketNotificationBell({
+  isAdmin = false,
+  placement = 'below',
+}: TicketNotificationBellProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -240,7 +245,11 @@ export default function TicketNotificationBell({ isAdmin = false }: TicketNotifi
       {/* Dropdown */}
       {isOpen && (
         <div
-          className="fixed left-4 right-4 z-50 mt-0 w-auto animate-scale-in overflow-hidden rounded-2xl border border-dark-700/50 bg-dark-900/95 shadow-2xl shadow-black/30 backdrop-blur-xl sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-96"
+          className={`fixed left-4 right-4 z-50 mt-0 w-auto animate-scale-in overflow-hidden rounded-2xl border border-dark-700 bg-dark-800 shadow-2xl shadow-black/40 sm:top-auto sm:w-96 ${
+            placement === 'sidebar'
+              ? 'sm:bottom-4 sm:left-64 sm:right-auto sm:mt-0'
+              : 'sm:absolute sm:left-auto sm:right-0 sm:mt-2'
+          }`}
           style={isMobileFullscreen ? { top: dropdownTop } : undefined}
         >
           {/* Header */}

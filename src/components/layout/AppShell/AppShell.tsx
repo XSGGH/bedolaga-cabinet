@@ -1,19 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import { useAuthStore } from '@/store/auth';
 import { useHaptic } from '@/platform';
 import { useTelegramSDK } from '@/hooks/useTelegramSDK';
 import { useHeaderHeight } from '@/hooks/useHeaderHeight';
-import { useTheme } from '@/hooks/useTheme';
 import { useBranding } from '@/hooks/useBranding';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { useLiteMode } from '@/hooks/useLiteMode';
 import { useScrollRestoration } from '@/hooks/useScrollRestoration';
 import { resetVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import { themeColorsApi } from '@/api/themeColors';
 import { isLogoPreloaded } from '@/api/branding';
 import { cn } from '@/lib/utils';
 
@@ -33,8 +30,6 @@ import {
   UsersIcon,
   ShieldIcon,
   InfoIcon,
-  SunIcon,
-  MoonIcon,
 } from '@/components/icons';
 
 import { MobileBottomNav } from './MobileBottomNav';
@@ -56,7 +51,6 @@ export function AppShell({ children }: AppShellProps) {
     useTelegramSDK();
   const { mobileCss: headerHeight } = useHeaderHeight();
   const haptic = useHaptic();
-  const { toggleTheme, isDark } = useTheme();
 
   // Extracted hooks
   const { appName, logoLetter, hasCustomLogo, logoUrl } = useBranding();
@@ -66,14 +60,6 @@ export function AppShell({ children }: AppShellProps) {
   // Анимированный фон рендерит BackgroundHost в App (не перемонтируется при
   // смене роута) — здесь только регистрируем, что на этом роуте он нужен.
   useBackgroundConsumer();
-
-  // Theme toggle visibility
-  const { data: enabledThemes } = useQuery({
-    queryKey: ['enabled-themes'],
-    queryFn: themeColorsApi.getEnabledThemes,
-    staleTime: 1000 * 60 * 5,
-  });
-  const canToggleTheme = enabledThemes?.dark && enabledThemes?.light;
 
   // Only apply fullscreen UI adjustments on mobile Telegram (iOS/Android)
   const isMobileFullscreen = isFullscreen && isMobile;
@@ -192,22 +178,11 @@ export function AppShell({ children }: AppShellProps) {
           )}
         </nav>
 
-        <div className="flex shrink-0 items-stretch gap-2 border-t border-dark-800 px-4 py-4 [&>*]:flex-1 [&_button]:flex [&_button]:w-full [&_button]:items-center [&_button]:justify-center">
-          <button
-            onClick={() => {
-              haptic.impact('light');
-              toggleTheme();
-            }}
-            className={cn(
-              'rounded-xl border border-accent-500/20 bg-dark-900 p-2 text-dark-400 transition-colors duration-200 hover:text-accent-400',
-              !canToggleTheme && 'hidden',
-            )}
-            aria-label={isDark ? t('theme.light') || 'Light mode' : t('theme.dark') || 'Dark mode'}
-            title={isDark ? t('theme.light') || 'Light mode' : t('theme.dark') || 'Dark mode'}
-          >
-            {isDark ? <MoonIcon className="h-5 w-5" /> : <SunIcon className="h-5 w-5" />}
-          </button>
-          <TicketNotificationBell isAdmin={location.pathname.startsWith('/admin')} />
+        <div className="flex shrink-0 items-stretch gap-2 border-t border-dark-800 px-4 py-4 [&>*]:flex-1 [&>button]:flex [&>button]:w-full [&>button]:items-center [&>button]:justify-center [&>div>button:first-child]:flex [&>div>button:first-child]:w-full [&>div>button:first-child]:items-center [&>div>button:first-child]:justify-center">
+          <TicketNotificationBell
+            isAdmin={location.pathname.startsWith('/admin')}
+            placement="sidebar"
+          />
           <LanguageSwitcher />
           <LogoutButton
             variant="icon"
