@@ -151,70 +151,75 @@ export default function SubscriptionCardActive({
           </div>
         </div>
 
-        <div aria-hidden="true" className="mb-6 h-px bg-accent-500/15" />
+        {/* Безлимит: блок трафика не показываем вовсе */}
+        {!isUnlimited && (
+          <>
+            <div aria-hidden="true" className="mb-6 h-px bg-accent-500/15" />
 
-        {/* ─── Расход трафика ─── */}
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <div className="flex min-w-0 items-center gap-3">
-            <h2 className="text-base font-bold tracking-tight text-dark-50">
-              {t('dashboard.trafficUsageTitle')}
-            </h2>
-            {/* Плашку показываем только когда есть о чём сказать: безлимит или
+            {/* ─── Расход трафика ─── */}
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+              <div className="flex min-w-0 items-center gap-3">
+                <h2 className="text-base font-bold tracking-tight text-dark-50">
+                  {t('dashboard.trafficUsageTitle')}
+                </h2>
+                {/* Плашку показываем только когда есть о чём сказать: безлимит или
                 повышенный расход. В спокойной зоне («Норма») она — шум. */}
-            {(isUnlimited || zone.colorKey !== 'accent') && (
-              <span
-                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
-                style={{
-                  color: `rgb(${pillColor})`,
-                  background: `rgba(${pillColor}, 0.12)`,
-                  border: `1px solid rgba(${pillColor}, 0.35)`,
-                }}
-              >
-                <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ background: `rgb(${pillColor})` }}
-                  aria-hidden="true"
-                />
-                {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
-              </span>
-            )}
-          </div>
+                {(isUnlimited || zone.colorKey !== 'accent') && (
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
+                    style={{
+                      color: `rgb(${pillColor})`,
+                      background: `rgba(${pillColor}, 0.12)`,
+                      border: `1px solid rgba(${pillColor}, 0.35)`,
+                    }}
+                  >
+                    <span
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ background: `rgb(${pillColor})` }}
+                      aria-hidden="true"
+                    />
+                    {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
+                  </span>
+                )}
+              </div>
 
-          <div className="flex items-baseline gap-3 tabular-nums">
-            {isUnlimited ? (
-              <>
-                <span className="text-xs text-dark-400">
-                  {formatTraffic(usedGb)} {t('dashboard.usedSuffix')}
-                </span>
-                <span
-                  className="text-2xl font-extrabold leading-none"
-                  style={{ color: zone.mainVar }}
-                >
-                  &#8734;
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="text-xs text-dark-400">
-                  {formatTraffic(usedGb)} / {formatTraffic(subscription.traffic_limit_gb)}
-                </span>
-                <span className="text-[26px] font-extrabold leading-none tracking-tight text-dark-50">
-                  {animatedPercent.toFixed(0)}
-                  <span className="ml-px text-sm font-medium text-dark-400">%</span>
-                </span>
-              </>
-            )}
-          </div>
-        </div>
+              <div className="flex items-baseline gap-3 tabular-nums">
+                {isUnlimited ? (
+                  <>
+                    <span className="text-xs text-dark-400">
+                      {formatTraffic(usedGb)} {t('dashboard.usedSuffix')}
+                    </span>
+                    <span
+                      className="text-2xl font-extrabold leading-none"
+                      style={{ color: zone.mainVar }}
+                    >
+                      &#8734;
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs text-dark-400">
+                      {formatTraffic(usedGb)} / {formatTraffic(subscription.traffic_limit_gb)}
+                    </span>
+                    <span className="text-[26px] font-extrabold leading-none tracking-tight text-dark-50">
+                      {animatedPercent.toFixed(0)}
+                      <span className="ml-px text-sm font-medium text-dark-400">%</span>
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
 
-        <div className="mb-6">
-          <TrafficProgressBar
-            usedGb={usedGb}
-            limitGb={subscription.traffic_limit_gb}
-            percent={usedPercent}
-            isUnlimited={isUnlimited}
-          />
-        </div>
+            <div className="mb-6">
+              <TrafficProgressBar
+                usedGb={usedGb}
+                limitGb={subscription.traffic_limit_gb}
+                percent={usedPercent}
+                isUnlimited={isUnlimited}
+              />
+            </div>
+          </>
+        )}
 
         {/* ─── Подключить устройство ─── */}
         {isDesktop ? (
@@ -266,23 +271,25 @@ export default function SubscriptionCardActive({
 
         {/* ─── Обновить / управление ─── */}
         <div className="mt-1 flex items-center justify-between px-0.5">
-          <button
-            onClick={() => refreshTrafficMutation.mutate()}
-            disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
-            className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium text-dark-400 transition-colors hover:bg-dark-800 hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label={t('common.refresh')}
-          >
-            <RefreshIcon
-              className={`h-3.5 w-3.5 ${refreshTrafficMutation.isPending ? 'animate-spin' : ''}`}
-            />
-            {t('common.refresh')}
-            {trafficRefreshCooldown > 0 && (
-              <span className="tabular-nums text-dark-500">{trafficRefreshCooldown}s</span>
-            )}
-          </button>
+          {!isUnlimited && (
+            <button
+              onClick={() => refreshTrafficMutation.mutate()}
+              disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium text-dark-400 transition-colors hover:bg-dark-800 hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={t('common.refresh')}
+            >
+              <RefreshIcon
+                className={`h-3.5 w-3.5 ${refreshTrafficMutation.isPending ? 'animate-spin' : ''}`}
+              />
+              {t('common.refresh')}
+              {trafficRefreshCooldown > 0 && (
+                <span className="tabular-nums text-dark-500">{trafficRefreshCooldown}s</span>
+              )}
+            </button>
+          )}
           <Link
             to={`/subscriptions/${subscription.id}`}
-            className="text-xs font-semibold text-accent-300 transition-colors hover:text-accent-200 lg:hidden"
+            className="text-xs font-semibold ml-auto text-accent-300 transition-colors hover:text-accent-200 lg:hidden"
           >
             {t('dashboard.viewSubscription')} &rarr;
           </Link>

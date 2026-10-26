@@ -643,89 +643,95 @@ export default function Subscription() {
                   )}
 
                   {/* ─── Traffic Progress ─── */}
-                  <div className="mb-5">
-                    <div className="mb-2 flex items-center justify-between gap-x-4 gap-y-2">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <h3 className="text-base font-bold tracking-tight text-dark-50">
-                          {t('dashboard.trafficUsageTitle')}
-                        </h3>
-                        {!isUnlimited && subscription.traffic_limit_gb > 0 && (
-                          <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
-                            {t('subscription.trafficScope.badge', 'только 📡 серверы')}
-                          </span>
-                        )}
-                        {(isUnlimited || zone.colorKey !== 'accent') && (
-                          <span
-                            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
-                            style={{
-                              color: `rgb(${pillRaw})`,
-                              background: `rgba(${pillRaw}, 0.12)`,
-                              border: `1px solid rgba(${pillRaw}, 0.35)`,
-                            }}
+                  {!isUnlimited && (
+                    <>
+                      <div className="mb-5">
+                        <div className="mb-2 flex items-center justify-between gap-x-4 gap-y-2">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <h3 className="text-base font-bold tracking-tight text-dark-50">
+                              {t('dashboard.trafficUsageTitle')}
+                            </h3>
+                            {!isUnlimited && subscription.traffic_limit_gb > 0 && (
+                              <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
+                                {t('subscription.trafficScope.badge', 'только 📡 серверы')}
+                              </span>
+                            )}
+                            {(isUnlimited || zone.colorKey !== 'accent') && (
+                              <span
+                                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
+                                style={{
+                                  color: `rgb(${pillRaw})`,
+                                  background: `rgba(${pillRaw}, 0.12)`,
+                                  border: `1px solid rgba(${pillRaw}, 0.35)`,
+                                }}
+                              >
+                                <span
+                                  className="h-1.5 w-1.5 rounded-full"
+                                  style={{ background: `rgb(${pillRaw})` }}
+                                  aria-hidden="true"
+                                />
+                                {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => refreshTrafficMutation.mutate()}
+                            disabled={
+                              refreshTrafficMutation.isPending || trafficRefreshCooldown > 0
+                            }
+                            className="-mr-2 flex h-10 items-center justify-center gap-1 rounded-full px-2.5 text-xs font-medium text-dark-400 transition-colors hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            aria-label={t('common.refresh')}
+                            title={t('common.refresh')}
                           >
-                            <span
-                              className="h-1.5 w-1.5 rounded-full"
-                              style={{ background: `rgb(${pillRaw})` }}
-                              aria-hidden="true"
+                            <RefreshIcon
+                              className="h-4 w-4"
+                              spinning={refreshTrafficMutation.isPending}
                             />
-                            {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
+                            {trafficRefreshCooldown > 0 && (
+                              <span className="tabular-nums text-dark-500">
+                                {trafficRefreshCooldown}s
+                              </span>
+                            )}
+                          </button>
+                        </div>
+                        <div className="mb-3 flex items-baseline justify-between gap-3 tabular-nums">
+                          <span className="text-[13px] text-dark-400">
+                            <b className="text-[15px] font-bold text-dark-50">
+                              {formatTraffic(usedGb)}
+                            </b>
+                            {!isUnlimited && ` / ${formatTraffic(subscription.traffic_limit_gb)}`}
                           </span>
+                          {!isUnlimited && (
+                            <span className="text-[13px] text-dark-400">
+                              {Math.round(usedPercent)}%
+                            </span>
+                          )}
+                        </div>
+                        <TrafficProgressBar
+                          usedGb={usedGb}
+                          limitGb={subscription.traffic_limit_gb}
+                          percent={usedPercent}
+                          isUnlimited={isUnlimited}
+                        />
+                        <div className="mt-3 flex items-center justify-between gap-3">
+                          <span className="text-xs text-dark-500">
+                            {subscription.traffic_reset_mode &&
+                            subscription.traffic_reset_mode !== 'NO_RESET'
+                              ? t(`subscription.trafficReset.${subscription.traffic_reset_mode}`)
+                              : ''}
+                          </span>
+                        </div>
+                        {!isUnlimited && subscription.traffic_limit_gb > 0 && (
+                          <p className="mt-3 text-[13px] leading-relaxed text-dark-300">
+                            {t(
+                              'subscription.trafficScope.note',
+                              'Трафик списывается только на серверах с отметкой 📡. На остальных серверах расход не считается — они безлимитные.',
+                            )}
+                          </p>
                         )}
                       </div>
-                      <button
-                        onClick={() => refreshTrafficMutation.mutate()}
-                        disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
-                        className="-mr-2 flex h-10 items-center justify-center gap-1 rounded-full px-2.5 text-xs font-medium text-dark-400 transition-colors hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label={t('common.refresh')}
-                        title={t('common.refresh')}
-                      >
-                        <RefreshIcon
-                          className="h-4 w-4"
-                          spinning={refreshTrafficMutation.isPending}
-                        />
-                        {trafficRefreshCooldown > 0 && (
-                          <span className="tabular-nums text-dark-500">
-                            {trafficRefreshCooldown}s
-                          </span>
-                        )}
-                      </button>
-                    </div>
-                    <div className="mb-3 flex items-baseline justify-between gap-3 tabular-nums">
-                      <span className="text-[13px] text-dark-400">
-                        <b className="text-[15px] font-bold text-dark-50">
-                          {formatTraffic(usedGb)}
-                        </b>
-                        {!isUnlimited && ` / ${formatTraffic(subscription.traffic_limit_gb)}`}
-                      </span>
-                      {!isUnlimited && (
-                        <span className="text-[13px] text-dark-400">
-                          {Math.round(usedPercent)}%
-                        </span>
-                      )}
-                    </div>
-                    <TrafficProgressBar
-                      usedGb={usedGb}
-                      limitGb={subscription.traffic_limit_gb}
-                      percent={usedPercent}
-                      isUnlimited={isUnlimited}
-                    />
-                    <div className="mt-3 flex items-center justify-between gap-3">
-                      <span className="text-xs text-dark-500">
-                        {subscription.traffic_reset_mode &&
-                        subscription.traffic_reset_mode !== 'NO_RESET'
-                          ? t(`subscription.trafficReset.${subscription.traffic_reset_mode}`)
-                          : ''}
-                      </span>
-                    </div>
-                    {!isUnlimited && subscription.traffic_limit_gb > 0 && (
-                      <p className="mt-3 text-[13px] leading-relaxed text-dark-300">
-                        {t(
-                          'subscription.trafficScope.note',
-                          'Трафик списывается только на серверах с отметкой 📡. На остальных серверах расход не считается — они безлимитные.',
-                        )}
-                      </p>
-                    )}
-                  </div>
+                    </>
+                  )}
 
                   {/* ─── Purchased Traffic Packages ─── */}
                   {subscription.traffic_purchases && subscription.traffic_purchases.length > 0 && (
