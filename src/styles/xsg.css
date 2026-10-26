@@ -302,8 +302,15 @@ html:not(.light) .xsg-linkrow > button > div > div > div:nth-child(1) {
   font-size: 14px;
   font-weight: 600;
 }
-html:not(.light) .xsg-linkrow > button > div > div > div:nth-child(2) {
+html:not(.light) .xsg-linkrow > button > div > div > div:nth-child(2),
+html:not(.light) .xsg-linkrow > button > div > svg {
   display: none;
+}
+html:not(.light) .xsg-linkrow > button > div {
+  justify-content: center;
+}
+html:not(.light) .xsg-linkrow > button > div > div > div:nth-child(1) {
+  text-align: center;
 }
 /* два действия под списком устройств: подписи по центру, без пояснений */
 html:not(.light) .xsg-devactions > button {

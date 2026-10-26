@@ -795,9 +795,17 @@ export default function Subscription() {
                     </div>
                   )}
 
+                  {/* ─── Продлить + автопродление: на телефоне внизу карточки тарифа ─── */}
+                  <div className="mt-5 lg:hidden">
+                    <PurchaseCTAButton
+                      subscription={subscription}
+                      isMultiTariff={isMultiTariff}
+                      inline
+                    />
+                  </div>
                   {/* ─── Buy traffic (action row) ─── */}
                   {showsAddonOptions(subscription) && subscription.traffic_limit_gb > 0 && (
-                    <div className="xsg-linkrow mt-5">
+                    <div className="xsg-linkrow mt-3 lg:mt-5">
                       <TrafficTopupSheet
                         open={showTrafficTopup}
                         onOpen={() => setShowTrafficTopup(true)}
@@ -812,14 +820,6 @@ export default function Subscription() {
                     </div>
                   )}
 
-                  {/* ─── Продлить + автопродление: на телефоне внизу карточки тарифа ─── */}
-                  <div className="mt-4 lg:hidden">
-                    <PurchaseCTAButton
-                      subscription={subscription}
-                      isMultiTariff={isMultiTariff}
-                      inline
-                    />
-                  </div>
                   {!isDesktop && (
                     <div className="xsg-autopay mt-4 border-t border-accent-500/15">
                       {autopayInner}

@@ -73,14 +73,13 @@ export default function PurchaseCTAButton({
     return (
       <Link
         to={linkTo}
-        className={`group flex h-12 items-center justify-center gap-2 rounded-xl text-[15px] font-bold transition-colors ${
+        className={`flex h-12 items-center justify-center rounded-[14px] px-3 text-[14px] font-bold transition-colors ${
           prominent
             ? 'bg-accent-500 text-on-accent hover:bg-accent-400'
-            : 'border border-accent-500/60 bg-accent-500/10 text-accent-300 hover:border-accent-400'
+            : 'border border-accent-400/70 bg-accent-500/20 text-accent-200 hover:border-accent-300 hover:bg-accent-500/30'
         }`}
       >
         {buttonText}
-        <ChevronRightIcon className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
       </Link>
     );
   }
