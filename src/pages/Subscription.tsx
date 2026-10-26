@@ -649,6 +649,11 @@ export default function Subscription() {
                         <h3 className="text-base font-bold tracking-tight text-dark-50">
                           {t('dashboard.trafficUsageTitle')}
                         </h3>
+                        {!isUnlimited && subscription.traffic_limit_gb > 0 && (
+                          <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
+                            {t('subscription.trafficScope.badge', 'только 📡 серверы')}
+                          </span>
+                        )}
                         {(isUnlimited || zone.colorKey !== 'accent') && (
                           <span
                             className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
@@ -712,6 +717,14 @@ export default function Subscription() {
                           : ''}
                       </span>
                     </div>
+                    {!isUnlimited && subscription.traffic_limit_gb > 0 && (
+                      <p className="mt-3 text-[13px] leading-relaxed text-dark-300">
+                        {t(
+                          'subscription.trafficScope.note',
+                          'Трафик списывается только на серверах с отметкой 📡. На остальных серверах расход не считается — они безлимитные.',
+                        )}
+                      </p>
+                    )}
                   </div>
 
                   {/* ─── Purchased Traffic Packages ─── */}
