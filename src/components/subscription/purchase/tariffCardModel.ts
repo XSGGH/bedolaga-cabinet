@@ -41,7 +41,8 @@ export function displayServerName(rawName: string): string {
     .replace(/\[\s*📡\s*\]/g, METERED_MARK)
     .replace(/\s+/g, ' ')
     .trim();
-  if (isMeteredServer(name) || STARTS_WITH_FLAG.test(name)) return name;
+  if (STARTS_WITH_FLAG.test(name)) return name.replace(/^(\p{Regional_Indicator}{2})\s*/u, '$1 ');
+  if (isMeteredServer(name)) return name;
   const flag = FLAGS[name.toLowerCase()];
   return flag ? `${flag} ${name}` : name;
 }
@@ -55,6 +56,8 @@ export interface TariffFeature {
 export interface TariffDescription {
   tagline: string | null;
   features: TariffFeature[];
+  /** Строки блока «Доступные локации:» (как их ввёл оператор). */
+  locations: string[];
 }
 
 /**
@@ -66,7 +69,14 @@ export function parseTariffDescription(description: string | null | undefined): 
   const lines = (description ?? '').split(/\r?\n/).map((line) => line.trim());
   const locationsAt = lines.findIndex((line) => /^доступные\s+локации/i.test(line));
   const body = (locationsAt >= 0 ? lines.slice(0, locationsAt) : lines).filter(Boolean);
-  if (body.length === 0) return { tagline: null, features: [] };
+  const locations =
+    locationsAt >= 0
+      ? lines
+          .slice(locationsAt + 1)
+          .map((line) => line.replace(/^[-•·*\s]+/, '').trim())
+          .filter(Boolean)
+      : [];
+  if (body.length === 0) return { tagline: null, features: [], locations };
 
   const clean = (line: string) => line.replace(LEADING_PICTOGRAPHS, '').trim();
   const [first, ...rest] = body;
@@ -79,7 +89,7 @@ export function parseTariffDescription(description: string | null | undefined): 
       warn: /^[⚠⛔❌🚫]/u.test(line) || /не\s+(будет\s+работать|работает)/i.test(text),
     });
   }
-  return { tagline: clean(first ?? '') || null, features };
+  return { tagline: clean(first ?? '') || null, features, locations };
 }
 
 export interface TariffTrafficModel {
@@ -94,8 +104,20 @@ export interface TariffTrafficModel {
   hasLimit: boolean;
 }
 
+/**
+ * Откуда брать локации. В панели у тарифа обычно один сквад («Hyperdrive»),
+ * а страны перечислены в описании, поэтому блок «Доступные локации» главнее
+ * списка серверов; список серверов — запасной вариант.
+ */
+export function tariffLocations(tariff: Tariff): string[] {
+  const fromDescription = parseTariffDescription(tariff.description).locations;
+  const raw =
+    fromDescription.length > 0 ? fromDescription : (tariff.servers ?? []).map((s) => s.name);
+  return raw.map(displayServerName);
+}
+
 export function buildTrafficModel(tariff: Tariff): TariffTrafficModel {
-  const servers = (tariff.servers ?? []).map((s) => displayServerName(s.name));
+  const servers = tariffLocations(tariff);
   const metered = servers.filter(isMeteredServer);
   const regular = servers.filter((name) => !isMeteredServer(name));
   const hasLimit = !tariff.is_unlimited_traffic && tariff.traffic_limit_gb > 0;
@@ -129,5 +151,5 @@ export function buildTrafficModel(tariff: Tariff): TariffTrafficModel {
 
 /** Есть ли 📡-серверы хотя бы у одного тарифа из списка. */
 export function anyTariffHasMetered(tariffs: Tariff[]): boolean {
-  return tariffs.some((tariff) => (tariff.servers ?? []).some((s) => isMeteredServer(s.name)));
+  return tariffs.some((tariff) => tariffLocations(tariff).some(isMeteredServer));
 }

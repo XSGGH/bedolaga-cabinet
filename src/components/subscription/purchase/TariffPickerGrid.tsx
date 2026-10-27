@@ -13,6 +13,7 @@ import {
   anyTariffHasMetered,
   buildTrafficModel,
   isMeteredServer,
+  tariffLocations,
   parseTariffDescription,
 } from './tariffCardModel';
 
@@ -159,7 +160,7 @@ export function TariffPickerGrid({
             const { tagline, features } = parseTariffDescription(tariff.description);
             const traffic = buildTrafficModel(tariff);
             const showNoMetered =
-              hasMeteredElsewhere && !(tariff.servers ?? []).some((s) => isMeteredServer(s.name));
+              hasMeteredElsewhere && !tariffLocations(tariff).some(isMeteredServer);
             const resetMonthly = tariff.traffic_reset_mode === 'MONTH';
             const resetLabel =
               tariff.traffic_reset_mode && tariff.traffic_reset_mode !== 'NO_RESET'

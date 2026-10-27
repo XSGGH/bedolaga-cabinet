@@ -54,7 +54,17 @@ describe('parseTariffDescription', () => {
   });
 
   it('пустое описание — пустая модель', () => {
-    expect(parseTariffDescription(null)).toEqual({ tagline: null, features: [] });
+    expect(parseTariffDescription(null)).toEqual({ tagline: null, features: [], locations: [] });
+  });
+});
+
+describe('локации из описания', () => {
+  it('берёт страны из блока «Доступные локации», а не из сквадов тарифа', () => {
+    const m = buildTrafficModel(
+      tariff({ description: DESCRIPTION, servers: [{ uuid: 'x', name: 'Hyperdrive' }] }),
+    );
+    expect(m.limitedServers).toEqual(['📡 Обход белых списков']);
+    expect(m.unlimitedServers).toEqual(['🇩🇪 Германия']);
   });
 });
 
