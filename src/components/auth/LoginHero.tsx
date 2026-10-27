@@ -14,26 +14,35 @@ const FEATURES = [
   { key: 'bonus', Icon: GiftIcon },
 ] as const;
 
-/** Список преимуществ. На телефоне — компактнее, под карточкой входа. */
+/** Список преимуществ. На телефоне — плитки 2×2 под карточкой входа. */
 export function LoginFeatures({ compact = false }: { compact?: boolean }) {
   const { t } = useTranslation();
   return (
-    <ul className={compact ? 'space-y-3.5' : 'mt-9 max-w-[430px] space-y-5'}>
+    <ul className={compact ? 'grid grid-cols-2 gap-2.5' : 'mt-9 max-w-[430px] space-y-5'}>
       {FEATURES.map(({ key, Icon }) => (
-        <li key={key} className={`flex items-start ${compact ? 'gap-3' : 'gap-4'}`}>
+        <li
+          key={key}
+          className={
+            compact
+              ? 'rounded-[18px] border border-dark-700 bg-dark-900/80 p-3.5'
+              : 'flex items-start gap-4'
+          }
+        >
           <span
             className={`flex shrink-0 items-center justify-center border border-accent-500/30 bg-accent-500/10 text-accent-300 ${
-              compact ? 'h-9 w-9 rounded-xl' : 'h-[46px] w-[46px] rounded-2xl'
+              compact ? 'h-9 w-9 rounded-[11px]' : 'h-[46px] w-[46px] rounded-2xl'
             }`}
           >
-            <Icon className={compact ? 'h-[18px] w-[18px]' : 'h-[22px] w-[22px]'} />
+            <Icon className={compact ? 'h-[19px] w-[19px]' : 'h-[22px] w-[22px]'} />
           </span>
           <div>
-            <div className={`font-bold text-dark-50 ${compact ? 'text-[15px]' : 'text-[17px]'}`}>
+            <div
+              className={`font-bold text-dark-50 ${compact ? 'mt-3 text-[14.5px] leading-tight' : 'text-[17px]'}`}
+            >
               {t(`auth.hero.features.${key}.title`)}
             </div>
             <div
-              className={`mt-0.5 leading-relaxed text-dark-400 ${compact ? 'text-[13px]' : 'text-sm'}`}
+              className={`leading-relaxed text-dark-400 ${compact ? 'mt-1.5 text-[12.5px] leading-snug' : 'mt-0.5 text-sm'}`}
             >
               {t(`auth.hero.features.${key}.text`)}
             </div>

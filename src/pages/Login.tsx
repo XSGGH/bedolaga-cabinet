@@ -385,7 +385,7 @@ export default function Login() {
         <LoginHero appName={appName} />
 
         <div
-          className="flex min-h-[100dvh] items-center justify-center px-4 sm:px-6 lg:min-h-0 lg:px-10"
+          className="flex min-h-[100dvh] items-start justify-center px-4 sm:px-6 lg:min-h-0 lg:items-center lg:px-10"
           style={{
             paddingTop:
               safeTop > 0 ? `${safeTop + 16}px` : 'calc(1rem + env(safe-area-inset-top, 0px))',
@@ -396,15 +396,18 @@ export default function Login() {
           }}
         >
           <div className="relative w-full max-w-md space-y-5 lg:max-w-none">
+            <div className="px-1 pt-2 text-[17px] font-extrabold tracking-[0.08em] text-dark-50 lg:hidden">
+              {appName}
+            </div>
             {/* Заголовок: на телефоне — приветствие, на широком экране приветствие слева */}
-            <div className="text-center lg:text-left">
-              <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-dark-50 lg:hidden">
+            <div className="text-left">
+              <h1 className="px-1 pt-3 text-[32px] font-extrabold leading-[1.08] tracking-[-0.03em] text-dark-50 [text-wrap:balance] lg:hidden">
                 {t('auth.hero.welcome')}{' '}
-                <span className="bg-gradient-to-r from-accent-300 to-pink-500 bg-clip-text text-transparent">
+                <span className="whitespace-nowrap bg-gradient-to-r from-accent-300 to-pink-500 bg-clip-text text-transparent">
                   {appName}
                 </span>
               </h1>
-              <p className="mt-3 text-[15px] leading-relaxed text-dark-300 lg:hidden">
+              <p className="mt-3 max-w-[340px] px-1 text-[15px] leading-normal text-dark-300 lg:hidden">
                 {t('auth.hero.subtitle')}
               </p>
               <h2 className="hidden text-[28px] font-extrabold tracking-tight text-dark-50 lg:block">
@@ -803,7 +806,7 @@ export default function Login() {
             )}
             {/* Преимущества на телефоне: на широком экране они слева */}
             {!consent.pending && !registeredEmail && (
-              <div className="pt-2 lg:hidden">
+              <div className="lg:hidden">
                 <LoginFeatures compact />
               </div>
             )}
