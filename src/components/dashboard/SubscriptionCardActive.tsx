@@ -162,6 +162,9 @@ export default function SubscriptionCardActive({
                 <h2 className="text-base font-bold tracking-tight text-dark-50">
                   {t('dashboard.trafficUsageTitle')}
                 </h2>
+                <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
+                  {t('subscription.trafficScope.badge', 'только 📡 серверы')}
+                </span>
                 {/* Плашку показываем только когда есть о чём сказать: безлимит или
                 повышенный расход. В спокойной зоне («Норма») она — шум. */}
                 {(isUnlimited || zone.colorKey !== 'accent') && (
@@ -210,7 +213,7 @@ export default function SubscriptionCardActive({
               </div>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-3">
               <TrafficProgressBar
                 usedGb={usedGb}
                 limitGb={subscription.traffic_limit_gb}
@@ -218,6 +221,12 @@ export default function SubscriptionCardActive({
                 isUnlimited={isUnlimited}
               />
             </div>
+            <p className="mb-6 text-[13px] leading-relaxed text-dark-300">
+              {t(
+                'subscription.trafficScope.note',
+                'Трафик списывается только на серверах с отметкой 📡. На остальных серверах расход не считается — они безлимитные.',
+              )}
+            </p>
           </>
         )}
 
