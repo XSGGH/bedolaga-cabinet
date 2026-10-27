@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { PhoneIcon } from '@/components/icons';
 
 const STATUS_URL = String(
   import.meta.env.VITE_STATUS_API_URL || 'https://uptime.xsgvpn.ru/api/public',
@@ -129,19 +130,9 @@ function MobileLine({ m, label }: { m: NonNullable<PublicServer['mobile']>; labe
       className="flex items-center gap-1.5 text-[11px] leading-none text-dark-400"
       title={`${label}\n${detail}`}
     >
-      <svg
-        viewBox="0 0 24 24"
-        className="h-3 w-3 shrink-0"
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <rect x="7" y="2" width="10" height="20" rx="2.5" />
-        <path d="M11 18h2" />
-      </svg>
+      <span className="flex shrink-0" style={{ color }}>
+        <PhoneIcon className="h-3 w-3" />
+      </span>
       <span className="truncate">{label}</span>
       <span className="tabular-nums" style={{ color }}>
         {m.ok}/{m.total}

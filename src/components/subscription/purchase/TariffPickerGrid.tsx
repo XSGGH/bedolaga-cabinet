@@ -6,16 +6,10 @@ import { useCurrency } from '../../../hooks/useCurrency';
 import { usePromoDiscount } from '../../../hooks/usePromoDiscount';
 import { dailyPriceQuote } from './dailyPrice';
 import { getGlassColors } from '../../../utils/glassTheme';
-import { DevicesIcon } from '@/components/icons';
 import type { Tariff, Subscription, PurchaseOptions } from '../../../types';
 import { tariffAction, type TariffActionKind } from './tariffAction';
-import {
-  anyTariffHasMetered,
-  buildTrafficModel,
-  isMeteredServer,
-  tariffLocations,
-  parseTariffDescription,
-} from './tariffCardModel';
+import { anyTariffHasMetered } from './tariffCardModel';
+import { TariffCardInfo } from './TariffCardInfo';
 
 /** Подпись кнопки для действий, которые ведут в один и тот же сценарий выбора. */
 const TARIFF_ACTION_LABEL: Record<Exclude<TariffActionKind, 'current-daily' | 'switch'>, string> = {
@@ -47,16 +41,6 @@ export interface TariffPickerGridProps {
   isMultiTariff: boolean;
   onSelectTariff: (tariff: Tariff) => void;
   onSwitchTariff: (tariffId: number) => void;
-}
-
-function ServerList({ names }: { names: string[] }) {
-  return (
-    <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-dark-200">
-      {names.map((name) => (
-        <span key={name}>{name}</span>
-      ))}
-    </div>
-  );
 }
 
 export function TariffPickerGrid({
@@ -157,15 +141,6 @@ export function TariffPickerGrid({
             });
 
             const isPrimary = isCurrentTariff || !subscription;
-            const { tagline, features } = parseTariffDescription(tariff.description);
-            const traffic = buildTrafficModel(tariff);
-            const showNoMetered =
-              hasMeteredElsewhere && !tariffLocations(tariff).some(isMeteredServer);
-            const resetMonthly = tariff.traffic_reset_mode === 'MONTH';
-            const resetLabel =
-              tariff.traffic_reset_mode && tariff.traffic_reset_mode !== 'NO_RESET'
-                ? t(`subscription.trafficReset.${tariff.traffic_reset_mode}`)
-                : null;
 
             return (
               <div
@@ -182,102 +157,11 @@ export function TariffPickerGrid({
               >
                 {tariff.is_highlighted && !isCurrentTariff && <BestValueBadge />}
 
-                <div>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-2xl font-extrabold tracking-tight text-dark-50">
-                      {tariff.name}
-                    </div>
-                    {isCurrentTariff && (
-                      <span className="text-xs font-bold uppercase tracking-[0.14em] text-success-400">
-                        {t('subscription.currentTariff')}
-                      </span>
-                    )}
-                  </div>
-                  {tagline && <div className="mt-1.5 text-sm text-dark-300">{tagline}</div>}
-                </div>
-
-                {/* Трафик и устройства */}
-                <div className="border-t border-dark-700/60">
-                  {traffic.unlimitedScope && (
-                    <div className="border-b border-dark-700/60 py-4">
-                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                        <span className="text-xl font-extrabold text-success-400">
-                          ∞ {t('subscription.tariffCard.unlimited', 'Безлимит')}
-                        </span>
-                        <span className="text-[13px] text-dark-300">
-                          {traffic.unlimitedScope === 'all'
-                            ? t('subscription.tariffCard.onAllServers', 'на всех серверах')
-                            : t('subscription.tariffCard.onRegularServers', 'на обычных серверах')}
-                        </span>
-                      </div>
-                      {traffic.unlimitedServers.length > 0 && (
-                        <ServerList names={traffic.unlimitedServers} />
-                      )}
-                    </div>
-                  )}
-
-                  {traffic.hasLimit && (
-                    <div className="border-b border-dark-700/60 py-4">
-                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                        <span className="text-xl font-extrabold text-accent-300">
-                          {tariff.traffic_limit_label}
-                          {resetMonthly && ` ${t('subscription.tariffCard.perMonth', 'в месяц')}`}
-                        </span>
-                        <span className="text-[13px] text-dark-300">
-                          {traffic.limitedOnlyMetered
-                            ? t('subscription.tariffCard.onlyMetered', 'только на 📡')
-                            : t('subscription.tariffCard.onAllServers', 'на всех серверах')}
-                        </span>
-                      </div>
-                      {traffic.limitedServers.length > 0 && (
-                        <ServerList names={traffic.limitedServers} />
-                      )}
-                      {resetLabel && (
-                        <div className="mt-1.5 text-[13px] text-dark-400">{resetLabel}</div>
-                      )}
-                    </div>
-                  )}
-
-                  {showNoMetered && (
-                    <div className="border-b border-dark-700/60 py-4">
-                      <div className="text-xl font-bold text-dark-500">
-                        {'📡 '}
-                        {t('subscription.tariffCard.unavailable', 'Недоступно')}
-                      </div>
-                      <div className="mt-1.5 text-[13px] text-dark-400">
-                        {t(
-                          'subscription.tariffCard.noMetered',
-                          'Обход белых списков в этот тариф не входит',
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-3 border-b border-dark-700/60 py-4">
-                    <DevicesIcon className="h-5 w-5 shrink-0 text-accent-300" />
-                    <span className="text-xl font-extrabold text-dark-50">
-                      {tariff.device_limit === 0
-                        ? `∞ ${t('subscription.tariffCard.devicesUnlimited', 'устройств')}`
-                        : t('subscription.devices', { count: tariff.device_limit })}
-                    </span>
-                    <span className="text-[13px] text-dark-300">
-                      {t('subscription.tariffCard.inSubscription', 'в подписке')}
-                    </span>
-                  </div>
-                </div>
-
-                {features.length > 0 && (
-                  <ul className="flex flex-col gap-2.5 text-sm leading-snug">
-                    {features.map((feature) => (
-                      <li
-                        key={feature.text}
-                        className={feature.warn ? 'text-warning-400' : 'text-dark-200'}
-                      >
-                        {feature.text}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <TariffCardInfo
+                  tariff={tariff}
+                  isCurrent={isCurrentTariff}
+                  hasMeteredElsewhere={hasMeteredElsewhere}
+                />
 
                 {/* Цена и действие */}
                 <div className="mt-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">

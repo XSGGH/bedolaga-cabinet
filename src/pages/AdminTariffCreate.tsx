@@ -12,6 +12,7 @@ import {
   type ExternalSquadInfo,
 } from '../api/tariffs';
 import { AdminBackButton } from '../components/admin';
+import { TariffCardEditor } from '../components/admin/TariffCardEditor';
 import { createNumberInputHandler, toNumber } from '../utils/inputHelpers';
 import Twemoji from '@/lib/twemoji';
 import { PageSkeleton, Skeleton } from '@/components/ui/skeleton';
@@ -88,7 +89,9 @@ export default function AdminTariffCreate() {
   // Track editing state for period prices
   const [editingPeriodPrices, setEditingPeriodPrices] = useState<Record<number, string>>({});
 
-  const [activeTab, setActiveTab] = useState<'basic' | 'periods' | 'servers' | 'extra'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'card' | 'periods' | 'servers' | 'extra'>(
+    'basic',
+  );
 
   // Fetch servers
   const { data: servers = [] } = useQuery({
@@ -400,8 +403,8 @@ export default function AdminTariffCreate() {
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {(isDaily
-          ? (['basic', 'servers', 'extra'] as const)
-          : (['basic', 'periods', 'servers', 'extra'] as const)
+          ? (['basic', 'card', 'servers', 'extra'] as const)
+          : (['basic', 'card', 'periods', 'servers', 'extra'] as const)
         ).map((tab) => (
           <button
             key={tab}
@@ -415,6 +418,7 @@ export default function AdminTariffCreate() {
             }`}
           >
             {tab === 'basic' && t('admin.tariffs.tabBasic')}
+            {tab === 'card' && t('admin.tariffs.tabCard')}
             {tab === 'periods' && t('admin.tariffs.tabPeriods')}
             {tab === 'servers' && t('admin.tariffs.tabServers')}
             {tab === 'extra' && t('admin.tariffs.tabExtra')}
@@ -633,6 +637,19 @@ export default function AdminTariffCreate() {
             <p className="mt-1 text-xs text-dark-500">{t('admin.tariffs.tierLevelHint')}</p>
           </div>
         </div>
+      )}
+
+      {activeTab === 'card' && (
+        <TariffCardEditor
+          description={description}
+          onChange={setDescription}
+          preview={{
+            name,
+            trafficLimitGb: toNumber(trafficLimitGb, 0),
+            deviceLimit: toNumber(deviceLimit, 0),
+            trafficResetMode,
+          }}
+        />
       )}
 
       {activeTab === 'periods' && !isDaily && (

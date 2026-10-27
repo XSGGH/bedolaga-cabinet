@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { Tariff } from '../../../types';
 import {
   buildTrafficModel,
+  parseCardForm,
+  serializeCardForm,
+  setMetered,
   displayServerName,
   isMeteredServer,
   parseTariffDescription,
@@ -104,5 +107,38 @@ describe('buildTrafficModel', () => {
     expect(m.unlimitedScope).toBeNull();
     expect(m.limitedOnlyMetered).toBe(false);
     expect(m.limitedServers).toEqual(['🇩🇪 Германия']);
+  });
+});
+
+describe('форма карточки', () => {
+  it('разбирает описание и собирает его обратно без потерь смысла', () => {
+    const form = parseCardForm(DESCRIPTION);
+    expect(form.tagline).toBe('Расширенный тариф на 3 устройства с Wi-Fi и LTE локациями.');
+    expect(form.features[0]).toEqual({
+      icon: '📡',
+      text: 'Работает на мобильных сетях с включенными белыми списками.',
+      warn: false,
+    });
+    expect(form.locations).toEqual(['📡 Обход белых списков', '🇩🇪 Германия']);
+
+    const again = parseCardForm(serializeCardForm(form));
+    expect(again).toEqual(form);
+  });
+
+  it('предупреждение получает значок ⚠️', () => {
+    const text = serializeCardForm({
+      tagline: 'Базовый',
+      features: [{ icon: '', text: 'Не будет работать при белых списках', warn: true }],
+      locations: ['Германия'],
+    });
+    expect(text).toBe(
+      'Базовый\n\n⚠️ Не будет работать при белых списках\n\nДоступные локации:\nГермания',
+    );
+  });
+
+  it('метка 📡 включается и выключается', () => {
+    expect(setMetered('Обход белых списков', true)).toBe('📡 Обход белых списков');
+    expect(setMetered('[📡] Обход', true)).toBe('📡 Обход');
+    expect(setMetered('📡 Обход', false)).toBe('Обход');
   });
 });

@@ -836,6 +836,21 @@
       "autopayHint": "Your subscription will renew automatically via Cashera",
       "purchaseButton": "⚡ Subscribe with Cashera auto-pay",
       "purchaseHint": "Confirm auto-charges via the Cashera link; renewals are then charged automatically."
+    },
+    "tariffCard": {
+      "unlimited": "Unlimited",
+      "onAllServers": "on all servers",
+      "onRegularServers": "on regular servers",
+      "onlyMetered": "only on 📡",
+      "perMonth": "per month",
+      "unavailable": "Unavailable",
+      "noMetered": "Whitelist bypass is not included in this tariff",
+      "inSubscription": "in subscription",
+      "devicesUnlimited": "devices"
+    },
+    "trafficScope": {
+      "badge": "📡 servers only",
+      "note": "Traffic is only spent on servers marked 📡. Other servers don't count towards the limit — they are unlimited."
     }
   },
   "balance": {
@@ -3961,7 +3976,31 @@
       "panelTagLabel": "Remnawave panel tag",
       "panelTagDesc": "Up to 16 characters: Latin letters, digits and underscore. Empty — the global tag from settings (trial or paid). The tag shows in the panel which tariff a user is on.",
       "trialDaysLabel": "Trial days on this tariff",
-      "trialDaysDesc": "Empty — the global trial duration setting."
+      "trialDaysDesc": "Empty — the global trial duration setting.",
+      "tabCard": "Card",
+      "cardEditor": {
+        "intro": "Fill in the fields: the tariff description is assembled automatically and stays readable in the Telegram bot. The preview shows what customers will see.",
+        "tagline": "Tariff summary (one line)",
+        "taglinePlaceholder": "Wi-Fi and LTE, works with whitelists",
+        "features": "Benefits",
+        "featureIcon": "Icon",
+        "featureText": "For example: No ads on YouTube",
+        "featureWarn": "Warning — highlighted in yellow on the card",
+        "featuresHint": "Lines containing the word “unlimited” (безлимит) are not shown on the card: traffic has its own block there.",
+        "addFeature": "Add benefit",
+        "locations": "Locations",
+        "locationsHint": "Locations marked 📡 consume the traffic limit, the rest are unlimited. A country without a flag gets one automatically if its name is known.",
+        "metered": "Consumes traffic (📡)",
+        "addCountry": "Add country…",
+        "addMetered": "Whitelist bypass (📡)",
+        "addCustom": "Custom item",
+        "meteredDefault": "Whitelist bypass",
+        "remove": "Remove",
+        "preview": "Preview",
+        "warnNoLocations": "No locations set — the card will not list countries.",
+        "warnNoMetered": "The tariff has a traffic limit but no location is marked 📡: the limit will be shown for all servers.",
+        "warnNoFlag": "These locations have no flag: {{names}}"
+      }
     },
     "servers": {
       "title": "Squad Management",

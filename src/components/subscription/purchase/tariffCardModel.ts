@@ -153,3 +153,77 @@ export function buildTrafficModel(tariff: Tariff): TariffTrafficModel {
 export function anyTariffHasMetered(tariffs: Tariff[]): boolean {
   return tariffs.some((tariff) => tariffLocations(tariff).some(isMeteredServer));
 }
+
+// ──────────────────────────────────────────────────────────────────
+// Редактируемая форма описания. Админка собирает описание из полей в
+// формате, который читает parseTariffDescription, — оператору не нужно
+// помнить разметку, а кабинет не зависит от свободного текста.
+// ──────────────────────────────────────────────────────────────────
+
+export const LOCATIONS_HEADING = 'Доступные локации:';
+
+export interface TariffCardForm {
+  tagline: string;
+  features: { icon: string; text: string; warn: boolean }[];
+  /** Строки локаций как в описании: «🇩🇪 Германия», «📡 Обход белых списков». */
+  locations: string[];
+}
+
+const WARN_ICON = '⚠️';
+const LEADING_ICON = /^((?:\p{Extended_Pictographic}|️|‍)+)\s*/u;
+
+export function parseCardForm(description: string | null | undefined): TariffCardForm {
+  const lines = (description ?? '').split(/\r?\n/).map((line) => line.trim());
+  const locationsAt = lines.findIndex((line) => /^доступные\s+локации/i.test(line));
+  const body = (locationsAt >= 0 ? lines.slice(0, locationsAt) : lines).filter(Boolean);
+  const locations =
+    locationsAt >= 0
+      ? lines
+          .slice(locationsAt + 1)
+          .map((line) => line.replace(/^[-•·*\s]+/, '').trim())
+          .filter(Boolean)
+      : [];
+  const [first, ...rest] = body;
+  const features = rest.map((line) => {
+    const match = LEADING_ICON.exec(line);
+    const icon = match?.[1] ?? '';
+    const text = line.slice(match?.[0].length ?? 0).trim();
+    const warn = icon.startsWith('⚠') || /не\s+(будет\s+работать|работает)/i.test(text);
+    return { icon, text, warn };
+  });
+  return { tagline: first ?? '', features, locations };
+}
+
+/** Собирает описание обратно. Пустые строки и пустые блоки не пишем. */
+export function serializeCardForm(form: TariffCardForm): string {
+  const parts: string[] = [];
+  const tagline = form.tagline.trim();
+  if (tagline) parts.push(tagline);
+
+  const featureLines = form.features
+    .filter((feature) => feature.text.trim())
+    .map((feature) => {
+      const icon = feature.warn ? WARN_ICON : feature.icon.trim();
+      return `${icon ? `${icon} ` : ''}${feature.text.trim()}`;
+    });
+  if (featureLines.length > 0) parts.push(featureLines.join('\n'));
+
+  const locations = form.locations.map((line) => line.trim()).filter(Boolean);
+  if (locations.length > 0) parts.push([LOCATIONS_HEADING, ...locations].join('\n'));
+
+  return parts.join('\n\n');
+}
+
+export const KNOWN_COUNTRIES: { name: string; flag: string }[] = Object.entries(FLAGS).map(
+  ([name, flag]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), flag }),
+);
+
+/** Включает/выключает отметку 📡 у строки локации. */
+export function setMetered(line: string, metered: boolean): string {
+  const bare = line
+    .replace(/\[\s*📡\s*\]/g, '')
+    .replace(/📡/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return metered ? `${METERED_MARK} ${bare}`.trim() : bare;
+}
