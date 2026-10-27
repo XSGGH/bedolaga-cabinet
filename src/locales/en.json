@@ -405,7 +405,13 @@
     },
     "manageAll": "Manage all",
     "showAll": "Show all",
-    "subscriptions": "Subscriptions"
+    "subscriptions": "Subscriptions",
+    "channelPromo": {
+      "title": "News and discounts",
+      "text": "Follow our Telegram channel to stay in the loop",
+      "button": "Subscribe"
+    },
+    "manageSubtitle": "Plan, devices and renewal"
   },
   "subscription": {
     "title": "Subscription",
@@ -1381,9 +1387,9 @@
     "noPrize": "No luck this time...",
     "noHistory": "No spin history yet",
     "banner": {
-      "title": "Try your luck!",
-      "description": "Spin the wheel and win prizes: subscription days, balance, traffic and more!",
-      "button": "Go to wheel"
+      "title": "Wheel of Fortune",
+      "description": "Spin and win subscription days, traffic and bonuses",
+      "button": "Spin"
     },
     "selectSubscription": "Select subscription",
     "remainingOf": "{{left}} of {{total}} left",

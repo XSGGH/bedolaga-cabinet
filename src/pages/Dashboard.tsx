@@ -19,13 +19,14 @@ import TrialOfferCard from '../components/dashboard/TrialOfferCard';
 import ReminderCards from '../components/dashboard/ReminderCards';
 import ServerStatus from '../components/dashboard/ServerStatus';
 import StatsGrid from '../components/dashboard/StatsGrid';
+import ChannelPromo from '../components/dashboard/ChannelPromo';
 import { giftApi } from '../api/gift';
 import { promoApi } from '../api/promo';
 import PendingGiftCard from '../components/dashboard/PendingGiftCard';
 import SubscriptionListCard from '../components/subscription/SubscriptionListCard';
 import { DeviceLimitSheet } from '../components/subscription/DeviceLimitSheet';
 import { API } from '../config/constants';
-import { ChevronRightIcon, StarIcon, WheelIcon } from '@/components/icons';
+import { StarIcon } from '@/components/icons';
 import { Skeleton, SkeletonGroup } from '@/components/ui/skeleton';
 import { safeLocal } from '../utils/safeStorage';
 import { getApiErrorMessage } from '../utils/api-error';
@@ -451,25 +452,25 @@ export default function Dashboard() {
           {/* Fortune Wheel Banner */}
           {wheelConfig?.is_enabled && (
             <Link to="/wheel" className="xsg-wheel group col-span-2 block lg:col-span-1">
-              <div className="relative flex items-center gap-3.5">
-                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/25">
-                  <WheelIcon className="h-6 w-6" />
+              <div className="relative flex items-center gap-4">
+                <span className="xsg-wheel-disc" aria-hidden="true">
+                  <span className="xsg-wheel-hub" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-lg font-extrabold tracking-tight text-white">
+                  <h3 className="text-lg font-extrabold leading-tight tracking-tight text-dark-50">
                     {t('wheel.banner.title')}
                   </h3>
-                  <p className="mt-0.5 text-[13px] leading-snug text-white/80 lg:hidden">
+                  <p className="mt-1 text-[13px] leading-snug text-dark-300">
                     {t('wheel.banner.description')}
                   </p>
                 </div>
-                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/15 text-white transition-transform duration-300 group-hover:translate-x-0.5">
-                  <ChevronRightIcon className="h-4 w-4" />
-                </span>
+                <span className="xsg-wheel-cta flex-shrink-0">{t('wheel.banner.button')}</span>
               </div>
             </Link>
           )}
         </div>
+
+        <ChannelPromo />
       </div>
 
       {/* Статус серверов (данные с сайта аптайма) */}

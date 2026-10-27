@@ -16,6 +16,7 @@ import {
   CalendarIcon,
   CheckIcon,
   CopyIcon,
+  CogIcon,
   MonitorIcon,
   RefreshIcon,
   SparklesIcon,
@@ -221,12 +222,21 @@ export default function SubscriptionCardActive({
                 isUnlimited={isUnlimited}
               />
             </div>
-            <p className="mb-6 text-[13px] leading-relaxed text-dark-300">
-              {t(
-                'subscription.trafficScope.note',
-                'Трафик списывается только на серверах с отметкой 📡. На остальных серверах расход не считается — они безлимитные.',
+            <button
+              type="button"
+              onClick={() => refreshTrafficMutation.mutate()}
+              disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
+              className="mb-6 flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium text-dark-400 transition-colors hover:bg-dark-800 hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={t('common.refresh')}
+            >
+              <RefreshIcon
+                className={`h-3.5 w-3.5 ${refreshTrafficMutation.isPending ? 'animate-spin' : ''}`}
+              />
+              {t('common.refresh')}
+              {trafficRefreshCooldown > 0 && (
+                <span className="tabular-nums text-dark-500">{trafficRefreshCooldown}s</span>
               )}
-            </p>
+            </button>
           </>
         )}
 
@@ -271,38 +281,31 @@ export default function SubscriptionCardActive({
             </>
           )
         ) : (
-          <ConnectDeviceTile
-            subscription={subscription}
-            connectedDevices={connectedDevices}
-            usedPercent={usedPercent}
-          />
-        )}
-
-        {/* ─── Обновить / управление ─── */}
-        <div className="mt-1 flex items-center justify-between px-0.5">
-          {!isUnlimited && (
-            <button
-              onClick={() => refreshTrafficMutation.mutate()}
-              disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
-              className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium text-dark-400 transition-colors hover:bg-dark-800 hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label={t('common.refresh')}
+          <>
+            <ConnectDeviceTile
+              subscription={subscription}
+              connectedDevices={connectedDevices}
+              usedPercent={usedPercent}
+            />
+            <Link
+              to={`/subscriptions/${subscription.id}`}
+              className="flex w-full items-center gap-4 rounded-2xl border border-[var(--xsg-line)] bg-dark-900/60 p-4 text-left transition-colors duration-200 hover:border-[var(--xsg-line-strong)]"
             >
-              <RefreshIcon
-                className={`h-3.5 w-3.5 ${refreshTrafficMutation.isPending ? 'animate-spin' : ''}`}
-              />
-              {t('common.refresh')}
-              {trafficRefreshCooldown > 0 && (
-                <span className="tabular-nums text-dark-500">{trafficRefreshCooldown}s</span>
-              )}
-            </button>
-          )}
-          <Link
-            to={`/subscriptions/${subscription.id}`}
-            className="text-xs font-semibold ml-auto text-accent-300 transition-colors hover:text-accent-200 lg:hidden"
-          >
-            {t('dashboard.viewSubscription')} &rarr;
-          </Link>
-        </div>
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-dark-800 text-accent-300">
+                <CogIcon className="h-[18px] w-[18px]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[15px] font-bold tracking-tight text-dark-50">
+                  {t('dashboard.viewSubscription')}
+                </div>
+                <div className="mt-0.5 text-xs text-dark-400">{t('dashboard.manageSubtitle')}</div>
+              </div>
+              <span className="flex-shrink-0 text-lg text-dark-400" aria-hidden="true">
+                &rsaquo;
+              </span>
+            </Link>
+          </>
+        )}
 
         {/* ─── Sparkline ─── */}
         {dailyUsage.length >= 2 && (

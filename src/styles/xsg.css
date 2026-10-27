@@ -159,48 +159,72 @@ html:not(.light) .input {
   box-shadow: inset 3px 0 0 rgb(var(--color-warning-400));
 }
 
-/* Баннер «Колесо удачи» — единственный яркий блок главной */
+/* Баннер «Колесо фортуны»: тёмная карточка, мини-колесо слева, кнопка справа */
 .xsg-wheel {
   position: relative;
   overflow: hidden;
   border-radius: var(--bento-radius);
-  border: 1px solid rgba(var(--color-accent-400), 0.55);
-  background: linear-gradient(
-    145deg,
-    rgba(var(--color-accent-600), 0.95) 0%,
-    rgba(var(--color-accent-800), 0.9) 48%,
-    rgb(var(--color-dark-900)) 100%
-  );
-  padding: 16px 18px;
-  transition: border-color 0.15s;
+  border: 1px solid rgba(var(--color-accent-500), 0.45);
+  background:
+    radial-gradient(260px 160px at 0% 50%, rgba(var(--color-accent-500), 0.3), transparent 70%),
+    radial-gradient(220px 140px at 100% 0%, rgba(236, 72, 153, 0.14), transparent 70%),
+    rgb(var(--color-dark-900));
+  padding: 16px 16px 16px 14px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.2s;
 }
 
 .xsg-wheel:hover {
-  border-color: rgba(var(--color-accent-300), 0.8);
+  border-color: rgba(var(--color-accent-300), 0.75);
+  box-shadow: 0 0 36px rgba(var(--color-accent-500), 0.22);
 }
 
-.xsg-wheel::before {
-  content: "";
-  position: absolute;
-  right: -44px;
-  top: -44px;
-  width: 170px;
-  height: 170px;
+/* Мини-колесо: статичное (без вращения — на Android WebView вращающиеся слои дают чёрные тайлы) */
+.xsg-wheel-disc {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  pointer-events: none;
+  border: 3px solid rgb(var(--color-accent-400));
+  background: repeating-conic-gradient(from -11.25deg, #1b0f36 0deg 22.5deg, #2d1760 22.5deg 45deg);
+  box-shadow:
+    0 0 0 3px rgba(var(--color-accent-500), 0.2),
+    0 0 26px rgba(var(--color-accent-500), 0.5);
 }
 
-.xsg-wheel::after {
+.xsg-wheel-disc::before {
   content: "";
   position: absolute;
-  right: -12px;
-  top: -12px;
-  width: 106px;
-  height: 106px;
+  top: -9px;
+  left: 50%;
+  margin-left: -6px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 11px solid #f0abfc;
+  filter: none;
+}
+
+.xsg-wheel-hub {
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  pointer-events: none;
+  background: linear-gradient(135deg, rgb(var(--color-accent-400)), #ec4899);
+  box-shadow: 0 0 0 3px #150a2b;
+}
+
+.xsg-wheel-cta {
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgb(var(--color-accent-500)), #d946ef);
+  padding: 9px 16px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(var(--color-accent-500), 0.4);
 }
 
 /* Плитки-кнопки (было: бегущая градиентная рамка) — плоская плашка */
