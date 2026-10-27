@@ -158,19 +158,46 @@ export default function SubscriptionCardActive({
             <div aria-hidden="true" className="mb-6 h-px bg-accent-500/15" />
 
             {/* ─── Расход трафика ─── */}
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-              <div className="flex min-w-0 items-center gap-3">
-                <h2 className="whitespace-nowrap text-base font-bold tracking-tight text-dark-50">
-                  {t('dashboard.trafficUsageTitle')}
-                </h2>
-                <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
-                  {t('subscription.trafficScope.badge', 'только 📡 серверы')}
+            <div className="mb-3 flex items-center gap-2">
+              <h2 className="min-w-0 truncate text-base font-bold tracking-tight text-dark-50">
+                {t('dashboard.trafficUsageTitle')}
+              </h2>
+              <span className="shrink-0 whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
+                {t('subscription.trafficScope.badge', 'только 📡 серверы')}
+              </span>
+              <button
+                type="button"
+                onClick={() => refreshTrafficMutation.mutate()}
+                disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
+                className="ml-auto flex h-8 min-w-8 shrink-0 items-center justify-center rounded-full border border-[var(--xsg-line)] bg-dark-800/60 px-1 text-dark-300 transition-colors hover:border-[var(--xsg-line-strong)] hover:text-dark-50 disabled:cursor-not-allowed disabled:opacity-60"
+                aria-label={t('common.refresh')}
+                title={t('common.refresh')}
+              >
+                {trafficRefreshCooldown > 0 && !refreshTrafficMutation.isPending ? (
+                  <span className="text-[11px] font-semibold tabular-nums">
+                    {trafficRefreshCooldown}
+                  </span>
+                ) : (
+                  <RefreshIcon
+                    className={`h-3.5 w-3.5 ${refreshTrafficMutation.isPending ? 'animate-spin' : ''}`}
+                  />
+                )}
+              </button>
+            </div>
+
+            <div className="mb-3 flex items-end justify-between gap-3 tabular-nums">
+              <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-1">
+                <span className="text-lg font-bold leading-none text-dark-50">
+                  {formatTraffic(usedGb)}
                 </span>
-                {/* Плашку показываем только когда есть о чём сказать: безлимит или
-                повышенный расход. В спокойной зоне («Норма») она — шум. */}
-                {(isUnlimited || zone.colorKey !== 'accent') && (
+                <span className="text-[13px] text-dark-400">
+                  / {formatTraffic(subscription.traffic_limit_gb)}
+                </span>
+                {/* Плашку показываем только когда есть о чём сказать: повышенный
+                расход. В спокойной зоне («Норма») она — шум. */}
+                {zone.colorKey !== 'accent' && (
                   <span
-                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
+                    className="ml-1 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
                     style={{
                       color: `rgb(${pillColor})`,
                       background: `rgba(${pillColor}, 0.12)`,
@@ -182,53 +209,14 @@ export default function SubscriptionCardActive({
                       style={{ background: `rgb(${pillColor})` }}
                       aria-hidden="true"
                     />
-                    {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
+                    {t(zone.labelKey)}
                   </span>
                 )}
               </div>
-
-              <div className="flex items-baseline gap-3 tabular-nums">
-                {isUnlimited ? (
-                  <>
-                    <span className="text-xs text-dark-400">
-                      {formatTraffic(usedGb)} {t('dashboard.usedSuffix')}
-                    </span>
-                    <span
-                      className="text-2xl font-extrabold leading-none"
-                      style={{ color: zone.mainVar }}
-                    >
-                      &#8734;
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-xs text-dark-400">
-                      {formatTraffic(usedGb)} / {formatTraffic(subscription.traffic_limit_gb)}
-                    </span>
-                    <span className="text-[26px] font-extrabold leading-none tracking-tight text-dark-50">
-                      {animatedPercent.toFixed(0)}
-                      <span className="ml-px text-sm font-medium text-dark-400">%</span>
-                    </span>
-                  </>
-                )}
-                <button
-                  type="button"
-                  onClick={() => refreshTrafficMutation.mutate()}
-                  disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
-                  className="flex h-7 shrink-0 items-center self-center gap-1 rounded-full px-1.5 text-dark-400 transition-colors hover:bg-dark-800 hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
-                  aria-label={t('common.refresh')}
-                  title={t('common.refresh')}
-                >
-                  <RefreshIcon
-                    className={`h-3.5 w-3.5 ${refreshTrafficMutation.isPending ? 'animate-spin' : ''}`}
-                  />
-                  {trafficRefreshCooldown > 0 && (
-                    <span className="text-[11px] tabular-nums text-dark-500">
-                      {trafficRefreshCooldown}s
-                    </span>
-                  )}
-                </button>
-              </div>
+              <span className="shrink-0 text-[28px] font-extrabold leading-none tracking-tight text-dark-50">
+                {animatedPercent.toFixed(0)}
+                <span className="ml-0.5 text-sm font-medium text-dark-400">%</span>
+              </span>
             </div>
 
             <div className="mb-6">
