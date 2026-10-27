@@ -166,6 +166,23 @@ export default function SubscriptionCardActive({
                 <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
                   {t('subscription.trafficScope.badge', 'только 📡 серверы')}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => refreshTrafficMutation.mutate()}
+                  disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
+                  className="flex h-7 items-center gap-1 rounded-full px-1.5 text-dark-400 transition-colors hover:bg-dark-800 hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label={t('common.refresh')}
+                  title={t('common.refresh')}
+                >
+                  <RefreshIcon
+                    className={`h-3.5 w-3.5 ${refreshTrafficMutation.isPending ? 'animate-spin' : ''}`}
+                  />
+                  {trafficRefreshCooldown > 0 && (
+                    <span className="text-[11px] tabular-nums text-dark-500">
+                      {trafficRefreshCooldown}s
+                    </span>
+                  )}
+                </button>
                 {/* Плашку показываем только когда есть о чём сказать: безлимит или
                 повышенный расход. В спокойной зоне («Норма») она — шум. */}
                 {(isUnlimited || zone.colorKey !== 'accent') && (
@@ -214,7 +231,7 @@ export default function SubscriptionCardActive({
               </div>
             </div>
 
-            <div className="mb-3">
+            <div className="mb-6">
               <TrafficProgressBar
                 usedGb={usedGb}
                 limitGb={subscription.traffic_limit_gb}
@@ -222,21 +239,6 @@ export default function SubscriptionCardActive({
                 isUnlimited={isUnlimited}
               />
             </div>
-            <button
-              type="button"
-              onClick={() => refreshTrafficMutation.mutate()}
-              disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
-              className="mb-6 flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium text-dark-400 transition-colors hover:bg-dark-800 hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label={t('common.refresh')}
-            >
-              <RefreshIcon
-                className={`h-3.5 w-3.5 ${refreshTrafficMutation.isPending ? 'animate-spin' : ''}`}
-              />
-              {t('common.refresh')}
-              {trafficRefreshCooldown > 0 && (
-                <span className="tabular-nums text-dark-500">{trafficRefreshCooldown}s</span>
-              )}
-            </button>
           </>
         )}
 
@@ -282,6 +284,7 @@ export default function SubscriptionCardActive({
           )
         ) : (
           <>
+            <div aria-hidden="true" className="mb-6 h-px bg-accent-500/15" />
             <ConnectDeviceTile
               subscription={subscription}
               connectedDevices={connectedDevices}
@@ -289,9 +292,9 @@ export default function SubscriptionCardActive({
             />
             <Link
               to={`/subscriptions/${subscription.id}`}
-              className="flex w-full items-center gap-4 rounded-2xl border border-[var(--xsg-line)] bg-dark-900/60 p-4 text-left transition-colors duration-200 hover:border-[var(--xsg-line-strong)]"
+              className="flex w-full items-center gap-4 rounded-2xl border border-accent-500/25 bg-dark-700/50 p-4 text-left transition-colors duration-200 hover:border-accent-400/50 hover:bg-dark-700/70"
             >
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-dark-800 text-accent-300">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent-500/15 text-accent-300">
                 <CogIcon className="h-[18px] w-[18px]" />
               </div>
               <div className="min-w-0 flex-1">

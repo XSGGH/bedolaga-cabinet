@@ -473,7 +473,8 @@
       "expiredHint": "Choose a plan and pay",
       "trialHint": "More traffic and devices",
       "activeHint": "Renewal and plan change",
-      "renewHint": "Subscription expired — renew to continue using"
+      "renewHint": "Subscription expired — renew to continue using",
+      "changeTariff": "Change tariff"
     },
     "connectionInfo": "Connection Info",
     "copyLink": "Copy Link",
@@ -881,7 +882,8 @@
       "unavailable": "Unavailable",
       "noMetered": "Whitelist bypass is not included in this tariff",
       "inSubscription": "in subscription",
-      "devicesUnlimited": "devices"
+      "devicesUnlimited": "devices",
+      "trafficSummary": "unlimited on regular servers, {{limit}} on 📡"
     },
     "trafficScope": {
       "badge": "📡 servers only",

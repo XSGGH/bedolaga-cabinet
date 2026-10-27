@@ -15,6 +15,7 @@ import { useCloseOnSuccessNotification } from '../store/successNotification';
 import CollapsibleSection from '../components/subscription/CollapsibleSection';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import PurchaseCTAButton from '../components/subscription/PurchaseCTAButton';
+import ChangeTariffButton from '../components/subscription/ChangeTariffButton';
 import { planTitle, showsAddonOptions } from '../utils/legacySubscription';
 import {
   CheckIcon,
@@ -667,8 +668,13 @@ export default function Subscription() {
                     )}
 
                     {/* ─── Продлить + автопродление: на телефоне внизу карточки тарифа ─── */}
-                    <div className="mt-5 lg:hidden">
+                    <div className="mt-5 space-y-2.5 lg:hidden">
                       <PurchaseCTAButton
+                        subscription={subscription}
+                        isMultiTariff={isMultiTariff}
+                        inline
+                      />
+                      <ChangeTariffButton
                         subscription={subscription}
                         isMultiTariff={isMultiTariff}
                         inline
@@ -989,9 +995,10 @@ export default function Subscription() {
           </div>
         </div>
         <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-5">
-          <div className="order-5 hidden empty:hidden lg:block">
+          <div className="order-5 hidden space-y-3 empty:hidden lg:block">
             {/* Purchase / Renewal CTA (на телефоне — внутри карточки тарифа) */}
             <PurchaseCTAButton subscription={subscription} isMultiTariff={isMultiTariff} />
+            <ChangeTariffButton subscription={subscription} isMultiTariff={isMultiTariff} />
           </div>
 
           {/* Autopay + recurring (способы автоплатежа свёрнуты) — на телефоне внутри карточки тарифа */}

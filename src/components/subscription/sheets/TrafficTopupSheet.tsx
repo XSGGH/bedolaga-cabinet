@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { subscriptionApi } from '../../../api/subscription';
 import { getErrorMessage } from '../../../utils/subscriptionHelpers';
 import InsufficientBalancePrompt from '../../InsufficientBalancePrompt';
-import { ChevronRightIcon } from '../../icons';
+import { ChevronRightIcon, PlusIcon } from '../../icons';
 import type { PurchaseOptions, Subscription } from '../../../types';
 
 // ──────────────────────────────────────────────────────────────────
@@ -74,6 +74,9 @@ export function TrafficTopupSheet({
         onClick={onOpen}
         className={`w-full rounded-xl border p-4 text-left transition-colors ${isDark ? 'border-dark-700/50 bg-dark-800/50 hover:border-dark-600' : 'border-champagne-300/60 bg-champagne-200/40 hover:border-champagne-400'}`}
       >
+        <span className="xsg-linkrow-icon" aria-hidden="true">
+          <PlusIcon className="h-4 w-4" />
+        </span>
         <div className="flex items-center justify-between">
           <div>
             <div className="font-medium text-dark-100">

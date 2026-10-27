@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
@@ -85,6 +85,21 @@ export default function SubscriptionPurchase() {
 
   // Tariff switch
   const [switchTariffId, setSwitchTariffId] = useState<number | null>(null);
+
+  // ?renew=1: «Продлить подписку» сразу открывает выбор периода текущего тарифа,
+  // минуя список тарифов (его можно открыть кнопкой «Назад»).
+  const autoRenewDone = useRef(false);
+  const wantsRenew = searchParams.get('renew') === '1';
+  useEffect(() => {
+    if (autoRenewDone.current || !wantsRenew || !isTariffsMode) return;
+    if (!subscription?.tariff_id || tariffs.length === 0) return;
+    const current = tariffs.find((tr) => tr.id === subscription.tariff_id);
+    autoRenewDone.current = true;
+    if (current) {
+      setSelectedTariff(current);
+      setShowTariffPurchase(true);
+    }
+  }, [wantsRenew, isTariffsMode, subscription, tariffs]);
 
   // Auto-close all modals on success notification
   const handleCloseAllModals = () => {

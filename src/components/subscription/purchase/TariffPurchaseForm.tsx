@@ -13,6 +13,7 @@ import { getMonthlyPriceKopeks } from '../../../utils/pricing';
 import { pickBestValue } from '../../../utils/bestValue';
 import InsufficientBalancePrompt from '../../InsufficientBalancePrompt';
 import type { Tariff, TariffPeriod } from '../../../types';
+import { buildTrafficModel } from './tariffCardModel';
 import { BestValueBadge, bestValueFrame } from '../BestValueBadge';
 
 // ──────────────────────────────────────────────────────────────────
@@ -56,6 +57,7 @@ export function TariffPurchaseForm({
   onBack,
 }: TariffPurchaseFormProps) {
   const { t } = useTranslation();
+  const trafficSummary = buildTrafficModel(tariff);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { formatAmount, currencySymbol } = useCurrency();
@@ -262,7 +264,14 @@ export function TariffPurchaseForm({
         <div className="flex flex-wrap gap-4 text-sm">
           <div>
             <span className="text-dark-500">{t('subscription.traffic')}:</span>
-            <span className="ml-2 text-dark-200">{tariff.traffic_limit_label}</span>
+            <span className="ml-2 text-dark-200">
+              {trafficSummary.unlimitedScope === 'regular' && trafficSummary.hasLimit
+                ? t('subscription.tariffCard.trafficSummary', {
+                    limit: tariff.traffic_limit_label,
+                    defaultValue: 'безлимит на обычных серверах, {{limit}} на 📡',
+                  })
+                : tariff.traffic_limit_label}
+            </span>
           </div>
           <div>
             <span className="text-dark-500">{t('subscription.devices')}:</span>

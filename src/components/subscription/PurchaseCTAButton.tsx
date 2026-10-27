@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ChevronRightIcon } from '@/components/icons';
+import { ChevronRightIcon, RefreshIcon, SparklesIcon } from '@/components/icons';
 import type { Subscription } from '../../types';
 import { needsTariff, tariffSelectionPath } from '../../utils/legacySubscription';
 
@@ -52,6 +52,8 @@ export default function PurchaseCTAButton({
   // Trial → purchase page (buy a real tariff, trial can't be renewed)
   // Multi-tariff active → per-subscription renew page
   // Otherwise → purchase page
+  // Обычное продление в одиночном режиме открывает выбор периода текущего тарифа
+  // сразу (renew=1), а не список всех тарифов; список доступен кнопкой «Сменить тариф».
   const linkTo =
     requiresTariff && subscription?.id
       ? tariffSelectionPath(subscription.id)
@@ -59,26 +61,21 @@ export default function PurchaseCTAButton({
         ? '/subscription/purchase'
         : isMultiTariff && subscription?.id
           ? `/subscriptions/${subscription.id}/renew`
-          : '/subscription/purchase';
+          : isExpired
+            ? '/subscription/purchase'
+            : '/subscription/purchase?renew=1';
+  const Icon = isExpired || isTrial || requiresTariff ? SparklesIcon : RefreshIcon;
 
-  // Основная (заливная) кнопка — когда продление нужно сейчас: подписка закончилась,
-  // пробный период, нужен тариф или осталось не больше недели. Иначе — вторичная.
-  const prominent =
-    isExpired ||
-    isTrial ||
-    requiresTariff ||
-    (subscription !== null && !subscription.is_daily && subscription.days_left <= 7);
+  const glow = 'shadow-[0_8px_24px_rgba(var(--color-accent-500),0.35)]';
+  const fill = `bg-gradient-to-r from-accent-500 to-fuchsia-500 text-white hover:brightness-110 ${glow}`;
 
   if (inline) {
     return (
       <Link
         to={linkTo}
-        className={`flex h-12 items-center justify-center rounded-[14px] px-3 text-[14px] font-bold transition-colors ${
-          prominent
-            ? 'bg-accent-500 text-on-accent hover:bg-accent-400'
-            : 'border border-accent-400/70 bg-accent-500/20 text-accent-200 hover:border-accent-300 hover:bg-accent-500/30'
-        }`}
+        className={`flex h-12 items-center justify-center gap-2 rounded-[14px] px-3 text-[14px] font-bold transition-[filter] ${fill}`}
       >
+        <Icon className="h-[18px] w-[18px]" />
         {buttonText}
       </Link>
     );
@@ -87,25 +84,16 @@ export default function PurchaseCTAButton({
   return (
     <Link
       to={linkTo}
-      className={
-        prominent
-          ? 'group flex min-h-16 items-center gap-3.5 rounded-[20px] bg-accent-500 px-5 py-4 text-on-accent transition-colors hover:bg-accent-400'
-          : 'group flex min-h-16 items-center gap-3.5 rounded-[20px] border border-accent-500/60 bg-dark-800 px-5 py-4 text-dark-50 transition-colors hover:border-accent-400'
-      }
+      className={`group flex min-h-16 items-center gap-3.5 rounded-[20px] px-5 py-4 transition-[filter] ${fill}`}
     >
+      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/20">
+        <Icon className="h-5 w-5" />
+      </span>
       <div className="min-w-0 flex-1">
-        <div className={`text-base tracking-tight ${prominent ? 'font-extrabold' : 'font-bold'}`}>
-          {buttonText}
-        </div>
-        <div
-          className={`mt-0.5 text-[12.5px] ${prominent ? 'font-semibold opacity-75' : 'text-dark-300'}`}
-        >
-          {hintText}
-        </div>
+        <div className="text-base font-extrabold tracking-tight">{buttonText}</div>
+        <div className="mt-0.5 text-[12.5px] font-semibold opacity-80">{hintText}</div>
       </div>
-      <ChevronRightIcon
-        className={`h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 ${prominent ? '' : 'text-accent-400'}`}
-      />
+      <ChevronRightIcon className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
     </Link>
   );
 }

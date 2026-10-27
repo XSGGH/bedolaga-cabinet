@@ -26,7 +26,7 @@ import PendingGiftCard from '../components/dashboard/PendingGiftCard';
 import SubscriptionListCard from '../components/subscription/SubscriptionListCard';
 import { DeviceLimitSheet } from '../components/subscription/DeviceLimitSheet';
 import { API } from '../config/constants';
-import { StarIcon } from '@/components/icons';
+import { ChevronRightIcon, StarIcon } from '@/components/icons';
 import { Skeleton, SkeletonGroup } from '@/components/ui/skeleton';
 import { safeLocal } from '../utils/safeStorage';
 import { getApiErrorMessage } from '../utils/api-error';
@@ -464,13 +464,20 @@ export default function Dashboard() {
                     {t('wheel.banner.description')}
                   </p>
                 </div>
-                <span className="xsg-wheel-cta flex-shrink-0">{t('wheel.banner.button')}</span>
+                <span className="xsg-wheel-cta flex-shrink-0">
+                  <span className="hidden sm:inline lg:hidden xl:inline">
+                    {t('wheel.banner.button')}
+                  </span>
+                  <ChevronRightIcon className="h-4 w-4 sm:hidden lg:inline xl:hidden" />
+                </span>
               </div>
             </Link>
           )}
-        </div>
 
-        <ChannelPromo />
+          <div className="col-span-2 lg:col-span-3">
+            <ChannelPromo />
+          </div>
+        </div>
       </div>
 
       {/* Статус серверов (данные с сайта аптайма) */}
