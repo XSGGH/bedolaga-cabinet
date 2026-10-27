@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { wheelApi, type RecentWin } from '../../api/wheel';
@@ -6,6 +7,8 @@ import { prizeTypeColor } from './wheelFaceModel';
 const REFRESH_MS = 20_000;
 /** Сколько последних выигрышей показываем. */
 const WINS_SHOWN = 6;
+/** На телефоне сначала показываем только столько, остальные — по кнопке. */
+const WINS_COLLAPSED = 2;
 
 function timeAgo(
   iso: string,
@@ -19,11 +22,19 @@ function timeAgo(
   return t('notifications.daysAgo', { count: Math.floor(hours / 24) });
 }
 
-function WinCard({ win, t }: { win: RecentWin; t: Parameters<typeof timeAgo>[1] }) {
+function WinCard({
+  win,
+  t,
+  hiddenOnMobile,
+}: {
+  win: RecentWin;
+  t: Parameters<typeof timeAgo>[1];
+  hiddenOnMobile: boolean;
+}) {
   const color = prizeTypeColor(win.prize_type);
   return (
     <div
-      className="flex min-w-0 items-center gap-3 rounded-2xl border border-dark-700 bg-dark-900/80 p-3"
+      className={`min-w-0 items-center gap-3 rounded-2xl border border-dark-700 bg-dark-900/80 p-3 ${hiddenOnMobile ? 'hidden sm:flex' : 'flex'}`}
       style={{ boxShadow: `inset 0 -2px 0 ${color}55` }}
     >
       <div
@@ -48,6 +59,7 @@ function WinCard({ win, t }: { win: RecentWin; t: Parameters<typeof timeAgo>[1] 
  */
 export default function RecentWinsStrip() {
   const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
   const { data } = useQuery({
     queryKey: ['wheel-recent-wins'],
     queryFn: () => wheelApi.getRecentWins(WINS_SHOWN),
@@ -67,10 +79,22 @@ export default function RecentWinsStrip() {
         {t('wheel.recentWins')}
       </div>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6">
-        {data.slice(0, WINS_SHOWN).map((win) => (
-          <WinCard key={win.id} win={win} t={t} />
+        {data.slice(0, WINS_SHOWN).map((win, i) => (
+          <WinCard key={win.id} win={win} t={t} hiddenOnMobile={!expanded && i >= WINS_COLLAPSED} />
         ))}
       </div>
+      {Math.min(data.length, WINS_SHOWN) > WINS_COLLAPSED && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className="mt-2.5 flex w-full items-center justify-center rounded-xl border border-dark-700 bg-dark-900/60 py-2.5 text-[13px] font-bold text-accent-300 transition-colors hover:border-accent-500/40 sm:hidden"
+        >
+          {expanded
+            ? t('wheel.showLess')
+            : t('wheel.showMore', { count: Math.min(data.length, WINS_SHOWN) - WINS_COLLAPSED })}
+        </button>
+      )}
     </section>
   );
 }

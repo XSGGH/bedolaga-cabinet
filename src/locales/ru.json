@@ -1432,7 +1432,9 @@
       "traffic_gb": "Трафик 📡",
       "promocode": "Промокоды"
     },
-    "recentWins": "Выигрывают прямо сейчас"
+    "recentWins": "Выигрывают прямо сейчас",
+    "showMore": "Показать ещё {{count}}",
+    "showLess": "Свернуть"
   },
   "admin": {
     "backgrounds": {

@@ -1403,7 +1403,9 @@
       "traffic_gb": "Traffic",
       "promocode": "Promo codes"
     },
-    "recentWins": "Winning right now"
+    "recentWins": "Winning right now",
+    "showMore": "Show {{count}} more",
+    "showLess": "Show less"
   },
   "admin": {
     "backgrounds": {
