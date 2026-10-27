@@ -679,6 +679,13 @@ export default function Subscription() {
                         isMultiTariff={isMultiTariff}
                         inline
                       />
+                      {canReissueLink(subscription) && (
+                        <ReissueLinkButton
+                          subscription={subscription}
+                          subscriptionId={subscriptionId}
+                          inline
+                        />
+                      )}
                     </div>
                     {!isDesktop && (
                       <div className="xsg-autopay mt-4 border-t border-accent-500/15">
@@ -999,6 +1006,13 @@ export default function Subscription() {
             {/* Purchase / Renewal CTA (на телефоне — внутри карточки тарифа) */}
             <PurchaseCTAButton subscription={subscription} isMultiTariff={isMultiTariff} />
             <ChangeTariffButton subscription={subscription} isMultiTariff={isMultiTariff} />
+            {subscription && canReissueLink(subscription) && (
+              <ReissueLinkButton
+                subscription={subscription}
+                subscriptionId={subscriptionId}
+                inline
+              />
+            )}
           </div>
 
           {/* Autopay + recurring (способы автоплатежа свёрнуты) — на телефоне внутри карточки тарифа */}
@@ -1036,15 +1050,6 @@ export default function Subscription() {
                   />
                 </div>
               )}
-          </div>
-
-          <div className="order-8 empty:hidden">
-            {/* Reissue Subscription — standalone block, not dependent on device_limit */}
-            {subscription && canReissueLink(subscription) && (
-              <div>
-                <ReissueLinkButton subscription={subscription} subscriptionId={subscriptionId} />
-              </div>
-            )}
           </div>
         </div>
       </div>

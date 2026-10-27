@@ -29,6 +29,8 @@ export function canReissueLink(
 export interface ReissueLinkButtonProps {
   subscription: Subscription;
   subscriptionId: number | undefined;
+  /** Компактная кнопка в одном ряду с «Продлить» и «Сменить тариф». */
+  inline?: boolean;
 }
 
 /**
@@ -42,7 +44,11 @@ export interface ReissueLinkButtonProps {
  *
  * Возвращает null там, где перевыпускать нечего: у пробных и у неактивных.
  */
-export function ReissueLinkButton({ subscription, subscriptionId }: ReissueLinkButtonProps) {
+export function ReissueLinkButton({
+  subscription,
+  subscriptionId,
+  inline = false,
+}: ReissueLinkButtonProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const haptic = useHaptic();
@@ -91,6 +97,34 @@ export function ReissueLinkButton({ subscription, subscriptionId }: ReissueLinkB
   };
 
   if (!canReissueLink(subscription)) return null;
+
+  if (inline) {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={handleRevoke}
+          disabled={revokeMutation.isPending || cooldown > 0}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-[14px] border border-warning-500/50 bg-gradient-to-r from-warning-500/20 to-orange-500/10 px-3 text-[14px] font-bold text-warning-300 transition-colors hover:border-warning-400 hover:from-warning-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {revokeMutation.isPending ? (
+            <div className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-warning-400/30 border-t-warning-400" />
+          ) : (
+            <ArrowPathIcon className="h-[18px] w-[18px]" />
+          )}
+          {cooldown > 0
+            ? t('subscription.revoke.cooldown', {
+                minutes: Math.floor(cooldown / 60),
+                seconds: cooldown % 60,
+              })
+            : t('subscription.revoke.button')}
+        </button>
+        {revokeMutation.error && (
+          <p className="mt-2 text-sm text-error-400">{getErrorMessage(revokeMutation.error)}</p>
+        )}
+      </>
+    );
+  }
 
   return (
     <>
