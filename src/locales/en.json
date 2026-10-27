@@ -277,7 +277,37 @@
     "continueWithDiscord": "Continue with Discord",
     "continueWithVk": "Continue with VK",
     "oauthError": "Authorization was denied or failed",
-    "oauthExpired": "OAuth session expired. Please try again."
+    "oauthExpired": "OAuth session expired. Please try again.",
+    "cardTitle": "Sign in",
+    "cardSubtitle": "Choose how you'd like to sign in",
+    "oauthNames": {
+      "yandex": "Yandex",
+      "vk": "VK"
+    },
+    "hero": {
+      "welcome": "Welcome to",
+      "subtitle": "Subscription, balance, promo codes and the fortune wheel — all in one dashboard. Sign in the way that suits you.",
+      "subtitleShort": "Subscription, balance and the fortune wheel in one dashboard",
+      "countries": "🇩🇪 Germany|🇳🇱 Netherlands|🇸🇪 Sweden|🇵🇱 Poland|🇪🇪 Estonia",
+      "features": {
+        "whitelist": {
+          "title": "Works with whitelists",
+          "text": "Wi-Fi and LTE: bypass mobile internet restrictions"
+        },
+        "quick": {
+          "title": "Connected in a minute",
+          "text": "Sign in, pick your device — your subscription is already in the app"
+        },
+        "devices": {
+          "title": "One subscription, 3 devices",
+          "text": "Phone, laptop, tablet — no extra fees per device"
+        },
+        "bonus": {
+          "title": "Perks for our users",
+          "text": "Promo codes, the fortune wheel and rewards for inviting friends"
+        }
+      }
+    }
   },
   "emailVerification": {
     "title": "Email Verification",
