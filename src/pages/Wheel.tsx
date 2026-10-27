@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { wheelApi, type WheelPrize, type SpinResult, type SpinHistoryItem } from '../api/wheel';
 import FortuneWheel from '../components/wheel/FortuneWheel';
+import RecentWinsStrip from '../components/wheel/RecentWinsStrip';
 import { jackpotIds, prizeLabel, prizeTypeColor } from '../components/wheel/wheelFaceModel';
 import { usePlatform, useHaptic } from '@/platform';
 import { useNotify } from '@/platform/hooks/useNotify';
@@ -539,6 +540,8 @@ export default function Wheel() {
       <h1 className="text-2xl font-extrabold tracking-tight text-dark-50 sm:text-3xl">
         {t('wheel.title')}
       </h1>
+
+      <RecentWinsStrip />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_480px] lg:items-start lg:gap-12">
         {/* Колесо */}

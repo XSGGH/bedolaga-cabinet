@@ -1394,7 +1394,8 @@
       "balance_bonus": "На баланс",
       "traffic_gb": "Трафик 📡",
       "promocode": "Промокоды"
-    }
+    },
+    "recentWins": "Выигрывают прямо сейчас"
   },
   "admin": {
     "backgrounds": {

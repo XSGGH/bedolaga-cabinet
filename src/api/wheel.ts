@@ -186,7 +186,23 @@ export interface AdminSpinsResponse {
   pages: number;
 }
 
+export interface RecentWin {
+  id: number;
+  prize_type: string;
+  prize_display_name: string;
+  emoji: string;
+  created_at: string;
+}
+
 export const wheelApi = {
+  /** Лента последних выигрышей всех игроков — анонимная, без данных пользователей. */
+  getRecentWins: async (limit = 20): Promise<RecentWin[]> => {
+    const response = await apiClient.get<{ items: RecentWin[] }>('/cabinet/wheel/recent-wins', {
+      params: { limit },
+    });
+    return response.data.items ?? [];
+  },
+
   getConfig: async (): Promise<WheelConfig> => {
     const response = await apiClient.get<WheelConfig>('/cabinet/wheel/config');
     return response.data;

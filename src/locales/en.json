@@ -1365,7 +1365,8 @@
       "balance_bonus": "Balance bonus",
       "traffic_gb": "Traffic",
       "promocode": "Promo codes"
-    }
+    },
+    "recentWins": "Winning right now"
   },
   "admin": {
     "backgrounds": {
