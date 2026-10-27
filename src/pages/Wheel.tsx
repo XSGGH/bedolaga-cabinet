@@ -540,9 +540,9 @@ export default function Wheel() {
         {t('wheel.title')}
       </h1>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_480px] lg:items-center lg:gap-12">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_480px] lg:items-start lg:gap-12">
         {/* Колесо */}
-        <div className="px-2 sm:px-6 lg:px-0">
+        <div className="px-2 sm:px-6 lg:sticky lg:top-6 lg:px-0">
           <FortuneWheel
             prizes={config.prizes}
             isSpinning={isSpinning}
