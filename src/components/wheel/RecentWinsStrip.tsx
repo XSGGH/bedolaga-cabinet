@@ -4,6 +4,8 @@ import { wheelApi, type RecentWin } from '../../api/wheel';
 import { prizeTypeColor } from './wheelFaceModel';
 
 const REFRESH_MS = 20_000;
+/** Сколько последних выигрышей показываем. */
+const WINS_SHOWN = 6;
 
 function timeAgo(
   iso: string,
@@ -21,7 +23,7 @@ function WinCard({ win, t }: { win: RecentWin; t: Parameters<typeof timeAgo>[1] 
   const color = prizeTypeColor(win.prize_type);
   return (
     <div
-      className="flex w-[168px] shrink-0 snap-start items-center gap-3 rounded-2xl border border-dark-700 bg-dark-900/80 p-3"
+      className="flex min-w-0 items-center gap-3 rounded-2xl border border-dark-700 bg-dark-900/80 p-3"
       style={{ boxShadow: `inset 0 -2px 0 ${color}55` }}
     >
       <div
@@ -31,8 +33,10 @@ function WinCard({ win, t }: { win: RecentWin; t: Parameters<typeof timeAgo>[1] 
         {win.emoji}
       </div>
       <div className="min-w-0">
-        <div className="truncate text-sm font-bold text-dark-50">{win.prize_display_name}</div>
-        <div className="text-xs text-dark-500">{timeAgo(win.created_at, t)}</div>
+        <div className="line-clamp-2 break-words text-sm font-bold leading-tight text-dark-50">
+          {win.prize_display_name}
+        </div>
+        <div className="mt-0.5 text-xs text-dark-500">{timeAgo(win.created_at, t)}</div>
       </div>
     </div>
   );
@@ -46,7 +50,7 @@ export default function RecentWinsStrip() {
   const { t } = useTranslation();
   const { data } = useQuery({
     queryKey: ['wheel-recent-wins'],
-    queryFn: () => wheelApi.getRecentWins(20),
+    queryFn: () => wheelApi.getRecentWins(WINS_SHOWN),
     refetchInterval: REFRESH_MS,
     retry: false,
   });
@@ -62,8 +66,8 @@ export default function RecentWinsStrip() {
         </span>
         {t('wheel.recentWins')}
       </div>
-      <div className="-mx-1 flex snap-x gap-2.5 overflow-x-auto px-1 pb-2 [scrollbar-width:thin]">
-        {data.map((win) => (
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6">
+        {data.slice(0, WINS_SHOWN).map((win) => (
           <WinCard key={win.id} win={win} t={t} />
         ))}
       </div>
