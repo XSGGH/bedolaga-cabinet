@@ -50,13 +50,10 @@ const CountdownTimer = memo(function CountdownTimer({
   endDate,
   isActive,
   glassColors: g,
-  part = 'days',
 }: {
   endDate: string;
   isActive: boolean;
   glassColors: ReturnType<typeof getGlassColors>;
-  /** 'days' — подпись и крупные дни; 'time' — только ЧЧ:ММ:СС. */
-  part?: 'days' | 'time';
 }) {
   const { t } = useTranslation();
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -87,11 +84,6 @@ const CountdownTimer = memo(function CountdownTimer({
       : g.text;
 
   const clock = `${String(countdown.hours).padStart(2, '0')}:${String(countdown.minutes).padStart(2, '0')}:${String(countdown.seconds).padStart(2, '0')}`;
-
-  if (part === 'time') {
-    if (isExpired) return null;
-    return <span className="tabular-nums">{clock}</span>;
-  }
 
   return (
     <div className="flex min-w-0 flex-col items-end gap-2 text-right">
@@ -536,21 +528,18 @@ export default function Subscription() {
                         glassColors={g}
                       />
                     </div>
-                    <div className="mb-5 flex items-center justify-between gap-3 text-[12.5px] text-dark-400">
-                      <span>
-                        {t('subscription.expiresAt')}{' '}
-                        {new Date(subscription.end_date).toLocaleDateString(uiLocale(), {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
-                      </span>
-                      <CountdownTimer
-                        part="time"
-                        endDate={subscription.end_date}
-                        isActive={subscription.is_active || subscription.is_limited}
-                        glassColors={g}
-                      />
+                    <div className="mb-5 text-[12.5px] text-dark-400">
+                      {t('subscription.expiresAt')}{' '}
+                      {new Date(subscription.end_date).toLocaleDateString(uiLocale(), {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                      {', '}
+                      {new Date(subscription.end_date).toLocaleTimeString(uiLocale(), {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </div>
 
                     <div
