@@ -1385,7 +1385,16 @@
       "description": "Крути колесо и выигрывай призы: дни подписки, баланс, трафик и многое другое!",
       "button": "Перейти к колесу"
     },
-    "selectSubscription": "Выберите подписку"
+    "selectSubscription": "Выберите подписку",
+    "remainingOf": "Осталось {{left}} из {{total}}",
+    "mainPrizes": "Главные призы",
+    "allPrizes": "Все призы",
+    "groups": {
+      "subscription_days": "Дни подписки",
+      "balance_bonus": "На баланс",
+      "traffic_gb": "Трафик 📡",
+      "promocode": "Промокоды"
+    }
   },
   "admin": {
     "backgrounds": {

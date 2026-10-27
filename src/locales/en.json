@@ -1356,7 +1356,16 @@
       "description": "Spin the wheel and win prizes: subscription days, balance, traffic and more!",
       "button": "Go to wheel"
     },
-    "selectSubscription": "Select subscription"
+    "selectSubscription": "Select subscription",
+    "remainingOf": "{{left}} of {{total}} left",
+    "mainPrizes": "Top prizes",
+    "allPrizes": "All prizes",
+    "groups": {
+      "subscription_days": "Subscription days",
+      "balance_bonus": "Balance bonus",
+      "traffic_gb": "Traffic",
+      "promocode": "Promo codes"
+    }
   },
   "admin": {
     "backgrounds": {

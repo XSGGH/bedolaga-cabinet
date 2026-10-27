@@ -17,9 +17,9 @@ import FortuneWheel from './FortuneWheel';
  */
 
 const prizes = [
-  { id: 1, emoji: '🎁', color: '#22C55E' },
-  { id: 2, emoji: '📅', color: '#F59E0B' },
-  { id: 3, emoji: '💩', color: '#8B5A2B' },
+  { id: 1, emoji: '🎁', color: '#22C55E', display_name: '1 день', prize_type: 'subscription_days' },
+  { id: 2, emoji: '📅', color: '#F59E0B', display_name: '7 дней', prize_type: 'subscription_days' },
+  { id: 3, emoji: '💩', color: '#8B5A2B', display_name: 'Ничего', prize_type: 'nothing' },
 ] as never;
 const rest = { prizes, isSpinning: false, targetRotation: null, onSpinComplete: () => {} };
 const ROTATING = 'svg > g[transform^="rotate("]';
@@ -44,7 +44,7 @@ describe('FortuneWheel — порядок слоёв', () => {
     const { container } = render(<FortuneWheel {...rest} />);
     const rotating = pick(container, ROTATING);
     const ring = pick(container, 'circle[stroke="url(#ringGrad)"]');
-    const led = pick(container, '.led-dot');
+    const led = pick(container, '.tick-dot');
     const hub = pick(container, 'circle[fill="url(#hubGrad)"]');
 
     expect(follows(ring, rotating)).toBe(true);
@@ -58,13 +58,14 @@ describe('FortuneWheel — ничего не компонуется отдель
   it('внутри SVG нет CSS-transform: вращение задано атрибутом', () => {
     const { container } = render(<FortuneWheel {...rest} />);
     expect(container.querySelectorAll('svg [style*="transform"]').length).toBe(0);
-    expect(pick(container, ROTATING).getAttribute('transform')).toBe('rotate(0 200 200)');
+    expect(pick(container, ROTATING).getAttribute('transform')).toBe('rotate(0 310 310)');
   });
 
-  it('свечение лампочек анимирует fill-opacity, а не opacity', () => {
+  it('в SVG нет фильтров, а отсвет шкалы анимирует stroke, а не opacity', () => {
     const { container } = render(<FortuneWheel {...rest} />);
+    expect(container.querySelectorAll('svg filter').length).toBe(0);
     const css = container.querySelector('svg style')?.textContent ?? '';
-    expect(css).toMatch(/\.led-glow\s*{[^}]*fill-opacity/);
+    expect(css).toMatch(/\.tick-dot\s*{[^}]*animation/);
     expect(css).not.toMatch(/(?<![a-z-])opacity\s*:/);
   });
 
@@ -89,7 +90,7 @@ describe('FortuneWheel — ничего не компонуется отдель
     act(() => {
       vi.advanceTimersByTime(2500);
     });
-    expect(pick(container, ROTATING).getAttribute('transform')).not.toBe('rotate(0 200 200)');
+    expect(pick(container, ROTATING).getAttribute('transform')).not.toBe('rotate(0 310 310)');
     expect(onSpinComplete).not.toHaveBeenCalled();
 
     act(() => {
@@ -97,6 +98,6 @@ describe('FortuneWheel — ничего не компонуется отдель
     });
     expect(onSpinComplete).toHaveBeenCalledTimes(1);
     // Пять полных оборотов плюс сектор: 1800 + 90.
-    expect(pick(container, ROTATING).getAttribute('transform')).toBe('rotate(1890 200 200)');
+    expect(pick(container, ROTATING).getAttribute('transform')).toBe('rotate(1890 310 310)');
   });
 });

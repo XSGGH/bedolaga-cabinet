@@ -4,10 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { wheelApi, type WheelPrize, type SpinResult, type SpinHistoryItem } from '../api/wheel';
 import FortuneWheel from '../components/wheel/FortuneWheel';
-import WheelLegend from '../components/wheel/WheelLegend';
+import { jackpotIds, prizeLabel, prizeTypeColor } from '../components/wheel/wheelFaceModel';
 import { usePlatform, useHaptic } from '@/platform';
 import { useNotify } from '@/platform/hooks/useNotify';
-import { Card } from '@/components/data-display/Card/Card';
 import { Button } from '@/components/primitives/Button/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { staggerContainer, staggerItem } from '@/components/motion/transitions';
@@ -91,7 +90,7 @@ export default function Wheel() {
     'telegram_stars',
   );
   const [isPayingStars, setIsPayingStars] = useState(false);
-  const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [historyExpanded, setHistoryExpanded] = useState(true);
   const [showStarsConfirm, setShowStarsConfirm] = useState(false);
   const [selectedSubscriptionId, setSelectedSubscriptionId] = useState<number | null>(null);
   const paymentTypeInitialized = useRef(false);
@@ -519,42 +518,72 @@ export default function Wheel() {
     needsSubscriptionPick ||
     (paymentType === 'telegram_stars' ? !starsEnabled : !config.can_spin);
 
+  const remainingSpins = Math.max(0, config.daily_limit - config.user_spins_today);
+  const showPips = config.daily_limit > 0 && config.daily_limit <= 8;
+  const jackpots = jackpotIds(config.prizes);
+  const mainPrizes = config.prizes.filter((prize) => jackpots.has(prize.id));
+  const prizeGroups = config.prizes
+    .filter((prize) => prize.prize_type !== 'nothing')
+    .reduce<{ type: string; items: WheelPrize[] }[]>((groups, prize) => {
+      const group = groups.find((g) => g.type === prize.prize_type);
+      if (group) group.items.push(prize);
+      else groups.push({ type: prize.prize_type, items: [prize] });
+      return groups;
+    }, []);
+
+  const panel = 'rounded-[22px] border border-dark-700 bg-dark-900/80 p-5 sm:p-6';
+  const panelTitle = 'text-xs font-bold uppercase tracking-[0.14em] text-dark-500';
+
   return (
     <div className="animate-fade-in space-y-6 pb-8">
-      {/* Simple Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-dark-50">{t('wheel.title')}</h1>
-        {config.daily_limit > 0 && (
-          <p className="mt-1 text-dark-400">
-            {t('wheel.spinsRemaining')}:{' '}
-            <span className="inline-flex items-center rounded-full bg-accent-500/15 px-2 py-0.5 text-sm font-medium text-accent-400">
-              {Math.max(0, config.daily_limit - config.user_spins_today)}/{config.daily_limit}
-            </span>
-          </p>
-        )}
-      </div>
+      <h1 className="text-2xl font-extrabold tracking-tight text-dark-50 sm:text-3xl">
+        {t('wheel.title')}
+      </h1>
 
-      {/* Wheel Section */}
-      <Card>
-        {/* grid-cols-1 = minmax(0,1fr): колонка не растёт по длинному названию
-            приза (колесо уезжало вправо и обрезалось наполовину). Внутренний
-            отступ — только с sm: у карточки свой, на телефоне двойной сжимал колесо. */}
-        <div className="grid grid-cols-1 gap-6 sm:p-2 lg:grid-cols-[minmax(0,1fr),280px] lg:p-4">
-          {/* Left: Wheel and Controls */}
-          <div>
-            {/* Wheel */}
-            <FortuneWheel
-              prizes={config.prizes}
-              isSpinning={isSpinning}
-              targetRotation={targetRotation}
-              onSpinComplete={handleSpinComplete}
-            />
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_480px] lg:items-center lg:gap-12">
+        {/* Колесо */}
+        <div className="px-2 sm:px-6 lg:px-0">
+          <FortuneWheel
+            prizes={config.prizes}
+            isSpinning={isSpinning}
+            targetRotation={targetRotation}
+            onSpinComplete={handleSpinComplete}
+          />
+        </div>
 
-            {/* Spin Controls */}
-            <div className="mt-8 space-y-4">
+        {/* Управление и призы */}
+        <div className="space-y-4">
+          <div className={panel}>
+            {config.daily_limit > 0 && (
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <div className={panelTitle}>{t('wheel.spinsRemaining')}</div>
+                  <div className="mt-1 text-xl font-extrabold text-dark-50">
+                    {t('wheel.remainingOf', { left: remainingSpins, total: config.daily_limit })}
+                  </div>
+                </div>
+                {showPips && (
+                  <div className="flex shrink-0 gap-2" aria-hidden="true">
+                    {Array.from({ length: config.daily_limit }).map((_, i) => (
+                      <span
+                        key={i}
+                        className={cn(
+                          'h-3.5 w-3.5 rounded-full',
+                          i < remainingSpins
+                            ? 'bg-gradient-to-b from-accent-300 to-accent-500 shadow-[0_0_12px_rgba(163,92,255,0.8)]'
+                            : 'border border-dark-600 bg-dark-800',
+                        )}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-4">
               {/* Payment type selector */}
               {(starsEnabled || daysEnabled) && (
-                <div className="rounded-xl border border-dark-700/30 bg-dark-800/30 px-1 pb-1 pt-2">
+                <div className="rounded-xl border border-dark-700/50 bg-dark-800/40 px-1 pb-1 pt-2">
                   <p className="mb-1 text-center text-xs text-dark-400">{t('wheel.spinCost')}</p>
                   <div
                     className={`grid gap-1 ${bothMethodsAvailable ? 'grid-cols-2' : 'grid-cols-1'}`}
@@ -650,6 +679,7 @@ export default function Wheel() {
                   variant="primary"
                   size="lg"
                   fullWidth
+                  className="shadow-[0_10px_40px_rgba(163,92,255,0.4)]"
                   onClick={handleUnifiedSpin}
                   disabled={spinDisabled}
                   loading={isSpinning || isPayingStars}
@@ -740,94 +770,136 @@ export default function Wheel() {
                 </div>
               )}
             </div>
-            {/* End of left column: wheel and controls */}
           </div>
 
-          {/* Right column (desktop) / Bottom (mobile): Prize Legend */}
-          <div className="flex flex-col">
-            <h3 className="mb-3 text-sm font-semibold text-dark-300">
-              {t('wheel.prizes') || 'Призы'}
-            </h3>
-            <WheelLegend prizes={config.prizes} />
+          {mainPrizes.length > 0 && (
+            <div className={panel}>
+              <div className={cn(panelTitle, 'mb-3')}>{t('wheel.mainPrizes')}</div>
+              <div className="grid grid-cols-3 gap-2.5">
+                {mainPrizes.slice(0, 3).map((prize) => {
+                  const label = prizeLabel(prize);
+                  return (
+                    <div
+                      key={prize.id}
+                      className="rounded-2xl border border-accent-500/50 bg-gradient-to-br from-accent-500/25 to-pink-500/10 px-2 py-4 text-center shadow-[0_0_26px_rgba(163,92,255,0.16)]"
+                    >
+                      <div className="text-2xl font-extrabold tracking-tight text-white sm:text-[26px]">
+                        {label.main}
+                      </div>
+                      <div className="mt-0.5 truncate text-xs text-dark-300">
+                        {label.unit ? label.unit.toLowerCase() : prize.display_name}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className={cn(panel, 'space-y-4')}>
+            <div className={panelTitle}>{t('wheel.allPrizes')}</div>
+            {prizeGroups.map((group) => {
+              const color = prizeTypeColor(group.type);
+              return (
+                <div key={group.type}>
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+                    <b className="text-sm text-dark-100">
+                      {t(`wheel.groups.${group.type}`, group.type)}
+                    </b>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {group.items.map((prize) => (
+                      <span
+                        key={prize.id}
+                        className="rounded-lg border px-2.5 py-1.5 text-[13px] font-bold"
+                        style={{
+                          color,
+                          borderColor: `${color}59`,
+                          backgroundColor: `${color}1f`,
+                        }}
+                      >
+                        {prize.display_name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* История — сворачиваемый список */}
+          <div className="rounded-[22px] border border-dark-700 bg-dark-900/80">
+            <button
+              onClick={() => setHistoryExpanded(!historyExpanded)}
+              className="flex w-full items-center justify-between px-5 py-4 sm:px-6"
+            >
+              <h3 className={cn(panelTitle, 'flex items-center gap-2')}>
+                <HistoryIcon />
+                {t('wheel.recentSpins')}
+                {history && history.items.length > 0 && (
+                  <span className="font-normal normal-case tracking-normal">
+                    ({history.items.length})
+                  </span>
+                )}
+              </h3>
+              <ChevronIcon expanded={historyExpanded} />
+            </button>
+
+            <AnimatePresence>
+              {historyExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="overflow-hidden"
+                >
+                  <div className="border-t border-dark-700/60 px-5 pb-3 pt-1 sm:px-6">
+                    {history && history.items.length > 0 ? (
+                      // "hidden"/"show" don't exist in staggerContainer/staggerItem
+                      // (their keys are initial/animate/exit), so the stagger here
+                      // was silently a no-op
+                      <motion.div variants={staggerContainer} initial="initial" animate="animate">
+                        {history.items.map((item: SpinHistoryItem) => (
+                          <motion.div
+                            key={item.id}
+                            variants={staggerItem}
+                            className="flex items-center gap-3 border-b border-dark-700/60 py-3 last:border-b-0"
+                          >
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-dark-700 bg-dark-800 text-lg">
+                              {item.emoji}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-medium text-dark-100">
+                                {item.prize_display_name}
+                              </div>
+                              <div className="text-xs text-dark-500">
+                                {new Date(item.created_at).toLocaleDateString(uiLocale())}
+                              </div>
+                            </div>
+                            <div className="shrink-0 whitespace-nowrap text-sm text-dark-400">
+                              -
+                              {item.payment_type === 'telegram_stars'
+                                ? `${item.payment_amount} ⭐`
+                                : `${item.payment_amount}${t('wheel.days').charAt(0)}`}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    ) : (
+                      <div className="py-6 text-center text-dark-500">
+                        <div className="mb-2 text-3xl">🎰</div>
+                        {t('wheel.noHistory')}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      </Card>
-
-      {/* History Section - full width, collapsible */}
-      <Card>
-        <button
-          onClick={() => setHistoryExpanded(!historyExpanded)}
-          className="flex w-full items-center justify-between p-4"
-        >
-          <h3 className="flex items-center gap-2 font-semibold text-dark-100">
-            <HistoryIcon />
-            {t('wheel.recentSpins')}
-            {history && history.items.length > 0 && (
-              <span className="text-sm font-normal text-dark-500">({history.items.length})</span>
-            )}
-          </h3>
-          <ChevronIcon expanded={historyExpanded} />
-        </button>
-
-        <AnimatePresence>
-          {historyExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="border-t border-dark-700/30 px-4 pb-4 pt-2">
-                {history && history.items.length > 0 ? (
-                  // "hidden"/"show" don't exist in staggerContainer/staggerItem
-                  // (their keys are initial/animate/exit), so the stagger here
-                  // was silently a no-op
-                  <motion.div
-                    variants={staggerContainer}
-                    initial="initial"
-                    animate="animate"
-                    className="space-y-2"
-                  >
-                    {history.items.map((item: SpinHistoryItem) => (
-                      <motion.div
-                        key={item.id}
-                        variants={staggerItem}
-                        className="flex items-center justify-between gap-3 rounded-linear border border-dark-700/30 bg-dark-800/30 p-3"
-                      >
-                        <div className="flex min-w-0 flex-1 items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-linear bg-dark-700/50 text-xl">
-                            {item.emoji}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="truncate text-sm font-medium text-dark-100">
-                              {item.prize_display_name}
-                            </div>
-                            <div className="text-xs text-dark-500">
-                              {new Date(item.created_at).toLocaleDateString(uiLocale())}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="shrink-0 whitespace-nowrap text-sm text-dark-400">
-                          -
-                          {item.payment_type === 'telegram_stars'
-                            ? `${item.payment_amount} ⭐`
-                            : `${item.payment_amount}${t('wheel.days').charAt(0)}`}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                ) : (
-                  <div className="py-6 text-center text-dark-500">
-                    <div className="mb-2 text-3xl">🎰</div>
-                    {t('wheel.noHistory')}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </Card>
+      </div>
     </div>
   );
 }
