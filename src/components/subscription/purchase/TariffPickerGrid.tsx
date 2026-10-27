@@ -6,9 +6,15 @@ import { useCurrency } from '../../../hooks/useCurrency';
 import { usePromoDiscount } from '../../../hooks/usePromoDiscount';
 import { dailyPriceQuote } from './dailyPrice';
 import { getGlassColors } from '../../../utils/glassTheme';
-import { ArrowDownIcon, DevicesIcon, GiftIcon, RestartIcon } from '@/components/icons';
+import { DevicesIcon } from '@/components/icons';
 import type { Tariff, Subscription, PurchaseOptions } from '../../../types';
 import { tariffAction, type TariffActionKind } from './tariffAction';
+import {
+  anyTariffHasMetered,
+  buildTrafficModel,
+  isMeteredServer,
+  parseTariffDescription,
+} from './tariffCardModel';
 
 /** Подпись кнопки для действий, которые ведут в один и тот же сценарий выбора. */
 const TARIFF_ACTION_LABEL: Record<Exclude<TariffActionKind, 'current-daily' | 'switch'>, string> = {
@@ -42,6 +48,16 @@ export interface TariffPickerGridProps {
   onSwitchTariff: (tariffId: number) => void;
 }
 
+function ServerList({ names }: { names: string[] }) {
+  return (
+    <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-dark-200">
+      {names.map((name) => (
+        <span key={name}>{name}</span>
+      ))}
+    </div>
+  );
+}
+
 export function TariffPickerGrid({
   tariffs,
   subscription,
@@ -63,25 +79,23 @@ export function TariffPickerGrid({
       ? t('subscription.free', 'Бесплатно')
       : `${formatAmount(kopeks / 100)}\u00A0${currencySymbol}`;
 
+  const hasMeteredElsewhere = anyTariffHasMetered(tariffs);
+
   return (
     <>
       {/* Promo group discount banner */}
       {tariffs.some((tariff) => tariff.promo_group_name) && (
-        <div className="mb-4 flex items-center gap-3 rounded-xl border border-success-500/30 bg-success-500/10 p-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-success-500/20 text-success-400">
-            <GiftIcon className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-sm font-medium text-success-400">
-              {t('subscription.promoGroup.yourGroup', {
-                name: tariffs.find((tariff) => tariff.promo_group_name)?.promo_group_name,
-              })}
-            </div>
-            <div className="text-xs text-dark-400">
-              {t('subscription.promoGroup.personalDiscountsApplied')}
-            </div>
-          </div>
-        </div>
+        <p className="mb-4 text-sm text-success-400">
+          <span className="font-bold">
+            {t('subscription.promoGroup.yourGroup', {
+              name: tariffs.find((tariff) => tariff.promo_group_name)?.promo_group_name,
+            })}
+          </span>
+          <span className="text-success-400/80">
+            {' · '}
+            {t('subscription.promoGroup.personalDiscountsApplied')}
+          </span>
+        </p>
       )}
 
       {/* Tariff Grid */}
@@ -111,7 +125,7 @@ export function TariffPickerGrid({
             </button>
           </div>
         )}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6">
         {[...tariffs]
           .filter((tariff) => {
             // In multi-tariff mode: hide already purchased tariffs
@@ -141,12 +155,23 @@ export function TariffPickerGrid({
               isMultiTariff,
             });
 
+            const isPrimary = isCurrentTariff || !subscription;
+            const { tagline, features } = parseTariffDescription(tariff.description);
+            const traffic = buildTrafficModel(tariff);
+            const showNoMetered =
+              hasMeteredElsewhere && !(tariff.servers ?? []).some((s) => isMeteredServer(s.name));
+            const resetMonthly = tariff.traffic_reset_mode === 'MONTH';
+            const resetLabel =
+              tariff.traffic_reset_mode && tariff.traffic_reset_mode !== 'NO_RESET'
+                ? t(`subscription.trafficReset.${tariff.traffic_reset_mode}`)
+                : null;
+
             return (
               <div
                 key={tariff.id}
-                className={`bento-card-hover p-5 text-left transition-all ${
+                className={`bento-card-hover flex flex-col gap-5 p-5 text-left transition-all sm:p-7 ${
                   isCurrentTariff
-                    ? 'bento-card-glow border-accent-500'
+                    ? 'border-accent-500'
                     : tariff.is_highlighted
                       ? // Текущий тариф важнее подсказки: две «активные» рамки
                         // сразу не дают понять, что именно сейчас куплено.
@@ -154,130 +179,193 @@ export function TariffPickerGrid({
                       : ''
                 }`}
               >
-                {tariff.is_highlighted && !isCurrentTariff && <BestValueBadge className="mb-2" />}
-                <div className="mb-3 flex items-start justify-between">
-                  <div>
-                    <div className="text-lg font-semibold text-dark-100">{tariff.name}</div>
-                    {tariff.description && (
-                      <div className="mt-1 whitespace-pre-line text-sm text-dark-400">
-                        {tariff.description}
-                      </div>
+                {tariff.is_highlighted && !isCurrentTariff && <BestValueBadge />}
+
+                <div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-2xl font-extrabold tracking-tight text-dark-50">
+                      {tariff.name}
+                    </div>
+                    {isCurrentTariff && (
+                      <span className="text-xs font-bold uppercase tracking-[0.14em] text-success-400">
+                        {t('subscription.currentTariff')}
+                      </span>
                     )}
                   </div>
-                  {isCurrentTariff && (
-                    <span className="badge-success text-xs">{t('subscription.currentTariff')}</span>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-4 text-sm">
-                  <div className="flex items-center gap-1.5">
-                    <ArrowDownIcon className="h-4 w-4 text-accent-400" />
-                    <span className="font-medium text-dark-200">{tariff.traffic_limit_label}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <DevicesIcon className="h-4 w-4 text-dark-400" />
-                    <span className="text-dark-300">
-                      {tariff.device_limit === 0
-                        ? '∞'
-                        : t('subscription.devices', { count: tariff.device_limit })}
-                    </span>
-                  </div>
-                  {tariff.traffic_reset_mode && tariff.traffic_reset_mode !== 'NO_RESET' && (
-                    <div className="flex items-center gap-1.5">
-                      <RestartIcon className="h-4 w-4 text-dark-400" />
-                      <span className="text-dark-300">
-                        {t(`subscription.trafficReset.${tariff.traffic_reset_mode}`)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                {/* Price info */}
-                <div className="mt-3 border-t border-dark-700/50 pt-3 text-sm text-dark-400">
-                  {(() => {
-                    const promoDaily = dailyPriceQuote(tariff, applyPromoDiscount);
-                    if (promoDaily) {
-                      return (
-                        <span className="flex items-center gap-2">
-                          <span className="font-medium text-accent-400">
-                            {formatPrice(promoDaily.price)}
-                          </span>
-                          {promoDaily.original && promoDaily.original > promoDaily.price && (
-                            <span className="text-xs text-dark-500 line-through">
-                              {formatPrice(promoDaily.original)}
-                            </span>
-                          )}
-                          <span>{t('subscription.tariff.perDay')}</span>
-                          {promoDaily.percent != null && promoDaily.percent > 0 && (
-                            <span
-                              className={`rounded px-1.5 py-0.5 text-xs ${
-                                promoDaily.isPromoGroup
-                                  ? 'bg-success-500/20 text-success-400'
-                                  : 'bg-warning-500/20 text-warning-400'
-                              }`}
-                            >
-                              -{promoDaily.percent}%
-                            </span>
-                          )}
-                        </span>
-                      );
-                    }
-                    if (tariff.periods.length > 0) {
-                      const firstPeriod = tariff.periods[0];
-                      const promoPeriod = applyPromoDiscount(
-                        firstPeriod?.price_kopeks || 0,
-                        firstPeriod?.original_price_kopeks,
-                      );
-                      return (
-                        <span className="flex flex-wrap items-center gap-2">
-                          <span>{t('subscription.from')}</span>
-                          <span className="font-medium text-accent-400">
-                            {formatPrice(promoPeriod.price)}
-                          </span>
-                          {promoPeriod.original && promoPeriod.original > promoPeriod.price && (
-                            <span className="text-xs text-dark-500 line-through">
-                              {formatPrice(promoPeriod.original)}
-                            </span>
-                          )}
-                          {promoPeriod.percent != null && promoPeriod.percent > 0 && (
-                            <span
-                              className={`rounded px-1.5 py-0.5 text-xs ${
-                                promoPeriod.isPromoGroup
-                                  ? 'bg-success-500/20 text-success-400'
-                                  : 'bg-warning-500/20 text-warning-400'
-                              }`}
-                            >
-                              -{promoPeriod.percent}%
-                            </span>
-                          )}
-                        </span>
-                      );
-                    }
-                    return (
-                      <span className="font-medium text-accent-400">
-                        {t('subscription.tariff.flexiblePayment')}
-                      </span>
-                    );
-                  })()}
+                  {tagline && <div className="mt-1.5 text-sm text-dark-300">{tagline}</div>}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="mt-4 flex gap-2">
+                {/* Трафик и устройства */}
+                <div className="border-t border-dark-700/60">
+                  {traffic.unlimitedScope && (
+                    <div className="border-b border-dark-700/60 py-4">
+                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                        <span className="text-xl font-extrabold text-success-400">
+                          ∞ {t('subscription.tariffCard.unlimited', 'Безлимит')}
+                        </span>
+                        <span className="text-[13px] text-dark-300">
+                          {traffic.unlimitedScope === 'all'
+                            ? t('subscription.tariffCard.onAllServers', 'на всех серверах')
+                            : t('subscription.tariffCard.onRegularServers', 'на обычных серверах')}
+                        </span>
+                      </div>
+                      {traffic.unlimitedServers.length > 0 && (
+                        <ServerList names={traffic.unlimitedServers} />
+                      )}
+                    </div>
+                  )}
+
+                  {traffic.hasLimit && (
+                    <div className="border-b border-dark-700/60 py-4">
+                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                        <span className="text-xl font-extrabold text-accent-300">
+                          {tariff.traffic_limit_label}
+                          {resetMonthly && ` ${t('subscription.tariffCard.perMonth', 'в месяц')}`}
+                        </span>
+                        <span className="text-[13px] text-dark-300">
+                          {traffic.limitedOnlyMetered
+                            ? t('subscription.tariffCard.onlyMetered', 'только на 📡')
+                            : t('subscription.tariffCard.onAllServers', 'на всех серверах')}
+                        </span>
+                      </div>
+                      {traffic.limitedServers.length > 0 && (
+                        <ServerList names={traffic.limitedServers} />
+                      )}
+                      {resetLabel && (
+                        <div className="mt-1.5 text-[13px] text-dark-400">{resetLabel}</div>
+                      )}
+                    </div>
+                  )}
+
+                  {showNoMetered && (
+                    <div className="border-b border-dark-700/60 py-4">
+                      <div className="text-xl font-bold text-dark-500">
+                        {'📡 '}
+                        {t('subscription.tariffCard.unavailable', 'Недоступно')}
+                      </div>
+                      <div className="mt-1.5 text-[13px] text-dark-400">
+                        {t(
+                          'subscription.tariffCard.noMetered',
+                          'Обход белых списков в этот тариф не входит',
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3 border-b border-dark-700/60 py-4">
+                    <DevicesIcon className="h-5 w-5 shrink-0 text-accent-300" />
+                    <span className="text-xl font-extrabold text-dark-50">
+                      {tariff.device_limit === 0
+                        ? `∞ ${t('subscription.tariffCard.devicesUnlimited', 'устройств')}`
+                        : t('subscription.devices', { count: tariff.device_limit })}
+                    </span>
+                    <span className="text-[13px] text-dark-300">
+                      {t('subscription.tariffCard.inSubscription', 'в подписке')}
+                    </span>
+                  </div>
+                </div>
+
+                {features.length > 0 && (
+                  <ul className="flex flex-col gap-2.5 text-sm leading-snug">
+                    {features.map((feature) => (
+                      <li
+                        key={feature.text}
+                        className={feature.warn ? 'text-warning-400' : 'text-dark-200'}
+                      >
+                        {feature.text}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* Цена и действие */}
+                <div className="mt-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                  <div className="text-sm text-dark-400">
+                    {(() => {
+                      const promoDaily = dailyPriceQuote(tariff, applyPromoDiscount);
+                      if (promoDaily) {
+                        return (
+                          <span className="flex flex-wrap items-baseline gap-2">
+                            <span className="text-2xl font-extrabold text-dark-50">
+                              {formatPrice(promoDaily.price)}
+                            </span>
+                            {promoDaily.original && promoDaily.original > promoDaily.price && (
+                              <span className="text-xs text-dark-500 line-through">
+                                {formatPrice(promoDaily.original)}
+                              </span>
+                            )}
+                            <span>{t('subscription.tariff.perDay')}</span>
+                            {promoDaily.percent != null && promoDaily.percent > 0 && (
+                              <span
+                                className={`rounded px-1.5 py-0.5 text-xs ${
+                                  promoDaily.isPromoGroup
+                                    ? 'bg-success-500/20 text-success-400'
+                                    : 'bg-warning-500/20 text-warning-400'
+                                }`}
+                              >
+                                -{promoDaily.percent}%
+                              </span>
+                            )}
+                          </span>
+                        );
+                      }
+                      if (tariff.periods.length > 0) {
+                        const firstPeriod = tariff.periods[0];
+                        const promoPeriod = applyPromoDiscount(
+                          firstPeriod?.price_kopeks || 0,
+                          firstPeriod?.original_price_kopeks,
+                        );
+                        return (
+                          <span className="flex flex-wrap items-baseline gap-2">
+                            <span>{t('subscription.from')}</span>
+                            <span className="text-2xl font-extrabold text-dark-50">
+                              {formatPrice(promoPeriod.price)}
+                            </span>
+                            {promoPeriod.original && promoPeriod.original > promoPeriod.price && (
+                              <span className="text-xs text-dark-500 line-through">
+                                {formatPrice(promoPeriod.original)}
+                              </span>
+                            )}
+                            {promoPeriod.percent != null && promoPeriod.percent > 0 && (
+                              <span
+                                className={`rounded px-1.5 py-0.5 text-xs ${
+                                  promoPeriod.isPromoGroup
+                                    ? 'bg-success-500/20 text-success-400'
+                                    : 'bg-warning-500/20 text-warning-400'
+                                }`}
+                              >
+                                -{promoPeriod.percent}%
+                              </span>
+                            )}
+                          </span>
+                        );
+                      }
+                      return (
+                        <span className="font-medium text-accent-400">
+                          {t('subscription.tariff.flexiblePayment')}
+                        </span>
+                      );
+                    })()}
+                  </div>
+
                   {action === 'current-daily' ? (
-                    <div className="flex-1 py-2 text-center text-sm text-dark-500">
+                    <div className="py-2 text-center text-sm text-dark-500">
                       {t('subscription.currentTariff')}
                     </div>
-                  ) : action === 'switch' ? (
-                    <button
-                      onClick={() => onSwitchTariff(tariff.id)}
-                      className="btn-secondary flex-1 py-2 text-sm"
-                    >
-                      {t('subscription.switchTariff.switch')}
-                    </button>
                   ) : (
                     <button
-                      onClick={() => onSelectTariff(tariff)}
-                      className="btn-primary flex-1 py-2 text-sm"
+                      onClick={() =>
+                        action === 'switch' ? onSwitchTariff(tariff.id) : onSelectTariff(tariff)
+                      }
+                      className={`h-12 w-full rounded-[14px] px-7 text-[15px] font-bold transition-colors sm:w-auto ${
+                        isPrimary
+                          ? 'bg-accent-500 text-on-accent hover:bg-accent-600'
+                          : 'border border-accent-500/40 text-accent-300 hover:bg-accent-500/10'
+                      }`}
                     >
-                      {t(TARIFF_ACTION_LABEL[action])}
+                      {action === 'switch'
+                        ? t('subscription.switchTariff.switch')
+                        : t(TARIFF_ACTION_LABEL[action])}
                     </button>
                   )}
                 </div>
