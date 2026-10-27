@@ -19,7 +19,7 @@ export function LoginHero({ appName }: { appName: string }) {
   const countries = t('auth.hero.countries').split('|').filter(Boolean);
 
   return (
-    <div className="relative hidden flex-col justify-between overflow-hidden py-14 pl-16 xl:pl-24 lg:flex">
+    <div className="relative hidden min-h-[100dvh] flex-col justify-between overflow-hidden py-14 pl-16 xl:pl-20 lg:flex">
       <div className="text-xl font-extrabold tracking-wide text-dark-50">{appName}</div>
 
       <div className="relative z-10 max-w-[560px]">
