@@ -59,12 +59,12 @@ export default function ConnectDeviceTile({
         }
         navigate(`/connection?sub=${subscription.id}`);
       }}
-      className={`mb-3 flex w-full items-center gap-4 rounded-2xl border border-accent-500/35 bg-accent-500/10 p-4 text-left transition-colors duration-200 hover:border-accent-400/60 hover:bg-accent-500/[0.14] ${isAtDeviceLimit ? 'cursor-not-allowed opacity-50' : ''}`}
+      className={`mb-3 flex w-full items-center gap-4 rounded-2xl border border-accent-400/60 bg-gradient-to-r from-accent-500/30 to-fuchsia-500/15 p-4 text-left shadow-[0_8px_26px_rgba(var(--color-accent-500),0.25)] transition-[filter,border-color] duration-200 hover:border-accent-300/80 hover:brightness-110 ${isAtDeviceLimit ? 'cursor-not-allowed opacity-50' : ''}`}
       data-onboarding="connect-devices"
       style={{ fontFamily: 'inherit' }}
     >
       {/* Monitor icon */}
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent-500/15 text-accent-300">
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent-500/30 text-white">
         <MonitorIcon className="h-[18px] w-[18px]" />
       </div>
 

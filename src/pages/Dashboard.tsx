@@ -294,7 +294,7 @@ export default function Dashboard() {
   const userName = displayName(user);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {/* Header */}
       <div data-onboarding="welcome" className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -320,8 +320,8 @@ export default function Dashboard() {
       {/* Pending Gift Activations */}
       {pendingGifts && pendingGifts.length > 0 && <PendingGiftCard gifts={pendingGifts} />}
 
-      <div className="space-y-6">
-        <div className="min-w-0 space-y-6">
+      <div className="space-y-4 lg:space-y-6">
+        <div className="min-w-0 space-y-4 lg:space-y-6">
           {/* Multi-tariff: show subscription cards (max 3) — только когда подписки
           реально есть. Пустой случай (нет подписок) ведёт блок ниже (триал/покупка),
           иначе кнопка покупки дублировалась. */}
@@ -441,7 +441,7 @@ export default function Dashboard() {
         </div>
 
         {/* Плитки под карточкой подписки: баланс, рефералы, колесо — в один ряд. */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
           <StatsGrid
             balanceRubles={balanceData?.balance_rubles || 0}
             referralCount={referralInfo?.total_referrals || 0}

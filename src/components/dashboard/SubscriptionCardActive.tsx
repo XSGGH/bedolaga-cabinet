@@ -160,29 +160,12 @@ export default function SubscriptionCardActive({
             {/* ─── Расход трафика ─── */}
             <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
               <div className="flex min-w-0 items-center gap-3">
-                <h2 className="text-base font-bold tracking-tight text-dark-50">
+                <h2 className="whitespace-nowrap text-base font-bold tracking-tight text-dark-50">
                   {t('dashboard.trafficUsageTitle')}
                 </h2>
                 <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
                   {t('subscription.trafficScope.badge', 'только 📡 серверы')}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => refreshTrafficMutation.mutate()}
-                  disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
-                  className="flex h-7 items-center gap-1 rounded-full px-1.5 text-dark-400 transition-colors hover:bg-dark-800 hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
-                  aria-label={t('common.refresh')}
-                  title={t('common.refresh')}
-                >
-                  <RefreshIcon
-                    className={`h-3.5 w-3.5 ${refreshTrafficMutation.isPending ? 'animate-spin' : ''}`}
-                  />
-                  {trafficRefreshCooldown > 0 && (
-                    <span className="text-[11px] tabular-nums text-dark-500">
-                      {trafficRefreshCooldown}s
-                    </span>
-                  )}
-                </button>
                 {/* Плашку показываем только когда есть о чём сказать: безлимит или
                 повышенный расход. В спокойной зоне («Норма») она — шум. */}
                 {(isUnlimited || zone.colorKey !== 'accent') && (
@@ -228,6 +211,23 @@ export default function SubscriptionCardActive({
                     </span>
                   </>
                 )}
+                <button
+                  type="button"
+                  onClick={() => refreshTrafficMutation.mutate()}
+                  disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
+                  className="flex h-7 shrink-0 items-center self-center gap-1 rounded-full px-1.5 text-dark-400 transition-colors hover:bg-dark-800 hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label={t('common.refresh')}
+                  title={t('common.refresh')}
+                >
+                  <RefreshIcon
+                    className={`h-3.5 w-3.5 ${refreshTrafficMutation.isPending ? 'animate-spin' : ''}`}
+                  />
+                  {trafficRefreshCooldown > 0 && (
+                    <span className="text-[11px] tabular-nums text-dark-500">
+                      {trafficRefreshCooldown}s
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
 
@@ -292,9 +292,9 @@ export default function SubscriptionCardActive({
             />
             <Link
               to={`/subscriptions/${subscription.id}`}
-              className="flex w-full items-center gap-4 rounded-2xl border border-accent-500/25 bg-dark-700/50 p-4 text-left transition-colors duration-200 hover:border-accent-400/50 hover:bg-dark-700/70"
+              className="flex w-full items-center gap-4 rounded-2xl border border-dark-500/50 bg-dark-700/60 p-4 text-left transition-colors duration-200 hover:border-dark-400/70 hover:bg-dark-700/80"
             >
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent-500/15 text-accent-300">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-dark-600/70 text-dark-100">
                 <CogIcon className="h-[18px] w-[18px]" />
               </div>
               <div className="min-w-0 flex-1">
