@@ -14,6 +14,36 @@ const FEATURES = [
   { key: 'bonus', Icon: GiftIcon },
 ] as const;
 
+/** Список преимуществ. На телефоне — компактнее, под карточкой входа. */
+export function LoginFeatures({ compact = false }: { compact?: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <ul className={compact ? 'space-y-3.5' : 'mt-9 max-w-[430px] space-y-5'}>
+      {FEATURES.map(({ key, Icon }) => (
+        <li key={key} className={`flex items-start ${compact ? 'gap-3' : 'gap-4'}`}>
+          <span
+            className={`flex shrink-0 items-center justify-center border border-accent-500/30 bg-accent-500/10 text-accent-300 ${
+              compact ? 'h-9 w-9 rounded-xl' : 'h-[46px] w-[46px] rounded-2xl'
+            }`}
+          >
+            <Icon className={compact ? 'h-[18px] w-[18px]' : 'h-[22px] w-[22px]'} />
+          </span>
+          <div>
+            <div className={`font-bold text-dark-50 ${compact ? 'text-[15px]' : 'text-[17px]'}`}>
+              {t(`auth.hero.features.${key}.title`)}
+            </div>
+            <div
+              className={`mt-0.5 leading-relaxed text-dark-400 ${compact ? 'text-[13px]' : 'text-sm'}`}
+            >
+              {t(`auth.hero.features.${key}.text`)}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function LoginHero({ appName }: { appName: string }) {
   const { t } = useTranslation();
   const countries = t('auth.hero.countries').split('|').filter(Boolean);
@@ -34,23 +64,7 @@ export function LoginHero({ appName }: { appName: string }) {
           {t('auth.hero.subtitle')}
         </p>
 
-        <ul className="mt-9 max-w-[430px] space-y-5">
-          {FEATURES.map(({ key, Icon }) => (
-            <li key={key} className="flex items-start gap-4">
-              <span className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-2xl border border-accent-500/30 bg-accent-500/10 text-accent-300">
-                <Icon className="h-[22px] w-[22px]" />
-              </span>
-              <div>
-                <div className="text-[17px] font-bold text-dark-50">
-                  {t(`auth.hero.features.${key}.title`)}
-                </div>
-                <div className="mt-0.5 text-sm leading-relaxed text-dark-400">
-                  {t(`auth.hero.features.${key}.text`)}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <LoginFeatures />
       </div>
 
       <ul className="relative z-10 flex flex-wrap gap-x-6 gap-y-2 text-sm text-dark-300">

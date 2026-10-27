@@ -287,7 +287,6 @@
     "hero": {
       "welcome": "Welcome to",
       "subtitle": "Subscription, balance, promo codes and the fortune wheel — all in one dashboard. Sign in the way that suits you.",
-      "subtitleShort": "Subscription, balance and the fortune wheel in one dashboard",
       "countries": "🇩🇪 Germany|🇳🇱 Netherlands|🇸🇪 Sweden|🇵🇱 Poland|🇪🇪 Estonia",
       "features": {
         "whitelist": {

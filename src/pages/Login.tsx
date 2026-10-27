@@ -25,7 +25,7 @@ import { saveOAuthState } from '../utils/oauth';
 import { getPendingReferralCode } from '../utils/referral';
 import { UsersIcon, EmailIcon, RefreshIcon, ChevronDownIcon } from '@/components/icons';
 import { CheckEmailCard } from '@/components/auth/CheckEmailCard';
-import { LoginHero } from '@/components/auth/LoginHero';
+import { LoginFeatures, LoginHero } from '@/components/auth/LoginHero';
 import LegalFooter from '../components/LegalFooter';
 import LegalConsent from '../components/LegalConsent';
 import LegalConsentGate from '../components/LegalConsentGate';
@@ -404,7 +404,9 @@ export default function Login() {
                   {appName}
                 </span>
               </h1>
-              <p className="mt-2 text-sm text-dark-400 lg:hidden">{t('auth.hero.subtitleShort')}</p>
+              <p className="mt-3 text-[15px] leading-relaxed text-dark-300 lg:hidden">
+                {t('auth.hero.subtitle')}
+              </p>
               <h2 className="hidden text-[28px] font-extrabold tracking-tight text-dark-50 lg:block">
                 {t('auth.cardTitle')}
               </h2>
@@ -797,6 +799,12 @@ export default function Login() {
                     </div>
                   </>
                 )}
+              </div>
+            )}
+            {/* Преимущества на телефоне: на широком экране они слева */}
+            {!consent.pending && !registeredEmail && (
+              <div className="pt-2 lg:hidden">
+                <LoginFeatures compact />
               </div>
             )}
             {footerEnabled && <LegalFooter className="pt-1" />}
