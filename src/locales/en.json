@@ -7811,7 +7811,8 @@
     "scanDescription": "Point the camera at the gift QR code",
     "scanNotRecognized": "No gift code in this QR",
     "scanError": "Could not scan",
-    "scanNoCamera": "Camera unavailable — enter the code manually"
+    "scanNoCamera": "Camera unavailable — enter the code manually",
+    "availableLocations": "Available locations"
   },
   "news": {
     "title": "News & Updates",

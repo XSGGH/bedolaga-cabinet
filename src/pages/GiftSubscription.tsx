@@ -25,6 +25,7 @@ import type {
 } from '../api/gift';
 
 import { cn } from '../lib/utils';
+import GiftTariffDetails from '../components/gift/GiftTariffDetails';
 import { copyToClipboard } from '../utils/clipboard';
 import { buildGiftClaimArtifacts } from '../utils/giftShare';
 import { getApiErrorMessage } from '../utils/api-error';
@@ -586,9 +587,7 @@ function BuyTabContent({
 
           {/* Selected tariff description */}
           {selectedTariff?.description && (
-            <div className="rounded-xl border border-dark-800/30 bg-dark-800/20 px-4 py-3">
-              <p className="text-sm text-dark-300">{selectedTariff.description}</p>
-            </div>
+            <GiftTariffDetails description={selectedTariff.description} />
           )}
         </div>
         <div className="order-2 space-y-6 empty:hidden lg:mt-6">

@@ -65,7 +65,10 @@ export interface TariffDescription {
  * строки-преимущества, в конце блок «Доступные локации:» со списком серверов.
  * Список серверов и строки про безлимит выкидываем: они показаны отдельно.
  */
-export function parseTariffDescription(description: string | null | undefined): TariffDescription {
+export function parseTariffDescription(
+  description: string | null | undefined,
+  options: { keepUnlimited?: boolean } = {},
+): TariffDescription {
   const lines = (description ?? '').split(/\r?\n/).map((line) => line.trim());
   const locationsAt = lines.findIndex((line) => /^доступные\s+локации/i.test(line));
   const body = (locationsAt >= 0 ? lines.slice(0, locationsAt) : lines).filter(Boolean);
@@ -83,7 +86,7 @@ export function parseTariffDescription(description: string | null | undefined): 
   const features: TariffFeature[] = [];
   for (const line of rest) {
     const text = clean(line);
-    if (!text || /безлимит/i.test(text)) continue;
+    if (!text || (!options.keepUnlimited && /безлимит/i.test(text))) continue;
     features.push({
       text,
       warn: /^[⚠⛔❌🚫]/u.test(line) || /не\s+(будет\s+работать|работает)/i.test(text),
