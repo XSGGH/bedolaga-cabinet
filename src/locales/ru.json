@@ -419,13 +419,7 @@
       "text": "Подпишитесь на наш Telegram-канал, чтобы быть в курсе",
       "button": "Подписаться"
     },
-    "manageSubtitle": "Тариф, устройства и продление",
-    "appUpdatePromo": {
-      "title": "Новая инструкция для iPhone и Mac",
-      "badge": "Новое",
-      "text": "Добавили StealthNet — подключение в пару нажатий",
-      "button": "Подключить"
-    }
+    "manageSubtitle": "Тариф, устройства и продление"
   },
   "subscription": {
     "title": "Подписка",

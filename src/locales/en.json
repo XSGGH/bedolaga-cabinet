@@ -411,13 +411,7 @@
       "text": "Follow our Telegram channel to stay in the loop",
       "button": "Subscribe"
     },
-    "manageSubtitle": "Plan, devices and renewal",
-    "appUpdatePromo": {
-      "title": "New guide for iPhone and Mac",
-      "badge": "New",
-      "text": "StealthNet is here — connect in a couple of taps",
-      "button": "Connect"
-    }
+    "manageSubtitle": "Plan, devices and renewal"
   },
   "subscription": {
     "title": "Subscription",

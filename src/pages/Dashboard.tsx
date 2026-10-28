@@ -19,7 +19,6 @@ import TrialOfferCard from '../components/dashboard/TrialOfferCard';
 import ReminderCards from '../components/dashboard/ReminderCards';
 import ServerStatus from '../components/dashboard/ServerStatus';
 import StatsGrid from '../components/dashboard/StatsGrid';
-import AppUpdatePromo from '../components/dashboard/AppUpdatePromo';
 import ChannelPromo from '../components/dashboard/ChannelPromo';
 import { giftApi } from '../api/gift';
 import { promoApi } from '../api/promo';
@@ -475,8 +474,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          <div className="col-span-2 space-y-4 lg:col-span-3">
-            <AppUpdatePromo />
+          <div className="col-span-2 lg:col-span-3">
             <ChannelPromo />
           </div>
         </div>
