@@ -1411,7 +1411,9 @@
     },
     "recentWins": "Winning right now",
     "showMore": "Show {{count}} more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "tapToCopy": "Tap to copy",
+    "promoCopied": "Copied!"
   },
   "admin": {
     "backgrounds": {

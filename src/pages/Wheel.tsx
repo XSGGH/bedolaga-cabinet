@@ -11,7 +11,8 @@ import { useNotify } from '@/platform/hooks/useNotify';
 import { Button } from '@/components/primitives/Button/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { staggerContainer, staggerItem } from '@/components/motion/transitions';
-import { PiCaretDown } from 'react-icons/pi';
+import { PiCaretDown, PiCheck, PiCopy } from 'react-icons/pi';
+import { copyToClipboard } from '@/utils/clipboard';
 import { StarIcon, CalendarIcon, HistoryIcon, CloseIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { PageSkeleton, Skeleton } from '@/components/ui/skeleton';
@@ -87,6 +88,7 @@ export default function Wheel() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [targetRotation, setTargetRotation] = useState<number | null>(null);
   const [spinResult, setSpinResult] = useState<SpinResult | null>(null);
+  const [promoCopied, setPromoCopied] = useState(false);
   const [paymentType, setPaymentType] = useState<'telegram_stars' | 'subscription_days'>(
     'telegram_stars',
   );
@@ -751,7 +753,9 @@ export default function Wheel() {
                               : t('wheel.congratulations')
                             : t('wheel.oops')}
                       </div>
-                      <div className="text-sm text-dark-400">{spinResult.message}</div>
+                      {!(
+                        spinResult.promocode && spinResult.message?.includes(spinResult.promocode)
+                      ) && <div className="text-sm text-dark-400">{spinResult.message}</div>}
                     </div>
                     <button
                       onClick={closeResultModal}
@@ -761,14 +765,40 @@ export default function Wheel() {
                     </button>
                   </div>
 
-                  {/* Promocode if won */}
+                  {/* Promocode if won — тап копирует код */}
                   {spinResult.promocode && (
-                    <div className="mt-3 rounded-linear border border-accent-500/20 bg-accent-500/10 p-3 text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const code = spinResult.promocode;
+                        if (!code) return;
+                        copyToClipboard(code)
+                          .then(() => {
+                            setPromoCopied(true);
+                            window.setTimeout(() => setPromoCopied(false), 2000);
+                          })
+                          .catch(() => {});
+                      }}
+                      className="mt-3 w-full rounded-linear border border-accent-500/30 bg-accent-500/10 p-3 text-center transition-colors active:bg-accent-500/20"
+                    >
                       <p className="mb-1 text-xs text-accent-400">{t('wheel.yourPromoCode')}</p>
-                      <p className="select-all font-mono text-lg font-bold tracking-wider text-white">
+                      <p className="font-mono text-lg font-bold tracking-wider text-white">
                         {spinResult.promocode}
                       </p>
-                    </div>
+                      <p className="mt-1.5 flex items-center justify-center gap-1.5 text-xs font-semibold text-accent-300">
+                        {promoCopied ? (
+                          <>
+                            <PiCheck className="h-3.5 w-3.5" />
+                            {t('wheel.promoCopied')}
+                          </>
+                        ) : (
+                          <>
+                            <PiCopy className="h-3.5 w-3.5" />
+                            {t('wheel.tapToCopy')}
+                          </>
+                        )}
+                      </p>
+                    </button>
                   )}
                 </div>
               )}
