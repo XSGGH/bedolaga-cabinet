@@ -25,7 +25,7 @@ function isValidExternalUrl(url: string | undefined): boolean {
 
 interface BlockButtonsProps {
   buttons: RemnawaveButtonClient[] | undefined;
-  variant: 'light' | 'subtle';
+  variant: 'light' | 'subtle' | 'step';
   isLight?: boolean;
   subscriptionUrl: string | null;
   hideLink?: boolean;
@@ -64,7 +64,9 @@ export function BlockButtons({
   const baseClass = blockButtonClass(variant, isLight);
 
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div
+      className={`mt-3 flex flex-wrap gap-2 ${variant === 'step' ? '[&>*]:flex-1 sm:[&>*]:flex-none [&>.trial-cta]:flex-1' : ''}`}
+    >
       {buttons.map((btn, idx) => {
         const btnText = getLocalizedText(btn.text);
         const btnSvg = getSvgHtml(btn.svgIconKey);
@@ -91,7 +93,11 @@ export function BlockButtons({
             <button
               key={idx}
               onClick={() => onOpenDeepLink(url)}
-              className={`flex items-center gap-2 ${baseClass}`}
+              className={
+                variant === 'step'
+                  ? 'trial-cta flex w-full items-center justify-center gap-2 rounded-[14px] px-5 py-3 text-[15px] font-extrabold text-white'
+                  : `flex items-center gap-2 ${baseClass}`
+              }
             >
               {btnIcon}
               {btnText || getBaseTranslation('openApp', 'subscription.connection.openLink')}

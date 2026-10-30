@@ -227,6 +227,7 @@ export default function Connection() {
       isTelegramWebApp={isTelegramWebApp}
       onGoBack={handleGoBack}
       onOpenQR={handleOpenQR}
+      qrUrl={qrConnectionUrl || undefined}
       username={user?.username ?? undefined}
     />
   );

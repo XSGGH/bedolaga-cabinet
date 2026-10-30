@@ -17,6 +17,6 @@ export interface BlockRendererProps {
   getSvgHtml: (key: string | undefined) => string;
   renderBlockButtons: (
     buttons: RemnawaveButtonClient[] | undefined,
-    variant: 'light' | 'subtle',
+    variant: 'light' | 'subtle' | 'step',
   ) => React.ReactNode;
 }

@@ -597,7 +597,13 @@
       "qrTitle": "Subscription QR Code",
       "qrScanHint": "Scan to connect",
       "qrButton": "QR Code",
-      "openQr": "Open QR code"
+      "openQr": "Open QR code",
+      "recommended": "Recommended",
+      "supportTitle": "Can't connect?",
+      "supportDescription": "Message us — we will help you set it up in a couple of minutes.",
+      "supportButton": "Contact us",
+      "yourSubscription": "Your subscription",
+      "qrHint": "Scan the QR code with your phone to add the subscription to the app."
     },
     "myDevices": "My Devices",
     "noDevices": "No connected devices",

@@ -1,4 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import { Link } from 'react-router';
+import { QRCodeSVG } from 'qrcode.react';
+import { copyToClipboard } from '@/utils/clipboard';
 import { useTranslation } from 'react-i18next';
 import DOMPurify from 'dompurify';
 import type {
@@ -12,7 +15,14 @@ import { useTheme } from '@/hooks/useTheme';
 import { CardsBlock, TimelineBlock, AccordionBlock, MinimalBlock, BlockButtons } from './blocks';
 import type { BlockRendererProps, RenderBlock } from './blocks';
 import TvQuickConnect from './TvQuickConnect';
-import { BackIcon, BookOpenIcon, ChevronIcon, QrCodeIcon } from '@/components/icons';
+import {
+  BackIcon,
+  BookOpenIcon,
+  ChatIcon,
+  CheckIcon,
+  CopyIcon,
+  QrCodeIcon,
+} from '@/components/icons';
 
 const platformOrder = ['ios', 'android', 'windows', 'macos', 'linux', 'androidTV', 'appleTV'];
 
@@ -48,6 +58,8 @@ interface Props {
   isTelegramWebApp: boolean;
   onGoBack: () => void;
   onOpenQR?: () => void;
+  /** Ссылка для QR и блока «Ваша подписка» (с учётом режима Happ-cryptolink). */
+  qrUrl?: string;
   username?: string;
 }
 
@@ -57,6 +69,7 @@ export default function InstallationGuide({
   isTelegramWebApp,
   onGoBack,
   onOpenQR,
+  qrUrl,
   username,
 }: Props) {
   const { t, i18n } = useTranslation();
@@ -67,6 +80,7 @@ export default function InstallationGuide({
 
   const [activePlatformKey, setActivePlatformKey] = useState<string | null>(null);
   const [selectedApp, setSelectedApp] = useState<RemnawaveAppClient | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const getLocalizedText = useCallback(
     (text: LocalizedText | undefined): string => {
@@ -125,7 +139,7 @@ export default function InstallationGuide({
   }, [appConfig.platforms, availablePlatforms, selectedApp]);
 
   const renderBlockButtons = useCallback(
-    (buttons: RemnawaveButtonClient[] | undefined, variant: 'light' | 'subtle') => (
+    (buttons: RemnawaveButtonClient[] | undefined, variant: 'light' | 'subtle' | 'step') => (
       <BlockButtons
         buttons={buttons}
         variant={variant}
@@ -191,8 +205,22 @@ export default function InstallationGuide({
     [appConfig.platforms, appConfig.platformNames, getLocalizedText],
   );
 
-  // Platform SVG icon for dropdown
-  const currentPlatformSvg = getSvgHtml(currentPlatformData?.svgIconKey);
+  const selectPlatform = useCallback(
+    (newPlatform: string) => {
+      setActivePlatformKey(newPlatform);
+      const data = appConfig.platforms[newPlatform] as RemnawavePlatformData | undefined;
+      if (data?.apps?.length) {
+        // Keep the user's current app (by name) if it also exists on the
+        // new platform; only fall back to featured/first otherwise.
+        const app =
+          data.apps.find((a) => a.name === selectedApp?.name) ||
+          data.apps.find((a) => a.featured) ||
+          data.apps[0];
+        if (app) setSelectedApp(app);
+      }
+    },
+    [appConfig.platforms, selectedApp?.name],
+  );
 
   // Block renderer
   const blockType = appConfig.uiConfig?.installationGuidesBlockType || 'cards';
@@ -213,136 +241,225 @@ export default function InstallationGuide({
     renderBlocks = selectedApp.blocks.map((b, i) => (i === idx ? { ...b, customNode: widget } : b));
   }
 
-  return (
-    <div className="space-y-6 pb-6">
-      {/* Header + platform dropdown. На телефоне список платформ — своей строкой
-          во всю ширину: в одном ряду длинное название платформы распирало
-          страницу вбок, а кнопки «назад» и QR сжимались с 40 до 22 px. */}
-      <div className="flex flex-wrap items-center gap-3">
-        {!isTelegramWebApp && (
+  const showLink = Boolean(appConfig.subscriptionUrl) && !appConfig.hideLink;
+  const sideUrl = qrUrl || appConfig.subscriptionUrl || '';
+
+  const header = (
+    <div className="flex items-center gap-3">
+      {!isTelegramWebApp && (
+        <button
+          onClick={onGoBack}
+          aria-label={t('common.back', 'Back')}
+          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[13px] border border-accent-500/20 bg-accent-500/[0.06] transition-colors hover:border-accent-400/40"
+        >
+          <BackIcon className="h-5 w-5" />
+        </button>
+      )}
+      <h2 className="min-w-0 flex-1 text-2xl font-extrabold tracking-tight text-dark-50 sm:text-[30px]">
+        {getBaseTranslation('installationGuideHeader', 'subscription.connection.title')}
+      </h2>
+      {appConfig.subscriptionUrl && onOpenQR && (
+        <button
+          onClick={() => onOpenQR()}
+          aria-label={t('subscription.connection.openQr', 'Open QR code')}
+          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[13px] border border-accent-500/20 bg-accent-500/[0.06] text-accent-300 transition-colors hover:border-accent-400/40 lg:hidden"
+        >
+          <QrCodeIcon className="h-5 w-5" />
+        </button>
+      )}
+    </div>
+  );
+
+  const platformPills = availablePlatforms.length > 1 && (
+    <div className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      {availablePlatforms.map((p) => {
+        const on = p === currentPlatformKey;
+        const svg = getSvgHtml(
+          (appConfig.platforms[p] as RemnawavePlatformData | undefined)?.svgIconKey,
+        );
+        return (
           <button
-            onClick={onGoBack}
-            aria-label={t('common.back', 'Back')}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-dark-700 bg-dark-800 transition-colors hover:border-dark-600"
+            key={p}
+            type="button"
+            onClick={() => selectPlatform(p)}
+            aria-pressed={on}
+            className={`flex h-[42px] shrink-0 items-center gap-2 rounded-[14px] border px-4 text-sm font-bold transition-all ${
+              on
+                ? 'border-accent-300/60 text-white shadow-[0_8px_22px_-10px_rgb(var(--color-accent-500))]'
+                : 'border-accent-500/20 bg-accent-500/[0.05] text-dark-300 hover:border-accent-400/40'
+            }`}
+            style={
+              on
+                ? {
+                    background:
+                      'linear-gradient(135deg, rgba(var(--color-accent-500), 0.35), rgba(var(--color-accent-600), 0.25))',
+                  }
+                : undefined
+            }
           >
-            <BackIcon className="h-6 w-6" />
-          </button>
-        )}
-        <h2 className="min-w-0 flex-1 text-lg font-bold text-dark-100">
-          {getBaseTranslation('installationGuideHeader', 'subscription.connection.title')}
-        </h2>
-        {appConfig.subscriptionUrl && onOpenQR && (
-          <button
-            onClick={() => onOpenQR()}
-            aria-label={t('subscription.connection.openQr', 'Open QR code')}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-dark-700 bg-dark-800 text-dark-200 transition-colors hover:border-dark-600"
-          >
-            <QrCodeIcon className="h-5 w-5" />
-          </button>
-        )}
-        {availablePlatforms.length > 1 && (
-          <div className="relative flex w-full items-center sm:w-auto sm:max-w-[45%]">
-            {currentPlatformSvg && (
-              <div
-                className="pointer-events-none absolute left-3 z-10 h-5 w-5 text-dark-400 [&>svg]:h-full [&>svg]:w-full"
-                dangerouslySetInnerHTML={{ __html: currentPlatformSvg }}
+            {svg && (
+              <span
+                className="h-[18px] w-[18px] [&>svg]:h-full [&>svg]:w-full"
+                dangerouslySetInnerHTML={{ __html: svg }}
               />
             )}
-            <select
-              value={currentPlatformKey || ''}
-              onChange={(e) => {
-                const newPlatform = e.target.value;
-                setActivePlatformKey(newPlatform);
-                const data = appConfig.platforms[newPlatform] as RemnawavePlatformData | undefined;
-                if (data?.apps?.length) {
-                  // Keep the user's current app (by name) if it also exists on the
-                  // new platform; only fall back to featured/first otherwise.
-                  const app =
-                    data.apps.find((a) => a.name === selectedApp?.name) ||
-                    data.apps.find((a) => a.featured) ||
-                    data.apps[0];
-                  if (app) setSelectedApp(app);
-                }
-              }}
-              className={`w-full min-w-0 appearance-none truncate rounded-xl border py-2 pr-8 text-sm font-medium outline-none transition-colors ${
-                isLight
-                  ? 'border-dark-700/60 bg-white/80 text-dark-200 shadow-sm hover:border-dark-600'
-                  : 'border-dark-700 bg-dark-800 text-dark-200 hover:border-dark-600'
-              } ${currentPlatformSvg ? 'pl-10' : 'pl-4'}`}
-            >
-              {availablePlatforms.map((p) => (
-                <option key={p} value={p}>
-                  {getPlatformDisplayName(p)}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute right-2.5 text-dark-400">
-              <ChevronIcon className="h-4 w-4" />
-            </div>
-          </div>
-        )}
-      </div>
+            {getPlatformDisplayName(p)}
+          </button>
+        );
+      })}
+    </div>
+  );
 
-      {/* App chips */}
-      {currentPlatformApps.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {currentPlatformApps.map((app, idx) => {
-            const isSelected = selectedApp?.name === app.name;
-            const appIconSvg = getSvgHtml(app.svgIconKey);
-            return (
-              <button
-                key={app.name + idx}
-                onClick={() => setSelectedApp(app)}
-                className={`relative flex min-w-[calc(50%-0.25rem)] items-center gap-2 overflow-hidden rounded-xl px-4 py-2 text-sm font-medium transition-all active:scale-[0.97] ${
-                  isSelected
-                    ? isLight
-                      ? 'bg-accent-500/15 text-accent-600 ring-1 ring-accent-500/40'
-                      : 'bg-accent-500/15 text-accent-400 ring-1 ring-accent-500/40'
-                    : isLight
-                      ? 'border border-dark-700/60 bg-white/80 text-dark-200 shadow-sm hover:border-dark-600/50 hover:bg-white'
-                      : 'border border-dark-700/50 bg-dark-800/80 text-dark-200 hover:border-dark-600/50 hover:bg-dark-700/80'
-                }`}
-              >
-                {app.featured && <span className="h-2 w-2 shrink-0 rounded-full bg-warning-400" />}
-                <span className="relative z-10 truncate">{app.name}</span>
-                {appIconSvg && (
-                  <div
-                    className="ml-auto h-7 w-7 shrink-0 opacity-30 [&>svg]:h-full [&>svg]:w-full"
-                    dangerouslySetInnerHTML={{ __html: appIconSvg }}
-                  />
-                )}
-              </button>
-            );
-          })}
+  const appCards = currentPlatformApps.length > 0 && (
+    <div className="grid max-w-[460px] grid-cols-2 gap-2.5 pt-2">
+      {currentPlatformApps.map((app, idx) => {
+        const isSelected = selectedApp?.name === app.name;
+        return (
+          <button
+            key={app.name + idx}
+            type="button"
+            onClick={() => setSelectedApp(app)}
+            aria-pressed={isSelected}
+            className={`relative flex items-center justify-between gap-2 rounded-[14px] border px-3.5 py-3 text-left transition-all active:scale-[0.98] ${
+              isSelected
+                ? 'border-accent-300/55 shadow-[0_12px_28px_-16px_rgb(var(--color-accent-500))]'
+                : 'border-accent-500/20 bg-accent-500/[0.05] hover:border-accent-400/40'
+            }`}
+            style={
+              isSelected
+                ? {
+                    background:
+                      'linear-gradient(160deg, rgba(var(--color-accent-500), 0.28), rgba(var(--color-accent-500), 0.06))',
+                  }
+                : undefined
+            }
+          >
+            {app.featured && (
+              <span className="absolute -top-2 left-3 rounded-full bg-gradient-to-r from-accent-300 to-accent-600 px-2 py-px text-[9px] font-extrabold uppercase tracking-wider text-white">
+                {t('subscription.connection.recommended')}
+              </span>
+            )}
+            <span className="min-w-0 truncate text-[15px] font-extrabold tracking-tight text-dark-50">
+              {app.name}
+            </span>
+            {isSelected ? (
+              <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-300 to-accent-600 text-white">
+                <CheckIcon className="h-3 w-3" />
+              </span>
+            ) : (
+              <span className="h-[18px] w-[18px] shrink-0 rounded-full border-[1.5px] border-accent-500/30" />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const supportPlaque = (
+    <div className="flex items-center gap-3 rounded-[18px] border border-accent-500/25 bg-accent-500/[0.07] p-3.5">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-400/25 bg-accent-500/15 text-accent-300">
+        <ChatIcon className="h-5 w-5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-extrabold text-dark-50">
+          {t('subscription.connection.supportTitle')}
+        </div>
+        <div className="mt-0.5 text-xs leading-snug text-dark-400">
+          {t('subscription.connection.supportDescription')}
+        </div>
+      </div>
+      <Link
+        to="/support"
+        className="shrink-0 rounded-xl border border-accent-400/40 bg-accent-500/20 px-3.5 py-2 text-[13px] font-extrabold text-dark-50 transition-colors hover:bg-accent-500/30"
+      >
+        {t('subscription.connection.supportButton')}
+      </Link>
+    </div>
+  );
+
+  const sideCard = sideUrl && (
+    <div className="hidden rounded-3xl border border-accent-500/20 bg-accent-500/[0.05] p-5 lg:block">
+      <div className="text-xs font-extrabold uppercase tracking-[0.14em] text-dark-400">
+        {t('subscription.connection.yourSubscription')}
+      </div>
+      {showLink && (
+        <div className="mt-3 flex h-[46px] items-center gap-2 rounded-[14px] border border-accent-500/20 bg-dark-950/60 px-3.5 font-mono text-[12.5px] text-dark-400">
+          <span className="min-w-0 flex-1 truncate">{sideUrl}</span>
+          <button
+            type="button"
+            aria-label={t('common.copy', 'Копировать')}
+            onClick={() => {
+              void copyToClipboard(sideUrl);
+              setLinkCopied(true);
+              window.setTimeout(() => setLinkCopied(false), 1500);
+            }}
+            className="shrink-0 text-accent-300 transition-colors hover:text-accent-200"
+          >
+            {linkCopied ? (
+              <CheckIcon className="h-[18px] w-[18px]" />
+            ) : (
+              <CopyIcon className="h-[18px] w-[18px]" />
+            )}
+          </button>
         </div>
       )}
+      <div className="mt-3.5 flex items-center gap-4">
+        <div className="h-[132px] w-[132px] shrink-0 rounded-2xl bg-white p-2.5">
+          <QRCodeSVG value={sideUrl} size={112} level="M" className="h-full w-full" />
+        </div>
+        <p className="text-[13px] leading-relaxed text-dark-400">
+          {t('subscription.connection.qrHint')}
+        </p>
+      </div>
+    </div>
+  );
 
-      {/* Tutorial button */}
-      {appConfig.baseSettings?.isShowTutorialButton && appConfig.baseSettings?.tutorialUrl && (
-        <a
-          href={appConfig.baseSettings.tutorialUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-secondary w-full justify-center"
-        >
-          <BookOpenIcon className="h-5 w-5" />
-          {getBaseTranslation('tutorial', 'subscription.connection.tutorial')}
-        </a>
-      )}
+  return (
+    <div className="pb-6">
+      <div className="space-y-4">
+        {header}
+        {platformPills}
+      </div>
 
-      {/* Blocks rendered in the panel's active style. For the Happ Android TV
-          app the TV connect widget is injected into a step (customNode), so it
-          adapts to that style instead of breaking it. */}
-      {selectedApp && (
-        <Renderer
-          blocks={renderBlocks}
-          isMobile={isMobile}
-          isLight={isLight}
-          getLocalizedText={getLocalizedText}
-          getSvgHtml={getSvgHtml}
-          renderBlockButtons={renderBlockButtons}
-        />
-      )}
+      <div className="mt-4 grid items-start gap-6 lg:grid-cols-[1fr_400px]">
+        <div className="min-w-0 space-y-5">
+          {appCards}
+
+          {/* Tutorial button */}
+          {appConfig.baseSettings?.isShowTutorialButton && appConfig.baseSettings?.tutorialUrl && (
+            <a
+              href={appConfig.baseSettings.tutorialUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary w-full justify-center"
+            >
+              <BookOpenIcon className="h-5 w-5" />
+              {getBaseTranslation('tutorial', 'subscription.connection.tutorial')}
+            </a>
+          )}
+
+          {/* Blocks rendered in the panel's active style. For the Happ Android TV
+              app the TV connect widget is injected into a step (customNode), so it
+              adapts to that style instead of breaking it. */}
+          {selectedApp && (
+            <Renderer
+              blocks={renderBlocks}
+              isMobile={isMobile}
+              isLight={isLight}
+              getLocalizedText={getLocalizedText}
+              getSvgHtml={getSvgHtml}
+              renderBlockButtons={renderBlockButtons}
+            />
+          )}
+
+          <div className="lg:hidden">{supportPlaque}</div>
+        </div>
+
+        <div className="space-y-4 lg:sticky lg:top-6">
+          {sideCard}
+          <div className="hidden lg:block">{supportPlaque}</div>
+        </div>
+      </div>
     </div>
   );
 }
