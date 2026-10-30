@@ -408,11 +408,11 @@
       "badge": "Бесплатно",
       "unlimitedDevices": "Без лимита устройств",
       "whitelistTitle": "Белые списки",
-      "whitelistHint": "Лимит трафика",
-      "unlimitedTitle": "Остальной трафик",
-      "unlimitedHint": "Wi-Fi и всё остальное",
-      "unlimitedValue": "безлимит",
-      "metaNoCard": "без карты"
+      "whitelistHint": "лимит трафика",
+      "unlimitedTitle": "Всё остальное",
+      "unlimitedHint": "Wi-Fi и обычные сети",
+      "checkNoCard": "Без карты",
+      "checkNoCommitment": "Без обязательств"
     },
     "stats": {
       "balance": "Баланс",

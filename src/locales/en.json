@@ -400,11 +400,11 @@
       "badge": "Free",
       "unlimitedDevices": "Unlimited devices",
       "whitelistTitle": "Whitelist networks",
-      "whitelistHint": "Traffic allowance",
+      "whitelistHint": "traffic allowance",
       "unlimitedTitle": "Everything else",
-      "unlimitedHint": "Wi-Fi and all other traffic",
-      "unlimitedValue": "unlimited",
-      "metaNoCard": "no card"
+      "unlimitedHint": "Wi-Fi and regular networks",
+      "checkNoCard": "No card",
+      "checkNoCommitment": "No commitment"
     },
     "stats": {
       "balance": "Balance",
