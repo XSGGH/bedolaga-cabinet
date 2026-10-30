@@ -403,7 +403,12 @@
       "freeTitle": "Бесплатный пробный период",
       "paidTitle": "Пробная подписка",
       "freeDesc": "Попробуйте наш VPN бесплатно: без обязательств",
-      "paidDesc": "Начните с пробной подписки"
+      "paidDesc": "Начните с пробной подписки",
+      "badge": "Бесплатно",
+      "benefitWifi": "Безлимитный трафик в Wi-Fi",
+      "benefitWhitelist": "1 ГБ для работы через белые списки",
+      "benefitNoCard": "Без привязки карты и обязательств",
+      "benefitPlatforms": "iOS, Android, Windows и macOS"
     },
     "stats": {
       "balance": "Баланс",

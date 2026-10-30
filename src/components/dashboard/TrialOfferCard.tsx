@@ -5,7 +5,7 @@ import type { TrialInfo } from '../../types';
 import { useCurrency } from '../../hooks/useCurrency';
 import { useTheme } from '../../hooks/useTheme';
 import { getGlassColors } from '../../utils/glassTheme';
-import { BoltIcon, SparklesIcon } from '@/components/icons';
+import { BoltIcon, CheckIcon, GiftIcon, SparklesIcon } from '@/components/icons';
 
 interface TrialOfferCardProps {
   trialInfo: TrialInfo;
@@ -33,9 +33,13 @@ export default function TrialOfferCard({
     <div
       className="relative overflow-hidden rounded-3xl text-center"
       style={{
-        background: g.cardBg,
+        background: isFree
+          ? `radial-gradient(120% 70% at 50% 0%, rgba(var(--color-accent-500), 0.22), transparent 62%), linear-gradient(180deg, rgba(var(--color-accent-500), 0.07), transparent 55%), ${g.cardBg}`
+          : g.cardBg,
         border: isDark
-          ? `1px solid ${g.cardBorder}`
+          ? isFree
+            ? '1px solid rgba(var(--color-accent-400), 0.32)'
+            : `1px solid ${g.cardBorder}`
           : isFree
             ? '1px solid rgba(var(--color-accent-400), 0.2)'
             : '1px solid rgba(255,184,0,0.2)',
@@ -47,9 +51,16 @@ export default function TrialOfferCard({
         padding: '32px 28px 28px',
       }}
     >
+      {isFree && (
+        <span className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-accent-400/30 bg-accent-500/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-accent-300">
+          <GiftIcon className="h-3.5 w-3.5" />
+          {t('dashboard.trialOffer.badge')}
+        </span>
+      )}
+
       {/* Icon */}
       <div
-        className="relative mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl"
+        className="relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
         style={{
           background: isFree ? 'rgba(var(--color-accent-500), 0.14)' : 'rgba(255,184,0,0.12)',
           border: isFree
@@ -110,7 +121,7 @@ export default function TrialOfferCard({
       )}
 
       {/* Trial stats */}
-      <div className="mb-7 flex justify-center gap-8">
+      <div className="mb-5 grid grid-cols-3 divide-x divide-accent-500/15 rounded-2xl border border-accent-500/15 bg-black/10 py-3.5">
         {[
           { value: String(trialInfo.duration_days), label: t('subscription.trial.days') },
           {
@@ -123,13 +134,30 @@ export default function TrialOfferCard({
           },
         ].map((stat, i) => (
           <div key={i} className="text-center">
-            <div className="text-4xl font-extrabold leading-none tracking-tight text-dark-50">
+            <div className="text-3xl font-extrabold leading-none tracking-tight text-dark-50">
               {stat.value}
             </div>
-            <div className="mt-1 text-xs font-medium text-dark-400">{stat.label}</div>
+            <div className="mt-1.5 text-xs font-medium text-dark-400">{stat.label}</div>
           </div>
         ))}
       </div>
+
+      {/* Benefits */}
+      <ul className="mb-6 space-y-2.5 text-left">
+        {[
+          t('dashboard.trialOffer.benefitWifi'),
+          t('dashboard.trialOffer.benefitWhitelist'),
+          t('dashboard.trialOffer.benefitNoCard'),
+          t('dashboard.trialOffer.benefitPlatforms'),
+        ].map((text) => (
+          <li key={text} className="flex items-center gap-3 text-sm text-dark-200">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-accent-400/30 bg-accent-500/15 text-accent-300">
+              <CheckIcon className="h-3 w-3" />
+            </span>
+            {text}
+          </li>
+        ))}
+      </ul>
 
       {/* Balance info for paid trial */}
       {!isFree && trialInfo.price_rubles > 0 && (
@@ -168,11 +196,7 @@ export default function TrialOfferCard({
           <button
             onClick={() => !activateTrialMutation.isPending && activateTrialMutation.mutate()}
             disabled={activateTrialMutation.isPending}
-            className="w-full rounded-[14px] py-4 text-base font-bold tracking-tight transition-all duration-300 disabled:opacity-50"
-            style={{
-              background: 'rgb(var(--color-accent-500))',
-              color: '#fff',
-            }}
+            className="trial-cta w-full rounded-[14px] py-4 text-base font-bold tracking-tight text-white disabled:opacity-50"
           >
             {activateTrialMutation.isPending
               ? t('common.loading')
@@ -181,11 +205,7 @@ export default function TrialOfferCard({
         ) : (
           <Link
             to="/balance"
-            className="block w-full rounded-[14px] py-4 text-center text-base font-bold tracking-tight transition-all duration-300"
-            style={{
-              background: 'rgb(var(--color-accent-500))',
-              color: '#fff',
-            }}
+            className="trial-cta block w-full rounded-[14px] py-4 text-center text-base font-bold tracking-tight text-white"
           >
             {t('subscription.trial.topUpToActivate')}
           </Link>
@@ -194,8 +214,7 @@ export default function TrialOfferCard({
         <button
           onClick={() => !activateTrialMutation.isPending && activateTrialMutation.mutate()}
           disabled={activateTrialMutation.isPending}
-          className="w-full rounded-[14px] py-4 text-base font-bold tracking-tight transition-all duration-300 disabled:opacity-50"
-          style={{ background: 'rgb(var(--color-accent-500))', color: '#fff' }}
+          className="trial-cta w-full rounded-[14px] py-4 text-base font-bold tracking-tight text-white disabled:opacity-50"
         >
           {activateTrialMutation.isPending ? t('common.loading') : t('subscription.trial.activate')}
         </button>

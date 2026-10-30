@@ -1960,3 +1960,81 @@ input[type="checkbox"]:hover:not(:checked) {
 [data-admin-page] table tbody tr:hover {
   background-color: rgba(var(--color-dark-700), 0.25);
 }
+
+/* ========== TRIAL CTA ==========
+   Кнопка «Активировать бесплатно»: градиентная заливка, медленный блик и мягкое
+   свечение. Эффект сдержанный (раз в несколько секунд), в стиле остального сайта. */
+.trial-cta {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(135deg, rgb(var(--color-accent-400)), rgb(var(--color-accent-600)));
+  box-shadow:
+    0 12px 30px -12px rgba(var(--color-accent-500), 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  animation: trialGlow 3.2s ease-in-out infinite;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+
+.trial-cta::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 38%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: skewX(-20deg);
+  animation: trialShine 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.trial-cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.trial-cta:active:not(:disabled) {
+  transform: translateY(0) scale(0.99);
+}
+
+.trial-cta:disabled {
+  animation: none;
+}
+
+.trial-cta:disabled::after {
+  display: none;
+}
+
+@keyframes trialShine {
+  0% {
+    left: -60%;
+  }
+  55%,
+  100% {
+    left: 135%;
+  }
+}
+
+@keyframes trialGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 12px 30px -12px rgba(var(--color-accent-500), 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  }
+  50% {
+    box-shadow:
+      0 14px 38px -8px rgba(var(--color-accent-500), 0.95),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trial-cta,
+  .trial-cta::after {
+    animation: none;
+  }
+}

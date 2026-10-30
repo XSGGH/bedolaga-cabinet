@@ -395,7 +395,12 @@
       "freeTitle": "Free Trial Available",
       "paidTitle": "Trial Subscription",
       "freeDesc": "Try our VPN for free, no commitment required",
-      "paidDesc": "Get started with a trial subscription"
+      "paidDesc": "Get started with a trial subscription",
+      "badge": "Free",
+      "benefitWifi": "Unlimited traffic on Wi-Fi",
+      "benefitWhitelist": "1 GB for whitelist-restricted networks",
+      "benefitNoCard": "No card, no commitment",
+      "benefitPlatforms": "iOS, Android, Windows and macOS"
     },
     "stats": {
       "balance": "Balance",
