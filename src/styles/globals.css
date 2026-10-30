@@ -1883,3 +1883,80 @@ input[type="checkbox"]:hover:not(:checked) {
     animation: none;
   }
 }
+
+/* ========== ADMIN SKIN ==========
+   Единый вид всех разделов админки (AppShell ставит data-admin-page на <main>).
+   Страниц больше сотни и каждая собрана вручную, поэтому общий стиль задаётся
+   здесь, по сочетанию утилитных классов, а не правкой каждой страницы:
+   поверхности карточек и панелей, заголовок страницы, основные кнопки, поля
+   ввода и таблицы. Всё берёт цвета из токенов темы, светлая тема ремапится сама.
+   Неразобранное состояние :hover исключено, чтобы hover-варианты Tailwind
+   продолжали работать. */
+[data-admin-page]
+:is(.rounded-xl, .rounded-2xl, .rounded-3xl).border:is(
+  [class~="bg-dark-800"],
+  [class~="bg-dark-800/30"],
+  [class~="bg-dark-800/40"],
+  [class~="bg-dark-800/50"],
+  [class~="bg-dark-800/60"],
+  [class~="bg-dark-900"],
+  [class~="bg-dark-900/50"],
+  [class~="bg-dark-900/60"],
+  [class~="bg-dark-900/70"]
+):not(:hover),
+[data-admin-page] .card:not(:hover) {
+  background-color: rgb(var(--color-dark-900) / 0.72);
+  border-color: rgb(var(--color-dark-700) / 0.65);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+}
+
+[data-admin-page] .rounded-2xl.border:is([class*="bg-dark-8"], [class*="bg-dark-9"]),
+[data-admin-page] .card {
+  border-radius: 20px;
+}
+
+/* Заголовок страницы */
+[data-admin-page] h1:is(.text-xl, .text-2xl) {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 640px) {
+  [data-admin-page] h1:is(.text-xl, .text-2xl) {
+    font-size: 1.75rem;
+    line-height: 2.25rem;
+  }
+}
+
+/* Основные кнопки действий */
+[data-admin-page] :is(button, a):is(.rounded-lg, .rounded-xl)[class~="bg-accent-500"] {
+  font-weight: 700;
+  box-shadow: 0 10px 24px -12px rgb(var(--color-accent-500) / 0.75);
+}
+
+/* Поля ввода */
+[data-admin-page]
+:is(input:not([type="checkbox"], [type="radio"], [type="range"]), select, textarea):focus {
+  border-color: rgb(var(--color-accent-500) / 0.55);
+  box-shadow: 0 0 0 3px rgb(var(--color-accent-500) / 0.12);
+  outline: none;
+}
+
+/* Таблицы */
+[data-admin-page] table thead th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(var(--color-dark-400));
+}
+
+[data-admin-page] table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+[data-admin-page] table tbody tr:hover {
+  background-color: rgb(var(--color-dark-700) / 0.25);
+}

@@ -1621,7 +1621,18 @@
       "landingsDesc": "Quick purchase landing pages",
       "referralNetworkDesc": "Referral graph and campaign visualization",
       "newsDesc": "Manage news articles and publications",
-      "systemErrorsDesc": "Application errors and their delivery status"
+      "systemErrorsDesc": "Application errors and their delivery status",
+      "attentionTickets_one": "{{count}} ticket awaiting reply",
+      "attentionTickets_other": "{{count}} tickets awaiting reply",
+      "attentionTicketsHint": "Open the section to reply",
+      "attentionWithdrawals_one": "{{count}} withdrawal request",
+      "attentionWithdrawals_other": "{{count}} withdrawal requests",
+      "attentionWithdrawalsHint": "Total {{amount}}",
+      "attentionOpen": "Open",
+      "attentionReview": "Review",
+      "showMore_one": "{{count}} more",
+      "showMore_other": "{{count}} more",
+      "showLess": "Show less"
     },
     "salesStats": {
       "title": "Sales Statistics",
