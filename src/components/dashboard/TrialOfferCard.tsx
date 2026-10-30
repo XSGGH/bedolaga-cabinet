@@ -5,7 +5,7 @@ import type { TrialInfo } from '../../types';
 import { useCurrency } from '../../hooks/useCurrency';
 import { useTheme } from '../../hooks/useTheme';
 import { getGlassColors } from '../../utils/glassTheme';
-import { BoltIcon, CheckIcon, GiftIcon, SparklesIcon } from '@/components/icons';
+import { BoltIcon, GiftIcon, GlobeIcon, RadarIcon } from '@/components/icons';
 
 interface TrialOfferCardProps {
   trialInfo: TrialInfo;
@@ -48,7 +48,7 @@ export default function TrialOfferCard({
           : isFree
             ? '0 2px 16px rgba(var(--color-accent-400), 0.12), 0 0 0 1px rgba(var(--color-accent-400), 0.06)'
             : '0 2px 16px rgba(255,184,0,0.12), 0 0 0 1px rgba(255,184,0,0.06)',
-        padding: '32px 28px 28px',
+        padding: '28px 24px 24px',
       }}
     >
       {isFree && (
@@ -58,26 +58,15 @@ export default function TrialOfferCard({
         </span>
       )}
 
-      {/* Icon */}
-      <div
-        className="relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
-        style={{
-          background: isFree ? 'rgba(var(--color-accent-500), 0.14)' : 'rgba(255,184,0,0.12)',
-          border: isFree
-            ? '1px solid rgba(var(--color-accent-400), 0.25)'
-            : '1px solid rgba(255,184,0,0.25)',
-          transition: 'all 0.5s ease',
-        }}
-      >
-        {isFree ? (
-          <span
-            className="flex"
-            style={{ color: 'rgb(var(--color-accent-400))' }}
-            aria-hidden="true"
-          >
-            <SparklesIcon className="h-[26px] w-[26px]" />
-          </span>
-        ) : (
+      {/* Icon (платный триал) */}
+      {!isFree && (
+        <div
+          className="relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
+          style={{
+            background: 'rgba(255,184,0,0.12)',
+            border: '1px solid rgba(255,184,0,0.25)',
+          }}
+        >
           <span
             className="flex"
             style={{ color: 'rgb(var(--color-urgent-400))' }}
@@ -85,8 +74,8 @@ export default function TrialOfferCard({
           >
             <BoltIcon className="h-[26px] w-[26px]" />
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Title */}
       <h2 className="mb-1.5 text-[22px] font-bold tracking-tight text-dark-50">
@@ -120,44 +109,75 @@ export default function TrialOfferCard({
         </div>
       )}
 
-      {/* Trial stats */}
-      <div className="mb-5 grid grid-cols-3 divide-x divide-accent-500/15 rounded-2xl border border-accent-500/15 bg-black/10 py-3.5">
-        {[
-          { value: String(trialInfo.duration_days), label: t('subscription.trial.days') },
-          {
-            value: trialInfo.traffic_limit_gb === 0 ? '∞' : String(trialInfo.traffic_limit_gb),
-            label: t('common.units.gb'),
+      {/* Что входит: лимит на белые списки и безлимит на остальное */}
+      {(() => {
+        const limited = trialInfo.traffic_limit_gb > 0;
+        const tiles = [
+          limited && {
+            key: 'limit',
+            icon: <RadarIcon className="h-5 w-5" />,
+            value: String(trialInfo.traffic_limit_gb),
+            unit: t('common.units.gb'),
+            label: t('dashboard.trialOffer.whitelistLabel'),
           },
           {
-            value: trialInfo.device_limit === 0 ? '∞' : String(trialInfo.device_limit),
-            label: t('subscription.trial.devices'),
+            key: 'unlimited',
+            icon: <GlobeIcon className="h-5 w-5" />,
+            value: '∞',
+            unit: '',
+            label: t('dashboard.trialOffer.unlimitedLabel'),
           },
-        ].map((stat, i) => (
-          <div key={i} className="text-center">
-            <div className="text-3xl font-extrabold leading-none tracking-tight text-dark-50">
-              {stat.value}
-            </div>
-            <div className="mt-1.5 text-xs font-medium text-dark-400">{stat.label}</div>
+        ].filter(Boolean) as {
+          key: string;
+          icon: React.ReactNode;
+          value: string;
+          unit: string;
+          label: string;
+        }[];
+        return (
+          <div className={`mb-4 grid gap-3 ${tiles.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {tiles.map((tile) => (
+              <div
+                key={tile.key}
+                className="rounded-2xl border border-accent-500/20 bg-black/15 px-3 py-4"
+              >
+                <div className="mx-auto mb-2.5 flex h-9 w-9 items-center justify-center rounded-xl border border-accent-400/25 bg-accent-500/15 text-accent-300">
+                  {tile.icon}
+                </div>
+                <div className="flex items-baseline justify-center gap-1 text-dark-50">
+                  <span className="text-4xl font-extrabold leading-none tracking-tight">
+                    {tile.value}
+                  </span>
+                  {tile.unit && (
+                    <span className="text-base font-bold text-dark-300">{tile.unit}</span>
+                  )}
+                </div>
+                <div className="mt-2 text-xs font-medium leading-snug text-dark-400">
+                  {tile.label}
+                </div>
+              </div>
+            ))}
           </div>
+        );
+      })()}
+
+      {/* Срок, устройства, условия */}
+      <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
+        {[
+          t('subscription.trial.days', { count: trialInfo.duration_days }),
+          trialInfo.device_limit === 0
+            ? t('dashboard.trialOffer.unlimitedDevices')
+            : t('subscription.trial.devices', { count: trialInfo.device_limit }),
+          t('dashboard.trialOffer.benefitNoCard'),
+        ].map((chip) => (
+          <span
+            key={chip}
+            className="rounded-full border border-accent-500/20 bg-accent-500/10 px-3 py-1 text-xs font-semibold text-dark-200"
+          >
+            {chip}
+          </span>
         ))}
       </div>
-
-      {/* Benefits */}
-      <ul className="mb-6 space-y-2.5 text-left">
-        {[
-          t('dashboard.trialOffer.benefitWifi'),
-          t('dashboard.trialOffer.benefitWhitelist'),
-          t('dashboard.trialOffer.benefitNoCard'),
-          t('dashboard.trialOffer.benefitPlatforms'),
-        ].map((text) => (
-          <li key={text} className="flex items-center gap-3 text-sm text-dark-200">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-accent-400/30 bg-accent-500/15 text-accent-300">
-              <CheckIcon className="h-3 w-3" />
-            </span>
-            {text}
-          </li>
-        ))}
-      </ul>
 
       {/* Balance info for paid trial */}
       {!isFree && trialInfo.price_rubles > 0 && (
