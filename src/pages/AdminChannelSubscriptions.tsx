@@ -11,7 +11,6 @@ import {
 } from '../api/adminChannels';
 import { adminSettingsApi, type SettingDefinition } from '../api/adminSettings';
 import { AdminBackButton } from '../components/admin';
-import { getApiErrorMessage } from '@/utils/api-error';
 import { Toggle } from '../components/admin/Toggle';
 import { PageSkeleton, Skeleton, SkeletonGroup } from '@/components/ui/skeleton';
 import {
@@ -50,20 +49,6 @@ const SETTING_I18N_MAP: Record<ChannelSettingKey, { label: string; desc: string 
   },
 };
 
-/**
- * Бот принимает ссылку только как https://t.me/... или @username и на «t.me/xxx»
- * отвечает ошибкой валидации. Админы вводят ссылку как копируют из Telegram, без
- * схемы, поэтому недостающую часть добавляем сами.
- */
-function normalizeChannelLink(raw: string): string | undefined {
-  const v = raw.trim();
-  if (!v) return undefined;
-  if (/^https?:\/\//i.test(v) || v.startsWith('@')) return v;
-  if (/^(www\.)?t\.me\//i.test(v)) return `https://${v.replace(/^www\./i, '')}`;
-  if (/^telegram\.me\//i.test(v)) return `https://t.me/${v.slice('telegram.me/'.length)}`;
-  return v;
-}
-
 function GlobalSettingsSection() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -82,9 +67,9 @@ function GlobalSettingsSection() {
       queryClient.invalidateQueries({ queryKey: ['admin-settings', 'CHANNEL'] });
       haptic.impact('light');
     },
-    onError: (err: unknown) => {
+    onError: () => {
       haptic.notification('error');
-      notify.error(getApiErrorMessage(err, t('common.error')));
+      notify.error(t('common.error'));
     },
   });
 
@@ -410,7 +395,7 @@ function AddChannelForm({
     if (!channelId.trim()) return;
     onSubmit({
       channel_id: channelId.trim(),
-      channel_link: normalizeChannelLink(channelLink),
+      channel_link: channelLink.trim() || undefined,
       title: title.trim() || undefined,
     });
   };
@@ -474,7 +459,7 @@ function EditChannelForm({
   const handleSubmit = () => {
     const updates: UpdateChannelRequest = {};
     const newTitle = title.trim() || undefined;
-    const newLink = normalizeChannelLink(channelLink);
+    const newLink = channelLink.trim() || undefined;
     const newSort = parseInt(sortOrder, 10);
 
     if (newTitle !== (channel.title ?? undefined))
@@ -550,9 +535,9 @@ export default function AdminChannelSubscriptions() {
       queryClient.invalidateQueries({ queryKey: ['admin-channels'] });
       haptic.impact('light');
     },
-    onError: (err: unknown) => {
+    onError: () => {
       haptic.notification('error');
-      notify.error(getApiErrorMessage(err, t('common.error')));
+      notify.error(t('common.error'));
     },
   });
 
@@ -562,9 +547,9 @@ export default function AdminChannelSubscriptions() {
       queryClient.invalidateQueries({ queryKey: ['admin-channels'] });
       haptic.impact('medium');
     },
-    onError: (err: unknown) => {
+    onError: () => {
       haptic.notification('error');
-      notify.error(getApiErrorMessage(err, t('common.error')));
+      notify.error(t('common.error'));
     },
   });
 
@@ -575,9 +560,9 @@ export default function AdminChannelSubscriptions() {
       setShowAddForm(false);
       haptic.impact('light');
     },
-    onError: (err: unknown) => {
+    onError: () => {
       haptic.notification('error');
-      notify.error(getApiErrorMessage(err, t('common.error')));
+      notify.error(t('common.error'));
     },
   });
 
@@ -589,9 +574,9 @@ export default function AdminChannelSubscriptions() {
       setEditingChannel(null);
       haptic.impact('light');
     },
-    onError: (err: unknown) => {
+    onError: () => {
       haptic.notification('error');
-      notify.error(getApiErrorMessage(err, t('common.error')));
+      notify.error(t('common.error'));
     },
   });
 
