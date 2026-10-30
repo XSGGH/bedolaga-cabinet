@@ -480,12 +480,12 @@ const StatsBar = memo(function StatsBar({ systemInfo, dashboardStats, loading }:
   }, [systemInfo, dashboardStats, t, isRu]);
 
   return (
-    <div className="grid w-full grid-cols-2 gap-2.5 lg:grid-cols-5 lg:gap-3.5">
+    <div className="grid w-full grid-cols-2 gap-2 lg:grid-cols-5 lg:gap-2.5">
       {stats.map((s, i) => (
         <div
           key={i}
           className={cn(
-            'flex min-w-0 items-center gap-3 rounded-2xl border border-dark-700/40 bg-dark-900/70 p-3.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] sm:gap-3.5 sm:p-4',
+            'flex min-w-0 items-center gap-2.5 rounded-xl border border-accent-500/20 bg-dark-900/70 px-3 py-2.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]',
             'light:border-champagne-300/50 light:bg-champagne-100/60',
             i === 4 && 'col-span-2 lg:col-span-1',
             loading && 'animate-pulse',
@@ -494,25 +494,25 @@ const StatsBar = memo(function StatsBar({ systemInfo, dashboardStats, loading }:
         >
           <div
             className={cn(
-              'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border sm:h-11 sm:w-11',
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border [&>svg]:h-4 [&>svg]:w-4',
               s.colorClass,
             )}
           >
             {s.icon}
           </div>
           <div className="flex min-w-0 flex-col gap-0.5">
-            <span className="truncate text-[11px] font-bold uppercase tracking-wider text-dark-400 light:text-champagne-600">
+            <span className="truncate text-[10px] font-bold uppercase tracking-wider text-dark-400 light:text-champagne-600">
               {s.label}
               {s.delta && ` · ${t('admin.panel.statsToday')}`}
             </span>
-            <span className="flex items-center gap-2 text-xl font-extrabold tracking-tight text-dark-50 light:text-champagne-900 sm:text-2xl">
+            <span className="flex items-center gap-2 text-base font-extrabold tracking-tight text-dark-50 light:text-champagne-900 sm:text-lg">
               {'numericValue' in s && s.numericValue !== undefined ? (
                 <AnimatedStat value={s.numericValue} />
               ) : (
                 <span className="truncate">{s.value}</span>
               )}
               {s.delta && (
-                <span className="shrink-0 rounded-full border border-success-400/25 bg-success-400/10 px-2 py-0.5 text-xs font-bold text-success-400">
+                <span className="shrink-0 rounded-full border border-success-400/25 bg-success-400/10 px-1.5 py-px text-[11px] font-bold text-success-400">
                   {s.delta}
                 </span>
               )}
@@ -539,13 +539,13 @@ interface AttentionItem {
 function AttentionStrip({ items }: { items: AttentionItem[] }) {
   if (items.length === 0) return null;
   return (
-    <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 lg:gap-3.5">
+    <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:gap-2.5">
       {items.map((it) => (
         <Link
           key={it.key}
           to={it.to}
           className={cn(
-            'group flex min-w-0 items-center gap-3.5 rounded-2xl border p-3.5 transition-colors sm:p-4',
+            'group flex min-w-0 items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors',
             it.tone === 'accent'
               ? 'border-accent-500/30 bg-gradient-to-r from-accent-500/15 to-transparent hover:border-accent-400/50'
               : 'border-error-300/30 bg-gradient-to-r from-error-300/15 to-transparent hover:border-error-300/50',
@@ -553,7 +553,7 @@ function AttentionStrip({ items }: { items: AttentionItem[] }) {
         >
           <div
             className={cn(
-              'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl [&>svg]:h-5 [&>svg]:w-5',
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg [&>svg]:h-4 [&>svg]:w-4',
               it.tone === 'accent'
                 ? 'bg-accent-500/20 text-accent-300'
                 : 'bg-error-300/20 text-error-300',
@@ -562,7 +562,7 @@ function AttentionStrip({ items }: { items: AttentionItem[] }) {
             {it.icon}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[15px] font-bold text-dark-50 light:text-champagne-900">
+            <div className="truncate text-sm font-bold text-dark-50 light:text-champagne-900">
               {it.title}
             </div>
             <div className="truncate text-xs text-dark-400 light:text-champagne-600">
@@ -571,7 +571,7 @@ function AttentionStrip({ items }: { items: AttentionItem[] }) {
           </div>
           <span
             className={cn(
-              'shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-on-accent',
+              'shrink-0 rounded-lg px-2.5 py-1 text-xs font-bold text-on-accent',
               it.tone === 'accent' ? 'bg-accent-500' : 'bg-error-400',
             )}
           >
@@ -593,6 +593,17 @@ interface GlassCardProps {
 }
 
 const COLLAPSED_LIMIT = 6;
+
+// Цвет и иконка каждой группы, как в макете: у разделов свой оттенок,
+// а не один цвет темы на всех.
+const GROUP_STYLE: Record<string, { icon: IconName; c1: string; c2: string }> = {
+  analytics: { icon: 'bar-chart', c1: '#7c8cff', c2: '#5a6cf0' },
+  users: { icon: 'users', c1: '#d68bff', c2: '#a35cff' },
+  tariffs: { icon: 'tag', c1: '#ffb86b', c2: '#f59f3a' },
+  marketing: { icon: 'megaphone', c1: '#ff8fc2', c2: '#ec4899' },
+  system: { icon: 'settings', c1: '#5fd6c4', c2: '#22b8a6' },
+  security: { icon: 'shield', c1: '#ff7b7b', c2: '#ef4444' },
+};
 
 const GlassCard = memo(function GlassCard({ section, index, searchTerm, badges }: GlassCardProps) {
   const { t } = useTranslation();
@@ -631,55 +642,57 @@ const GlassCard = memo(function GlassCard({ section, index, searchTerm, badges }
   if (visibleItems.length === 0) return null;
 
   // При поиске показываем всё найденное, без сворачивания.
+  const gs = GROUP_STYLE[section.id] ?? GROUP_STYLE.users;
+  const groupGradient = `linear-gradient(135deg, ${gs.c1}, ${gs.c2})`;
   const collapsible = !searchTerm && visibleItems.length > COLLAPSED_LIMIT + 1;
   const shown = collapsible && !expanded ? visibleItems.slice(0, COLLAPSED_LIMIT) : visibleItems;
   const hiddenCount = visibleItems.length - shown.length;
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-dark-700/40 bg-dark-900/70 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-colors duration-200 hover:border-dark-600/80 light:border-champagne-300/50 light:bg-champagne-100/40 light:hover:border-champagne-400/60">
+    <section className="relative flex flex-col overflow-hidden rounded-2xl border border-accent-500/20 bg-dark-900/70 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-colors duration-200 hover:border-dark-600/80 light:border-champagne-300/50 light:bg-champagne-100/40 light:hover:border-champagne-400/60">
       <div
         aria-hidden="true"
         className="absolute inset-x-8 top-0 h-[3px] rounded-b-full opacity-90"
-        style={{ background: section.gradient }}
+        style={{ background: groupGradient }}
       />
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pb-2 pt-5">
+      <div className="flex items-center gap-3 px-3.5 pb-2 pt-4">
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base font-extrabold text-dark-50 shadow-lg"
-          style={{ background: section.gradient }}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-lg [&>svg]:h-[18px] [&>svg]:w-[18px]"
+          style={{ background: groupGradient, boxShadow: `0 8px 18px -8px ${gs.c2}` }}
         >
-          <span aria-hidden="true">{visibleItems.length}</span>
+          {icons[gs.icon]}
         </div>
-        <h2 className="min-w-0 flex-1 truncate text-[17px] font-extrabold tracking-tight text-dark-50 light:text-champagne-900">
+        <h2 className="min-w-0 flex-1 truncate text-base font-extrabold tracking-tight text-dark-50 light:text-champagne-900">
           {t(section.titleKey)}
         </h2>
+        <span className="shrink-0 rounded-full border border-accent-500/20 bg-dark-950/60 px-2 py-0.5 text-xs font-bold text-dark-300">
+          {visibleItems.length}
+        </span>
       </div>
 
       {/* Items */}
-      <div className="flex flex-col gap-0.5 px-2.5 pb-2.5">
+      <div className="flex flex-1 flex-col gap-px px-2 pb-2">
         {shown.map((item) => {
           const badge = badges[item.to];
           return (
             <Link
               key={item.to}
               to={item.to}
-              className="group/item flex min-h-[48px] items-center gap-3 rounded-xl border border-transparent px-2.5 py-2 transition-colors duration-150 hover:border-dark-600/50 hover:bg-dark-700/30 light:hover:border-champagne-400/40 light:hover:bg-champagne-200/50"
+              className="group/item flex min-h-[42px] items-center gap-3 rounded-xl border border-transparent px-2 py-1.5 transition-colors duration-150 hover:border-dark-600/50 hover:bg-dark-700/30 light:hover:border-champagne-400/40 light:hover:bg-champagne-200/50"
             >
-              <div
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-dark-700/50 bg-dark-800/60 transition-transform duration-150 group-hover/item:scale-105 light:border-champagne-400/30 light:bg-champagne-200/50 [&>svg]:h-[17px] [&>svg]:w-[17px]"
-                style={{ color: section.accent }}
-              >
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-accent-500/20 bg-accent-500/10 text-accent-300 light:border-champagne-400/30 light:bg-champagne-200/50 light:text-champagne-700 [&>svg]:h-4 [&>svg]:w-4">
                 {icons[item.icon]}
               </div>
               <span className="flex-1 truncate text-sm font-semibold text-dark-100 transition-colors group-hover/item:text-dark-50 light:text-champagne-800 light:group-hover/item:text-champagne-950">
                 {highlightMatch(t(item.name))}
               </span>
               {badge !== undefined && badge > 0 && (
-                <span className="flex h-[22px] min-w-[22px] shrink-0 items-center justify-center rounded-full bg-accent-500 px-1.5 text-xs font-extrabold text-on-accent">
+                <span className="flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-accent-500 px-1.5 text-[11px] font-extrabold text-on-accent">
                   {badge}
                 </span>
               )}
-              <div className="h-4 w-4 shrink-0 text-dark-600 transition-all duration-150 group-hover/item:translate-x-0.5 group-hover/item:text-dark-300 [&>svg]:h-4 [&>svg]:w-4">
+              <div className="h-3.5 w-3.5 shrink-0 text-dark-600 transition-all duration-150 group-hover/item:translate-x-0.5 group-hover/item:text-dark-300 [&>svg]:h-3.5 [&>svg]:w-3.5">
                 {icons.chevron}
               </div>
             </Link>
@@ -692,7 +705,7 @@ const GlassCard = memo(function GlassCard({ section, index, searchTerm, badges }
           type="button"
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
-          className="flex h-11 w-full items-center justify-center border-t border-dark-700/50 text-[13px] font-bold text-dark-300 transition-colors hover:bg-dark-700/20 hover:text-dark-100 light:border-champagne-300/50 light:text-champagne-700"
+          className="flex h-9 w-full items-center justify-center border-t border-dark-700/50 text-xs font-semibold text-dark-300 transition-colors hover:bg-dark-700/20 hover:text-dark-100 light:border-champagne-300/50 light:text-champagne-700"
         >
           {expanded ? t('admin.panel.showLess') : t('admin.panel.showMore', { count: hiddenCount })}
         </button>
@@ -827,7 +840,7 @@ export default function AdminPanel() {
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       <div
-        className="relative z-10 mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-4 px-0 sm:px-2"
+        className="relative z-10 mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-3 px-0 sm:px-2"
         style={{
           paddingTop: safeTop > 0 ? `${safeTop}px` : 'env(safe-area-inset-top, 0px)',
           paddingBottom: safeBottom > 0 ? `${safeBottom}px` : 'env(safe-area-inset-bottom, 0px)',
@@ -835,10 +848,10 @@ export default function AdminPanel() {
       >
         {/* Hero + Search */}
         <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3">
-          <h1 className="text-2xl font-extrabold tracking-tight text-dark-50 light:text-champagne-900 sm:text-3xl">
+          <h1 className="text-xl font-bold tracking-tight text-dark-50 light:text-champagne-900 sm:text-2xl">
             {t('admin.panel.title')}
           </h1>
-          <div className="flex items-center gap-2 rounded-full border border-success-400/30 bg-success-400/10 px-3 py-1 text-xs font-bold text-success-400">
+          <div className="flex items-center gap-2 rounded-full border border-success-400/30 bg-success-400/10 px-2.5 py-0.5 text-[11px] font-bold text-success-400">
             <span
               aria-hidden="true"
               className="h-2 w-2 rounded-full bg-success-400"
@@ -857,7 +870,7 @@ export default function AdminPanel() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('admin.panel.searchPlaceholder')}
               aria-label={t('admin.panel.searchPlaceholder')}
-              className="h-11 w-full rounded-2xl border border-dark-700/40 bg-dark-900/70 pl-10 pr-20 font-sans text-sm text-dark-100 outline-none transition-all placeholder:text-dark-500 focus:border-accent-500/50 focus:shadow-[0_0_0_3px_rgba(var(--color-accent-500),0.12)] light:border-champagne-300/50 light:bg-champagne-100/60 light:text-champagne-900 light:placeholder:text-champagne-500"
+              className="h-9 w-full rounded-xl border border-accent-500/20 bg-dark-900/70 pl-9 pr-20 font-sans text-xs text-dark-100 outline-none transition-all placeholder:text-dark-500 focus:border-accent-500/50 focus:shadow-[0_0_0_3px_rgba(var(--color-accent-500),0.12)] light:border-champagne-300/50 light:bg-champagne-100/60 light:text-champagne-900 light:placeholder:text-champagne-500"
             />
             {search && (
               <button
@@ -886,7 +899,7 @@ export default function AdminPanel() {
         {/* Grid */}
         <div className="pb-4">
           {visibleSectionIds === null || visibleSectionIds.size > 0 ? (
-            <div className="columns-1 gap-4 md:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+            <div className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
               {sections
                 .filter((s) => !visibleSectionIds || visibleSectionIds.has(s.id))
                 .map((section, i) => (
