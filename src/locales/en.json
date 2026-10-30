@@ -397,10 +397,13 @@
       "freeDesc": "Try our VPN for free, no commitment required",
       "paidDesc": "Get started with a trial subscription",
       "badge": "Free",
-      "benefitNoCard": "No card, no commitment",
-      "whitelistLabel": "for whitelist networks",
-      "unlimitedLabel": "Unlimited for everything else",
-      "unlimitedDevices": "Unlimited devices"
+      "unlimitedDevices": "Unlimited devices",
+      "whitelistTitle": "Whitelist networks",
+      "whitelistHint": "Traffic allowance",
+      "unlimitedTitle": "Everything else",
+      "unlimitedHint": "Wi-Fi and all other traffic",
+      "unlimitedValue": "unlimited",
+      "metaNoCard": "no card"
     },
     "stats": {
       "balance": "Balance",

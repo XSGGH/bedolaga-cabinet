@@ -31,7 +31,7 @@ export default function TrialOfferCard({
 
   return (
     <div
-      className="relative overflow-hidden rounded-3xl text-center"
+      className="relative overflow-hidden rounded-3xl text-left"
       style={{
         background: isFree
           ? `radial-gradient(120% 70% at 50% 0%, rgba(var(--color-accent-500), 0.22), transparent 62%), linear-gradient(180deg, rgba(var(--color-accent-500), 0.07), transparent 55%), ${g.cardBg}`
@@ -48,12 +48,12 @@ export default function TrialOfferCard({
           : isFree
             ? '0 2px 16px rgba(var(--color-accent-400), 0.12), 0 0 0 1px rgba(var(--color-accent-400), 0.06)'
             : '0 2px 16px rgba(255,184,0,0.12), 0 0 0 1px rgba(255,184,0,0.06)',
-        padding: '28px 24px 24px',
+        padding: '24px 20px 20px',
       }}
     >
       {isFree && (
-        <span className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-accent-400/30 bg-accent-500/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-accent-300">
-          <GiftIcon className="h-3.5 w-3.5" />
+        <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-accent-400/30 bg-accent-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-accent-300">
+          <GiftIcon className="h-3 w-3" />
           {t('dashboard.trialOffer.badge')}
         </span>
       )}
@@ -61,7 +61,7 @@ export default function TrialOfferCard({
       {/* Icon (платный триал) */}
       {!isFree && (
         <div
-          className="relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
+          className="relative mb-4 flex h-12 w-12 items-center justify-center rounded-2xl"
           style={{
             background: 'rgba(255,184,0,0.12)',
             border: '1px solid rgba(255,184,0,0.25)',
@@ -78,10 +78,10 @@ export default function TrialOfferCard({
       )}
 
       {/* Title */}
-      <h2 className="mb-1.5 text-[22px] font-bold tracking-tight text-dark-50">
+      <h2 className="mb-1.5 text-[24px] font-extrabold leading-tight tracking-tight text-dark-50">
         {isFree ? t('dashboard.trialOffer.freeTitle') : t('dashboard.trialOffer.paidTitle')}
       </h2>
-      <p className="mb-5 text-sm text-dark-400">
+      <p className="mb-5 text-[13px] leading-snug text-dark-400">
         {isFree ? t('dashboard.trialOffer.freeDesc') : t('dashboard.trialOffer.paidDesc')}
       </p>
 
@@ -112,48 +112,45 @@ export default function TrialOfferCard({
       {/* Что входит: лимит на белые списки и безлимит на остальное */}
       {(() => {
         const limited = trialInfo.traffic_limit_gb > 0;
-        const tiles = [
+        const rows = [
           limited && {
             key: 'limit',
-            icon: <RadarIcon className="h-5 w-5" />,
+            icon: <RadarIcon className="h-[18px] w-[18px]" />,
+            title: t('dashboard.trialOffer.whitelistTitle'),
+            hint: t('dashboard.trialOffer.whitelistHint'),
             value: String(trialInfo.traffic_limit_gb),
             unit: t('common.units.gb'),
-            label: t('dashboard.trialOffer.whitelistLabel'),
           },
           {
             key: 'unlimited',
-            icon: <GlobeIcon className="h-5 w-5" />,
+            icon: <GlobeIcon className="h-[18px] w-[18px]" />,
+            title: t('dashboard.trialOffer.unlimitedTitle'),
+            hint: t('dashboard.trialOffer.unlimitedHint'),
             value: '∞',
-            unit: '',
-            label: t('dashboard.trialOffer.unlimitedLabel'),
+            unit: t('dashboard.trialOffer.unlimitedValue'),
           },
         ].filter(Boolean) as {
           key: string;
           icon: React.ReactNode;
+          title: string;
+          hint: string;
           value: string;
           unit: string;
-          label: string;
         }[];
         return (
-          <div className={`mb-4 grid gap-3 ${tiles.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            {tiles.map((tile) => (
-              <div
-                key={tile.key}
-                className="rounded-2xl border border-accent-500/20 bg-black/15 px-3 py-4"
-              >
-                <div className="mx-auto mb-2.5 flex h-9 w-9 items-center justify-center rounded-xl border border-accent-400/25 bg-accent-500/15 text-accent-300">
-                  {tile.icon}
+          <div className="mb-3 divide-y divide-accent-500/15 overflow-hidden rounded-2xl border border-accent-500/20 bg-black/15">
+            {rows.map((row) => (
+              <div key={row.key} className="flex items-center gap-3 px-3.5 py-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-400/25 bg-accent-500/15 text-accent-300">
+                  {row.icon}
                 </div>
-                <div className="flex items-baseline justify-center gap-1 text-dark-50">
-                  <span className="text-4xl font-extrabold leading-none tracking-tight">
-                    {tile.value}
-                  </span>
-                  {tile.unit && (
-                    <span className="text-base font-bold text-dark-300">{tile.unit}</span>
-                  )}
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-dark-50">{row.title}</div>
+                  <div className="text-xs text-dark-400">{row.hint}</div>
                 </div>
-                <div className="mt-2 text-xs font-medium leading-snug text-dark-400">
-                  {tile.label}
+                <div className="shrink-0 text-right leading-none text-dark-50">
+                  <span className="text-[26px] font-extrabold tracking-tight">{row.value}</span>
+                  <span className="ml-1 text-xs font-semibold text-dark-300">{row.unit}</span>
                 </div>
               </div>
             ))}
@@ -162,22 +159,15 @@ export default function TrialOfferCard({
       })()}
 
       {/* Срок, устройства, условия */}
-      <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
+      <p className="mb-5 text-center text-xs text-dark-400">
         {[
           t('subscription.trial.days', { count: trialInfo.duration_days }),
           trialInfo.device_limit === 0
             ? t('dashboard.trialOffer.unlimitedDevices')
             : t('subscription.trial.devices', { count: trialInfo.device_limit }),
-          t('dashboard.trialOffer.benefitNoCard'),
-        ].map((chip) => (
-          <span
-            key={chip}
-            className="rounded-full border border-accent-500/20 bg-accent-500/10 px-3 py-1 text-xs font-semibold text-dark-200"
-          >
-            {chip}
-          </span>
-        ))}
-      </div>
+          t('dashboard.trialOffer.metaNoCard'),
+        ].join('  ·  ')}
+      </p>
 
       {/* Balance info for paid trial */}
       {!isFree && trialInfo.price_rubles > 0 && (

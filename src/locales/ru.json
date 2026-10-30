@@ -405,10 +405,13 @@
       "freeDesc": "Попробуйте наш VPN бесплатно: без обязательств",
       "paidDesc": "Начните с пробной подписки",
       "badge": "Бесплатно",
-      "benefitNoCard": "Без привязки карты и обязательств",
-      "whitelistLabel": "на белые списки",
-      "unlimitedLabel": "Безлимит на всё остальное",
-      "unlimitedDevices": "Без лимита устройств"
+      "unlimitedDevices": "Без лимита устройств",
+      "whitelistTitle": "Белые списки",
+      "whitelistHint": "Лимит трафика",
+      "unlimitedTitle": "Остальной трафик",
+      "unlimitedHint": "Wi-Fi и всё остальное",
+      "unlimitedValue": "безлимит",
+      "metaNoCard": "без карты"
     },
     "stats": {
       "balance": "Баланс",
