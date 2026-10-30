@@ -595,14 +595,6 @@ export default function Subscription() {
                             <ClockIcon className="h-3 w-3" />
                             {t('subscription.trialInfo.title')}
                           </span>
-                          <span className="text-xs font-bold text-dark-200">
-                            {t('subscription.trialInfo.remaining')}{' '}
-                            <span className="font-extrabold text-accent-300">
-                              {subscription.days_left > 0
-                                ? t('subscription.days', { count: subscription.days_left })
-                                : `${subscription.hours_left}${t('subscription.hours')} ${subscription.minutes_left}${t('subscription.minutes')}`}
-                            </span>
-                          </span>
                         </div>
                         <p className="mb-3.5 mt-2 text-[13px] leading-snug text-dark-400">
                           {t('subscription.trialInfo.description')}
@@ -618,13 +610,6 @@ export default function Subscription() {
                             })}
                           </p>
                         )}
-                        <div className="mt-3 text-center text-xs font-semibold text-dark-300">
-                          {/* Слово по числу: было «1 Устройства». Безлимит — «∞ устройств». */}
-                          {subscription.device_limit === 0 ? '∞' : subscription.device_limit}{' '}
-                          {t('subscription.devicesWord', {
-                            count: subscription.device_limit === 0 ? 5 : subscription.device_limit,
-                          })}
-                        </div>
                       </div>
                     )}
 

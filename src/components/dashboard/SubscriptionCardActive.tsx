@@ -19,7 +19,6 @@ import {
   CogIcon,
   MonitorIcon,
   RefreshIcon,
-  SparklesIcon,
 } from '@/components/icons';
 import type { Subscription } from '../../types';
 
@@ -77,8 +76,12 @@ export default function SubscriptionCardActive({
     <div
       className="relative overflow-hidden"
       style={{
-        background: g.cardBg,
-        border: `1px solid ${g.cardBorder}`,
+        background: subscription.is_trial
+          ? `radial-gradient(110% 55% at 50% 0%, rgba(var(--color-accent-500), 0.2), transparent 62%), linear-gradient(180deg, rgba(var(--color-accent-500), 0.06), transparent 50%), ${g.cardBg}`
+          : g.cardBg,
+        border: subscription.is_trial
+          ? '1px solid rgba(var(--color-accent-400), 0.3)'
+          : `1px solid ${g.cardBorder}`,
         borderRadius: 'var(--bento-radius-lg)',
         boxShadow: g.shadow,
       }}
@@ -101,17 +104,11 @@ export default function SubscriptionCardActive({
             to={`/subscriptions/${subscription.id}`}
             className="min-w-0 flex-1 transition-opacity hover:opacity-90 lg:pr-8"
           >
-            <div className="xsg-eyebrow mb-2 flex items-center gap-2">
-              {t('dashboard.tariff')}
-              {subscription.is_trial && (
-                <span className="inline-flex items-center gap-1 rounded-md border border-accent-400/30 bg-accent-400/10 px-1.5 py-0.5 text-[9px] font-bold tracking-widest text-accent-400">
-                  <SparklesIcon className="h-2.5 w-2.5" />
-                  {t('subscription.trialStatus')}
-                </span>
-              )}
-            </div>
-            <div className="line-clamp-2 min-w-0 break-words text-2xl font-bold leading-tight tracking-tight text-dark-50 sm:text-[30px]">
-              {subscription.tariff_name || t('subscription.currentPlan')}
+            <div className="xsg-eyebrow mb-2 flex items-center gap-2">{t('dashboard.tariff')}</div>
+            <div className="line-clamp-2 min-w-0 break-words text-2xl font-extrabold leading-tight tracking-tight text-dark-50 sm:text-[30px]">
+              {subscription.is_trial
+                ? t('subscription.trialStatus')
+                : subscription.tariff_name || t('subscription.currentPlan')}
             </div>
             <div className="mt-1.5 text-[13px] text-dark-400">
               {t('dashboard.validUntil', { date: formattedDate })}
