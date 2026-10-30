@@ -404,13 +404,14 @@ const sections: AdminSection[] = [
 
 // ─── Helpers ───
 
-function formatUptime(seconds: number): string {
+function formatUptime(seconds: number, ru = false): string {
+  const [dl, hl, ml] = ru ? ['д', 'ч', 'м'] : ['d', 'h', 'm'];
   const d = Math.floor(seconds / 86400);
   const h = Math.floor((seconds % 86400) / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  if (d > 0) return `${d}d ${h}h ${m}m`;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
+  if (d > 0) return `${d}${dl} ${h}${hl} ${m}${ml}`;
+  if (h > 0) return `${h}${hl} ${m}${ml}`;
+  return `${m}${ml}`;
 }
 
 // ─── Animated Stat Number ───
@@ -434,7 +435,8 @@ interface StatsBarProps {
 }
 
 const StatsBar = memo(function StatsBar({ systemInfo, dashboardStats, loading }: StatsBarProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRu = i18n.language?.startsWith('ru') ?? false;
 
   const stats = useMemo(() => {
     const uptime = systemInfo?.uptime_seconds ?? 0;
@@ -446,7 +448,7 @@ const StatsBar = memo(function StatsBar({ systemInfo, dashboardStats, loading }:
       {
         icon: <StatUptimeIcon className="h-5 w-5" />,
         label: t('admin.panel.statsUptime'),
-        value: uptime > 0 ? formatUptime(uptime) : '--',
+        value: uptime > 0 ? formatUptime(uptime, isRu) : '--',
         colorClass: 'text-success-400 bg-success-400/10 border-success-400/25',
       },
       {
@@ -475,7 +477,7 @@ const StatsBar = memo(function StatsBar({ systemInfo, dashboardStats, loading }:
         colorClass: 'text-error-300 bg-error-300/10 border-error-300/25',
       },
     ];
-  }, [systemInfo, dashboardStats, t]);
+  }, [systemInfo, dashboardStats, t, isRu]);
 
   return (
     <div className="grid w-full grid-cols-2 gap-2.5 lg:grid-cols-5 lg:gap-3.5">
@@ -483,7 +485,7 @@ const StatsBar = memo(function StatsBar({ systemInfo, dashboardStats, loading }:
         <div
           key={i}
           className={cn(
-            'flex min-w-0 items-center gap-3 rounded-2xl border border-dark-700/60 bg-dark-900/70 p-3.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] sm:gap-3.5 sm:p-4',
+            'flex min-w-0 items-center gap-3 rounded-2xl border border-dark-700/40 bg-dark-900/70 p-3.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] sm:gap-3.5 sm:p-4',
             'light:border-champagne-300/50 light:bg-champagne-100/60',
             i === 4 && 'col-span-2 lg:col-span-1',
             loading && 'animate-pulse',
@@ -634,10 +636,10 @@ const GlassCard = memo(function GlassCard({ section, index, searchTerm, badges }
   const hiddenCount = visibleItems.length - shown.length;
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-dark-700/60 bg-dark-900/70 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-colors duration-200 hover:border-dark-600/80 light:border-champagne-300/50 light:bg-champagne-100/40 light:hover:border-champagne-400/60">
+    <section className="relative overflow-hidden rounded-3xl border border-dark-700/40 bg-dark-900/70 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-colors duration-200 hover:border-dark-600/80 light:border-champagne-300/50 light:bg-champagne-100/40 light:hover:border-champagne-400/60">
       <div
         aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-[3px] opacity-90"
+        className="absolute inset-x-8 top-0 h-[3px] rounded-b-full opacity-90"
         style={{ background: section.gradient }}
       />
       {/* Header */}
@@ -855,7 +857,7 @@ export default function AdminPanel() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('admin.panel.searchPlaceholder')}
               aria-label={t('admin.panel.searchPlaceholder')}
-              className="h-11 w-full rounded-2xl border border-dark-700/60 bg-dark-900/70 pl-10 pr-20 font-sans text-sm text-dark-100 outline-none transition-all placeholder:text-dark-500 focus:border-accent-500/50 focus:shadow-[0_0_0_3px_rgba(var(--color-accent-500),0.12)] light:border-champagne-300/50 light:bg-champagne-100/60 light:text-champagne-900 light:placeholder:text-champagne-500"
+              className="h-11 w-full rounded-2xl border border-dark-700/40 bg-dark-900/70 pl-10 pr-20 font-sans text-sm text-dark-100 outline-none transition-all placeholder:text-dark-500 focus:border-accent-500/50 focus:shadow-[0_0_0_3px_rgba(var(--color-accent-500),0.12)] light:border-champagne-300/50 light:bg-champagne-100/60 light:text-champagne-900 light:placeholder:text-champagne-500"
             />
             {search && (
               <button
@@ -868,7 +870,7 @@ export default function AdminPanel() {
             )}
             <kbd
               aria-hidden="true"
-              className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-dark-700/60 bg-dark-800/60 px-1.5 py-0.5 font-mono text-2xs text-dark-400 sm:block"
+              className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-dark-700/40 bg-dark-800/60 px-1.5 py-0.5 font-mono text-2xs text-dark-400 sm:block"
             >
               {IS_MAC ? '⌘' : 'Ctrl+'}K
             </kbd>
@@ -884,7 +886,7 @@ export default function AdminPanel() {
         {/* Grid */}
         <div className="pb-4">
           {visibleSectionIds === null || visibleSectionIds.size > 0 ? (
-            <div className="grid grid-cols-1 items-start gap-3.5 md:grid-cols-2 xl:grid-cols-3 xl:gap-4">
+            <div className="columns-1 gap-4 md:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
               {sections
                 .filter((s) => !visibleSectionIds || visibleSectionIds.has(s.id))
                 .map((section, i) => (
