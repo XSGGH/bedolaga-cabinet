@@ -11,6 +11,7 @@ import {
 } from '../api/adminChannels';
 import { adminSettingsApi, type SettingDefinition } from '../api/adminSettings';
 import { AdminBackButton } from '../components/admin';
+import { getApiErrorMessage } from '@/utils/api-error';
 import { Toggle } from '../components/admin/Toggle';
 import { PageSkeleton, Skeleton, SkeletonGroup } from '@/components/ui/skeleton';
 import {
@@ -67,9 +68,9 @@ function GlobalSettingsSection() {
       queryClient.invalidateQueries({ queryKey: ['admin-settings', 'CHANNEL'] });
       haptic.impact('light');
     },
-    onError: () => {
+    onError: (err: unknown) => {
       haptic.notification('error');
-      notify.error(t('common.error'));
+      notify.error(getApiErrorMessage(err, t('common.error')));
     },
   });
 
@@ -535,9 +536,9 @@ export default function AdminChannelSubscriptions() {
       queryClient.invalidateQueries({ queryKey: ['admin-channels'] });
       haptic.impact('light');
     },
-    onError: () => {
+    onError: (err: unknown) => {
       haptic.notification('error');
-      notify.error(t('common.error'));
+      notify.error(getApiErrorMessage(err, t('common.error')));
     },
   });
 
@@ -547,9 +548,9 @@ export default function AdminChannelSubscriptions() {
       queryClient.invalidateQueries({ queryKey: ['admin-channels'] });
       haptic.impact('medium');
     },
-    onError: () => {
+    onError: (err: unknown) => {
       haptic.notification('error');
-      notify.error(t('common.error'));
+      notify.error(getApiErrorMessage(err, t('common.error')));
     },
   });
 
@@ -560,9 +561,9 @@ export default function AdminChannelSubscriptions() {
       setShowAddForm(false);
       haptic.impact('light');
     },
-    onError: () => {
+    onError: (err: unknown) => {
       haptic.notification('error');
-      notify.error(t('common.error'));
+      notify.error(getApiErrorMessage(err, t('common.error')));
     },
   });
 
@@ -574,9 +575,9 @@ export default function AdminChannelSubscriptions() {
       setEditingChannel(null);
       haptic.impact('light');
     },
-    onError: () => {
+    onError: (err: unknown) => {
       haptic.notification('error');
-      notify.error(t('common.error'));
+      notify.error(getApiErrorMessage(err, t('common.error')));
     },
   });
 
