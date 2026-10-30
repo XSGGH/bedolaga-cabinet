@@ -1,4 +1,5 @@
 import { uiLocale } from '@/utils/uiLocale';
+import { TrialAllowancePanel } from '@/components/subscription/TrialAllowancePanel';
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +19,7 @@ import PurchaseCTAButton from '../components/subscription/PurchaseCTAButton';
 import ChangeTariffButton from '../components/subscription/ChangeTariffButton';
 import { planTitle, showsAddonOptions } from '../utils/legacySubscription';
 import {
+  ChatIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -582,77 +584,74 @@ export default function Subscription() {
                     {/* ─── Trial Info Banner ─── */}
                     {subscription.is_trial && subscription.is_active && (
                       <div
-                        className="mb-6 rounded-[14px] p-4"
+                        className="mb-6 rounded-[20px] border border-accent-400/25 p-4"
                         style={{
                           background:
-                            'linear-gradient(135deg, rgba(var(--color-accent-400), 0.08), rgba(var(--color-accent-400), 0.03))',
-                          border: '1px solid rgba(var(--color-accent-400), 0.12)',
+                            'radial-gradient(120% 80% at 50% 0%, rgba(var(--color-accent-500), 0.2), transparent 65%), linear-gradient(180deg, rgba(var(--color-accent-500), 0.06), transparent 60%)',
                         }}
                       >
-                        <div className="flex items-start gap-3">
-                          <div
-                            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px]"
-                            style={{ background: 'rgba(var(--color-accent-400), 0.12)' }}
-                          >
-                            <ClockIcon className="h-4 w-4 text-accent-400" />
+                        <div className="mb-1.5 flex items-center justify-between gap-3">
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-400/30 bg-accent-500/15 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.16em] text-accent-300">
+                            <ClockIcon className="h-3 w-3" />
+                            {t('subscription.trialInfo.title')}
+                          </span>
+                          <span className="text-xs font-bold text-dark-200">
+                            {t('subscription.trialInfo.remaining')}{' '}
+                            <span className="font-extrabold text-accent-300">
+                              {subscription.days_left > 0
+                                ? t('subscription.days', { count: subscription.days_left })
+                                : `${subscription.hours_left}${t('subscription.hours')} ${subscription.minutes_left}${t('subscription.minutes')}`}
+                            </span>
+                          </span>
+                        </div>
+                        <p className="mb-3.5 mt-2 text-[13px] leading-snug text-dark-400">
+                          {t('subscription.trialInfo.description')}
+                        </p>
+                        <TrialAllowancePanel
+                          trafficLimitGb={subscription.traffic_limit_gb}
+                          compact
+                        />
+                        {subscription.traffic_limit_gb > 0 && (
+                          <p className="mt-3 text-center text-[11px] leading-snug text-dark-400">
+                            {t('subscription.trialInfo.trafficNote', {
+                              gb: subscription.traffic_limit_gb,
+                            })}
+                          </p>
+                        )}
+                        <div className="mt-3 text-center text-xs font-semibold text-dark-300">
+                          {/* Слово по числу: было «1 Устройства». Безлимит — «∞ устройств». */}
+                          {subscription.device_limit === 0 ? '∞' : subscription.device_limit}{' '}
+                          {t('subscription.devicesWord', {
+                            count: subscription.device_limit === 0 ? 5 : subscription.device_limit,
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ─── Поддержка для пробного периода: помогаем решить проблему, пока клиент не ушёл ─── */}
+                    {subscription.is_trial && subscription.is_active && (
+                      <div
+                        className="-mt-3 mb-6 flex items-center gap-3 rounded-[18px] border border-accent-500/20 p-3.5"
+                        style={{ background: 'rgba(var(--color-accent-500), 0.06)' }}
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-400/25 bg-accent-500/15 text-accent-300">
+                          <ChatIcon className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-bold text-dark-50">
+                            {t('subscription.trialSupport.title')}
                           </div>
-                          <div className="flex-1">
-                            <div
-                              className="text-sm font-semibold"
-                              style={{ color: 'rgb(var(--color-accent-400))' }}
-                            >
-                              {t('subscription.trialInfo.title')}
-                            </div>
-                            <div className="mt-1 text-[12px] text-dark-400">
-                              {t('subscription.trialInfo.description')}
-                            </div>
-                            <div className="mt-3 flex flex-wrap gap-4">
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  className="font-mono text-[12px] font-semibold"
-                                  style={{ color: 'rgb(var(--color-accent-400))' }}
-                                >
-                                  {subscription.days_left > 0
-                                    ? t('subscription.days', { count: subscription.days_left })
-                                    : `${subscription.hours_left}${t('subscription.hours')} ${subscription.minutes_left}${t('subscription.minutes')}`}
-                                </span>
-                                <span className="text-[11px] text-dark-400">
-                                  {t('subscription.trialInfo.remaining')}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  className="font-mono text-[12px] font-semibold"
-                                  style={{ color: 'rgb(var(--color-accent-400))' }}
-                                >
-                                  {subscription.traffic_limit_gb || '∞'} {t('common.units.gb')}
-                                </span>
-                                <span className="text-[11px] text-dark-400">
-                                  {t('subscription.traffic')}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  className="font-mono text-[12px] font-semibold"
-                                  style={{ color: 'rgb(var(--color-accent-400))' }}
-                                >
-                                  {subscription.device_limit === 0
-                                    ? '∞'
-                                    : subscription.device_limit}
-                                </span>
-                                {/* Слово по числу: было «1 Устройства». Безлимит — «∞ устройств». */}
-                                <span className="text-[11px] text-dark-400">
-                                  {t('subscription.devicesWord', {
-                                    count:
-                                      subscription.device_limit === 0
-                                        ? 5
-                                        : subscription.device_limit,
-                                  })}
-                                </span>
-                              </div>
-                            </div>
+                          <div className="mt-0.5 text-xs leading-snug text-dark-400">
+                            {t('subscription.trialSupport.description')}
                           </div>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => navigate('/support')}
+                          className="shrink-0 rounded-xl border border-accent-400/35 bg-accent-500/20 px-3.5 py-2 text-xs font-bold text-accent-200 transition-colors hover:bg-accent-500/30"
+                        >
+                          {t('subscription.trialSupport.button')}
+                        </button>
                       </div>
                     )}
 

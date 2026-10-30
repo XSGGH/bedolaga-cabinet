@@ -557,7 +557,8 @@
       "title": "Trial Period",
       "description": "You are using a trial version. Choose a plan below for full access.",
       "remaining": "remaining",
-      "upgradeNow": "Choose a plan"
+      "upgradeNow": "Choose a plan",
+      "trafficNote": "{{gb}} GB applies to whitelist networks only. Everything else, Wi-Fi and regular networks, is unlimited."
     },
     "trialUpgrade": {
       "title": "Choose a plan to continue",
@@ -897,6 +898,11 @@
     "trafficScope": {
       "badge": "📡 servers only",
       "note": "Traffic is only spent on servers marked 📡. Other servers don't count towards the limit — they are unlimited."
+    },
+    "trialSupport": {
+      "title": "Something not right, or have feedback?",
+      "description": "Message us and we will help you get everything working.",
+      "button": "Contact us"
     }
   },
   "balance": {
