@@ -287,7 +287,7 @@
     "hero": {
       "welcome": "Welcome to",
       "subtitle": "Subscription, balance, promo codes and the fortune wheel — all in one dashboard. Sign in the way that suits you.",
-      "countries": "🇩🇪 Germany|🇳🇱 Netherlands|🇸🇪 Sweden|🇵🇱 Poland|🇪🇪 Estonia",
+      "countries": "🇩🇪 Germany|🇳🇱 Netherlands|🇸🇪 Sweden|🇵🇱 Poland|🇪🇪 Estonia|🇫🇮 Finland",
       "features": {
         "whitelist": {
           "title": "Works with whitelists",
@@ -305,7 +305,8 @@
           "title": "Perks for our users",
           "text": "Promo codes, the fortune wheel and rewards for inviting friends"
         }
-      }
+      },
+      "whitelistChip": "Whitelist bypass"
     }
   },
   "emailVerification": {

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { PiLightning, PiMonitor } from 'react-icons/pi';
-import { GiftIcon, ShieldIcon } from '@/components/icons';
+import { GiftIcon, RadarIcon, ShieldIcon } from '@/components/icons';
 
 /**
  * Левая половина страницы входа на широких экранах: приветствие, преимущества
@@ -80,6 +80,10 @@ export function LoginHero({ appName }: { appName: string }) {
         {countries.map((country) => (
           <li key={country}>{country}</li>
         ))}
+        <li className="inline-flex items-center gap-1.5 rounded-full border border-accent-400/30 bg-accent-500/15 px-3 py-0.5 font-semibold text-accent-300">
+          <RadarIcon className="h-3.5 w-3.5" />
+          {t('auth.hero.whitelistChip')}
+        </li>
       </ul>
 
       <img
