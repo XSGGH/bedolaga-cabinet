@@ -485,7 +485,7 @@ const StatsBar = memo(function StatsBar({ systemInfo, dashboardStats, loading }:
         <div
           key={i}
           className={cn(
-            'flex min-w-0 items-center gap-2.5 rounded-xl border border-accent-500/20 bg-dark-900/70 px-3 py-2.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]',
+            'flex min-w-0 items-center gap-2 rounded-xl border border-accent-500/20 bg-accent-500/[0.05] px-2.5 py-2 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]',
             'light:border-champagne-300/50 light:bg-champagne-100/60',
             i === 4 && 'col-span-2 lg:col-span-1',
             loading && 'animate-pulse',
@@ -494,7 +494,7 @@ const StatsBar = memo(function StatsBar({ systemInfo, dashboardStats, loading }:
         >
           <div
             className={cn(
-              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border [&>svg]:h-4 [&>svg]:w-4',
+              'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border [&>svg]:h-3.5 [&>svg]:w-3.5',
               s.colorClass,
             )}
           >
@@ -505,7 +505,7 @@ const StatsBar = memo(function StatsBar({ systemInfo, dashboardStats, loading }:
               {s.label}
               {s.delta && ` · ${t('admin.panel.statsToday')}`}
             </span>
-            <span className="flex items-center gap-2 text-base font-extrabold tracking-tight text-dark-50 light:text-champagne-900 sm:text-lg">
+            <span className="flex items-center gap-2 text-sm font-bold tracking-tight text-dark-50 light:text-champagne-900 sm:text-base">
               {'numericValue' in s && s.numericValue !== undefined ? (
                 <AnimatedStat value={s.numericValue} />
               ) : (
@@ -592,8 +592,6 @@ interface GlassCardProps {
   badges: Record<string, number>;
 }
 
-const COLLAPSED_LIMIT = 6;
-
 // Цвет и иконка каждой группы, как в макете: у разделов свой оттенок,
 // а не один цвет темы на всех.
 const GROUP_STYLE: Record<string, { icon: IconName; c1: string; c2: string }> = {
@@ -608,7 +606,6 @@ const GROUP_STYLE: Record<string, { icon: IconName; c1: string; c2: string }> = 
 const GlassCard = memo(function GlassCard({ section, index, searchTerm, badges }: GlassCardProps) {
   const { t } = useTranslation();
   const hasPermission = usePermissionStore((state) => state.hasPermission);
-  const [expanded, setExpanded] = useState(false);
   void index;
 
   const visibleItems = useMemo(
@@ -641,29 +638,26 @@ const GlassCard = memo(function GlassCard({ section, index, searchTerm, badges }
 
   if (visibleItems.length === 0) return null;
 
-  // При поиске показываем всё найденное, без сворачивания.
+  const shown = visibleItems;
   const gs = GROUP_STYLE[section.id] ?? GROUP_STYLE.users;
   const groupGradient = `linear-gradient(135deg, ${gs.c1}, ${gs.c2})`;
-  const collapsible = !searchTerm && visibleItems.length > COLLAPSED_LIMIT + 1;
-  const shown = collapsible && !expanded ? visibleItems.slice(0, COLLAPSED_LIMIT) : visibleItems;
-  const hiddenCount = visibleItems.length - shown.length;
 
   return (
-    <section className="relative flex flex-col overflow-hidden rounded-2xl border border-accent-500/20 bg-dark-900/70 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-colors duration-200 hover:border-dark-600/80 light:border-champagne-300/50 light:bg-champagne-100/40 light:hover:border-champagne-400/60">
+    <section className="relative flex flex-col overflow-hidden rounded-2xl border border-accent-500/20 bg-accent-500/[0.05] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-colors duration-200 hover:border-dark-600/80 light:border-champagne-300/50 light:bg-champagne-100/40 light:hover:border-champagne-400/60">
       <div
         aria-hidden="true"
         className="absolute inset-x-8 top-0 h-[3px] rounded-b-full opacity-90"
         style={{ background: groupGradient }}
       />
       {/* Header */}
-      <div className="flex items-center gap-3 px-3.5 pb-2 pt-4">
+      <div className="flex items-center gap-2.5 px-3 pb-1 pt-3.5">
         <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-lg [&>svg]:h-[18px] [&>svg]:w-[18px]"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white [&>svg]:h-4 [&>svg]:w-4"
           style={{ background: groupGradient, boxShadow: `0 8px 18px -8px ${gs.c2}` }}
         >
           {icons[gs.icon]}
         </div>
-        <h2 className="min-w-0 flex-1 truncate text-base font-extrabold tracking-tight text-dark-50 light:text-champagne-900">
+        <h2 className="min-w-0 flex-1 truncate text-sm font-bold tracking-tight text-dark-50 light:text-champagne-900">
           {t(section.titleKey)}
         </h2>
         <span className="shrink-0 rounded-full border border-accent-500/20 bg-dark-950/60 px-2 py-0.5 text-xs font-bold text-dark-300">
@@ -672,19 +666,19 @@ const GlassCard = memo(function GlassCard({ section, index, searchTerm, badges }
       </div>
 
       {/* Items */}
-      <div className="flex flex-1 flex-col gap-px px-2 pb-2">
+      <div className="flex flex-1 flex-col px-1.5 pb-1.5">
         {shown.map((item) => {
           const badge = badges[item.to];
           return (
             <Link
               key={item.to}
               to={item.to}
-              className="group/item flex min-h-[42px] items-center gap-3 rounded-xl border border-transparent px-2 py-1.5 transition-colors duration-150 hover:border-dark-600/50 hover:bg-dark-700/30 light:hover:border-champagne-400/40 light:hover:bg-champagne-200/50"
+              className="group/item flex min-h-[34px] items-center gap-2.5 rounded-lg border border-transparent px-2 py-1.5 transition-colors duration-150 hover:border-dark-600/50 hover:bg-dark-700/30 light:hover:border-champagne-400/40 light:hover:bg-champagne-200/50"
             >
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-accent-500/20 bg-accent-500/10 text-accent-300 light:border-champagne-400/30 light:bg-champagne-200/50 light:text-champagne-700 [&>svg]:h-4 [&>svg]:w-4">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-accent-500/20 bg-accent-500/10 text-accent-300 light:border-champagne-400/30 light:bg-champagne-200/50 light:text-champagne-700 [&>svg]:h-3.5 [&>svg]:w-3.5">
                 {icons[item.icon]}
               </div>
-              <span className="flex-1 truncate text-sm font-semibold text-dark-100 transition-colors group-hover/item:text-dark-50 light:text-champagne-800 light:group-hover/item:text-champagne-950">
+              <span className="flex-1 truncate text-[13px] font-medium text-dark-100 transition-colors group-hover/item:text-dark-50 light:text-champagne-800 light:group-hover/item:text-champagne-950">
                 {highlightMatch(t(item.name))}
               </span>
               {badge !== undefined && badge > 0 && (
@@ -699,17 +693,6 @@ const GlassCard = memo(function GlassCard({ section, index, searchTerm, badges }
           );
         })}
       </div>
-
-      {collapsible && (
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          aria-expanded={expanded}
-          className="flex h-9 w-full items-center justify-center border-t border-dark-700/50 text-xs font-semibold text-dark-300 transition-colors hover:bg-dark-700/20 hover:text-dark-100 light:border-champagne-300/50 light:text-champagne-700"
-        >
-          {expanded ? t('admin.panel.showLess') : t('admin.panel.showMore', { count: hiddenCount })}
-        </button>
-      )}
     </section>
   );
 });
@@ -848,7 +831,7 @@ export default function AdminPanel() {
       >
         {/* Hero + Search */}
         <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3">
-          <h1 className="text-xl font-bold tracking-tight text-dark-50 light:text-champagne-900 sm:text-2xl">
+          <h1 className="text-lg font-bold tracking-tight text-dark-50 light:text-champagne-900 sm:text-xl">
             {t('admin.panel.title')}
           </h1>
           <div className="flex items-center gap-2 rounded-full border border-success-400/30 bg-success-400/10 px-2.5 py-0.5 text-[11px] font-bold text-success-400">
@@ -870,7 +853,7 @@ export default function AdminPanel() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('admin.panel.searchPlaceholder')}
               aria-label={t('admin.panel.searchPlaceholder')}
-              className="h-9 w-full rounded-xl border border-accent-500/20 bg-dark-900/70 pl-9 pr-20 font-sans text-xs text-dark-100 outline-none transition-all placeholder:text-dark-500 focus:border-accent-500/50 focus:shadow-[0_0_0_3px_rgba(var(--color-accent-500),0.12)] light:border-champagne-300/50 light:bg-champagne-100/60 light:text-champagne-900 light:placeholder:text-champagne-500"
+              className="h-9 w-full rounded-xl border border-accent-500/20 bg-accent-500/[0.05] pl-9 pr-20 font-sans text-xs text-dark-100 outline-none transition-all placeholder:text-dark-500 focus:border-accent-500/50 focus:shadow-[0_0_0_3px_rgba(var(--color-accent-500),0.12)] light:border-champagne-300/50 light:bg-champagne-100/60 light:text-champagne-900 light:placeholder:text-champagne-500"
             />
             {search && (
               <button
