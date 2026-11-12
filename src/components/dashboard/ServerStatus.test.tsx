@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ServerStatus, { fetchStatus } from './ServerStatus';
@@ -63,7 +63,7 @@ describe('ServerStatus integration', () => {
     await expect(fetchStatus()).rejects.toThrow('Invalid status response');
   });
 
-  it('shows district/operator coverage but removes stale green status after a failed refresh', async () => {
+  it('opens coverage on demand, restores focus and removes stale green status after a failed refresh', async () => {
     const fetcher = vi
       .fn()
       .mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sample))));
@@ -74,10 +74,17 @@ describe('ServerStatus integration', () => {
         <ServerStatus />
       </QueryClientProvider>,
     );
-    await screen.findByText('Проверки успешны: 1/1');
+    const coverage = await screen.findByRole('button', { name: /Мобильные сети: 1 из 1/ });
+    expect(screen.getByText('2 округа · 1 оператор')).toBeTruthy();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByRole('table')).toBeNull();
+    fireEvent.click(coverage);
+    expect(screen.getByRole('dialog', { name: 'Мобильные сети' })).toBeTruthy();
     expect(screen.getByText('Без замера: 1')).toBeTruthy();
-    expect(screen.getByText('2 округа: ЦФО · СФО')).toBeTruthy();
     expect(screen.getByRole('cell', { name: /СФО, МТС: Нет модема/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Закрыть' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(coverage));
     fetcher.mockImplementation(() =>
       Promise.resolve(new Response('{"ok":false}', { status: 503 })),
     );

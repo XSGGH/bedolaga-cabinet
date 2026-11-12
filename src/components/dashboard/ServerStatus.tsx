@@ -128,7 +128,8 @@ function hourLabel(hoursAgo: number): string {
 
 /**
  * Блок «Статус серверов» на главной: общий статус, общая нагрузка за сутки и
- * по каждой локации — онлайн/недоступен, аптайм за 30 дней и мини-график.
+ * по каждой локации — онлайн/недоступен и мини-график. Мобильные проверки —
+ * отдельная компактная плитка с деталями по нажатию.
  * Nginx кабинета получает /api/public с серверным ключом и кэширует на 30 секунд.
  * Ошибка обновления не оставляет на экране старую зелёную сводку.
  */
@@ -164,7 +165,7 @@ export default function ServerStatus() {
     );
   }
   if (!data?.ok || !data.servers?.length) return null;
-  const hasMobileCard = data.servers.some((server) => server.mobile);
+  const mobile = data.mobile ?? data.servers.find((server) => server.mobile)?.mobile;
 
   const chip =
     data.status === 'ok'
@@ -176,20 +177,16 @@ export default function ServerStatus() {
   return (
     <section
       aria-label={t('dashboard.serverStatus.title', 'Статус серверов')}
-      className="flex flex-col gap-4 rounded-[20px] border border-[var(--xsg-line)] bg-dark-800 p-4 sm:p-6"
+      className="flex flex-col gap-4 rounded-[20px] border border-[var(--xsg-line)] bg-dark-800 p-4 sm:p-5"
     >
       <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
-          <h2 className="text-base font-extrabold tracking-tight text-dark-50 sm:text-lg">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+          <h2 className="text-[15px] font-bold tracking-tight text-dark-50 sm:text-base">
             {t('dashboard.serverStatus.title', 'Статус серверов')}
           </h2>
           <span
-            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold"
-            style={{
-              color: chip.color,
-              background: 'rgba(255,255,255,0.04)',
-              border: `1px solid ${chip.color}`,
-            }}
+            className="inline-flex items-center gap-1.5 whitespace-nowrap text-[10px] font-medium sm:text-[11px]"
+            style={{ color: chip.color }}
           >
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: chip.color }} />
             {chip.text}
@@ -199,17 +196,19 @@ export default function ServerStatus() {
           href={STATUS_PAGE}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-[13px] font-semibold text-accent-300 transition-colors hover:text-accent-200"
+          className="shrink-0 py-2 text-[11px] font-medium text-accent-300 transition-colors hover:text-accent-200 sm:text-xs"
         >
           {t('dashboard.serverStatus.more', 'Подробнее')} &rsaquo;
         </a>
       </div>
 
-      <div className="grid gap-3 rounded-2xl border border-[var(--xsg-line)] bg-dark-900/60 p-4 sm:grid-cols-[180px_minmax(0,1fr)] sm:items-center sm:gap-6 sm:px-5">
-        <div className="flex items-baseline justify-between sm:block">
-          <div className="xsg-eyebrow">{t('dashboard.serverStatus.load', 'Общая нагрузка')}</div>
-          <div className="sm:mt-1.5">
-            <span className="text-[26px] font-extrabold tabular-nums text-dark-50 sm:text-[30px]">
+      <div className="grid grid-cols-[88px_minmax(0,1fr)] items-center gap-4 py-1 sm:grid-cols-[140px_minmax(0,1fr)] sm:gap-6">
+        <div>
+          <div className="text-[10px] leading-snug text-dark-400 sm:text-xs">
+            {t('dashboard.serverStatus.load', 'Общая нагрузка')}
+          </div>
+          <div className="mt-1">
+            <span className="text-[26px] font-semibold leading-none tabular-nums text-dark-50 sm:text-[28px]">
               {data.load.now}
             </span>
             <span className="ml-0.5 text-sm text-dark-400">%</span>
@@ -219,26 +218,22 @@ export default function ServerStatus() {
           <Spark
             values={data.load.series}
             color="rgb(var(--color-accent-500))"
-            height={60}
+            height={40}
             label={t('dashboard.serverStatus.loadChart', 'График общей нагрузки за 24 часа')}
             area
             id="srv-load-area"
           />
-          <div className="mt-1.5 flex justify-between text-[10.5px] tabular-nums text-dark-500">
+          <div className="mt-1 flex justify-between text-[9px] tabular-nums text-dark-500 sm:text-[10px]">
             <span>{hourLabel(24)}</span>
-            <span>{hourLabel(18)}</span>
-            <span>{hourLabel(12)}</span>
-            <span>{hourLabel(6)}</span>
+            <span className="hidden sm:inline">{hourLabel(18)}</span>
+            <span className="hidden sm:inline">{hourLabel(12)}</span>
+            <span className="hidden sm:inline">{hourLabel(6)}</span>
             <span>{t('dashboard.serverStatus.now', 'сейчас')}</span>
           </div>
         </div>
       </div>
 
-      {!hasMobileCard && data.mobile && (
-        <MobileCoverage mobile={data.mobile} progress={data.mobileNodes} />
-      )}
-
-      <div className="grid gap-0 lg:grid-cols-4 lg:gap-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 sm:gap-2.5">
         {data.servers.map((s) => {
           const color = s.maintenance ? AMBER : s.online ? GREEN : RED;
           const state = s.maintenance
@@ -249,41 +244,34 @@ export default function ServerStatus() {
           return (
             <div
               key={s.name}
-              className={`grid grid-cols-[minmax(0,1fr)_92px] content-start items-center gap-3 border-t border-[var(--xsg-line)] py-2.5 lg:gap-2 lg:rounded-[14px] lg:border lg:bg-dark-900/60 lg:px-3.5 lg:py-3 ${s.mobile ? 'lg:col-span-2 lg:grid-cols-[minmax(0,1fr)_120px]' : 'lg:grid-cols-1'}`}
+              className="flex h-[84px] min-w-0 flex-col justify-between rounded-xl border border-[var(--xsg-line)] bg-dark-900/40 px-3 py-2.5 sm:h-[88px]"
             >
-              <div className="flex min-w-0 flex-col gap-1.5">
-                <span className="flex items-center gap-2">
-                  <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ background: color, boxShadow: `0 0 8px ${color}` }}
-                    title={state}
-                    role="img"
-                    aria-label={state}
-                  />
-                  <b className="truncate text-sm text-dark-50">{s.name}</b>
-                </span>
-              </div>
-              <div>
-                <Spark
-                  values={s.load}
-                  color={s.online ? 'rgb(var(--color-accent-500))' : RED}
-                  height={28}
-                  label={`${t('dashboard.serverStatus.loadOf', 'Нагрузка')}: ${s.name}`}
-                  id={`srv-${s.name}`}
+              <span className="flex min-w-0 items-center gap-1.5">
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{ background: color }}
+                  title={state}
+                  role="img"
+                  aria-label={state}
                 />
-                <div className="mt-0.5 flex justify-between text-[9.5px] tabular-nums text-dark-500">
-                  <span>{hourLabel(24)}</span>
-                  <span>{t('dashboard.serverStatus.now', 'сейчас')}</span>
-                </div>
-              </div>
-              {s.mobile && (
-                <div className="col-span-2">
-                  <MobileCoverage mobile={s.mobile} progress={data.mobileNodes} />
-                </div>
-              )}
+                <span
+                  className="truncate text-xs font-semibold text-dark-100 sm:text-[13px]"
+                  title={s.name}
+                >
+                  {s.mobile ? s.name.replace(/^\[📡\]\s*/, '') : s.name}
+                </span>
+              </span>
+              <Spark
+                values={s.load}
+                color={s.online ? 'rgb(var(--color-accent-500))' : RED}
+                height={26}
+                label={`${t('dashboard.serverStatus.loadOf', 'Нагрузка')}: ${s.name}`}
+                id={`srv-${s.name}`}
+              />
             </div>
           );
         })}
+        {mobile && <MobileCoverage mobile={mobile} progress={data.mobileNodes} />}
       </div>
     </section>
   );
