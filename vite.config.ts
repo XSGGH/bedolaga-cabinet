@@ -38,6 +38,11 @@ export default defineConfig(({ mode }) => {
   // Переменные из .env и из окружения сборки (Docker передаёт их через ENV);
   // окружение сильнее файла — как и у самого Vite.
   const env = { ...loadEnv(mode, import.meta.dirname, 'VITE_'), ...process.env };
+  // Used only by the local dev proxy; never exposed via import.meta.env or define.
+  const uptimeKey =
+    process.env.XSG_UPTIME_API_KEY ||
+    loadEnv(mode, import.meta.dirname, 'XSG_UPTIME_').XSG_UPTIME_API_KEY ||
+    '';
   return {
     plugins: [
       react(),
@@ -61,6 +66,17 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       host: true,
       proxy: {
+        '^/status-api/public$': {
+          target: 'https://uptime.xsgvpn.ru',
+          changeOrigin: true,
+          rewrite: () => '/api/public',
+          configure(proxy) {
+            proxy.on('proxyReq', (proxyReq) => {
+              proxyReq.removeHeader('cookie');
+              proxyReq.setHeader('Authorization', `Bearer ${uptimeKey}`);
+            });
+          },
+        },
         '/api': {
           target: 'http://localhost:8080',
           changeOrigin: true,

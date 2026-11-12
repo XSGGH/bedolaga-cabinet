@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { PhoneIcon } from '@/components/icons';
+import MobileCoverage from './MobileCoverage';
+import type { MobileProgress, MobileStatus } from './mobileCoverageModel';
 
-const STATUS_URL = String(
-  import.meta.env.VITE_STATUS_API_URL || 'https://uptime.xsgvpn.ru/api/public',
-).trim();
-const STATUS_PAGE = STATUS_URL.replace(/\/api\/public$/, '/');
+// Same-origin server proxy. The Uptime API key must never be sent by the browser.
+const STATUS_URL = '/status-api/public';
+const STATUS_PAGE = 'https://uptime.xsgvpn.ru/';
 
 interface PublicServer {
   name: string;
@@ -16,12 +16,7 @@ interface PublicServer {
   load: number[];
   loadNow?: number;
   /** Итог проверки мобильного сервера из сетей операторов РФ (дополняет обычную доступность). */
-  mobile?: {
-    ok: number;
-    total: number;
-    at?: number;
-    ops: { op: string; ok: number; total: number }[];
-  };
+  mobile?: MobileStatus;
 }
 
 interface PublicStatus {
@@ -32,12 +27,22 @@ interface PublicStatus {
   uptime30: number | null;
   load: { now: number; series: number[] };
   servers: PublicServer[];
+  mobile?: MobileStatus;
+  mobileNodes?: MobileProgress;
 }
 
-async function fetchStatus(): Promise<PublicStatus> {
-  const res = await fetch(STATUS_URL, { headers: { Accept: 'application/json' } });
+export async function fetchStatus(signal?: AbortSignal): Promise<PublicStatus> {
+  const res = await fetch(STATUS_URL, {
+    headers: { Accept: 'application/json' },
+    credentials: 'omit',
+    signal,
+  });
   if (!res.ok) throw new Error(`status ${res.status}`);
-  return res.json();
+  const data = await res.json();
+  if (!data?.ok || !Array.isArray(data.servers) || !Array.isArray(data.load?.series)) {
+    throw new Error('Invalid status response');
+  }
+  return data;
 }
 
 /**
@@ -121,43 +126,45 @@ function hourLabel(hoursAgo: number): string {
   return `${String(d.getHours()).padStart(2, '0')}:00`;
 }
 
-function MobileLine({ m, label }: { m: NonNullable<PublicServer['mobile']>; label: string }) {
-  const ratio = m.total > 0 ? m.ok / m.total : 0;
-  const color = ratio >= 0.95 ? GREEN : ratio > 0 ? AMBER : RED;
-  const detail = m.ops.map((o) => `${o.op}: ${o.ok}/${o.total}`).join(' · ');
-  return (
-    <span
-      className="flex items-center gap-1.5 text-[11px] leading-none text-dark-400"
-      title={`${label}\n${detail}`}
-    >
-      <span className="flex shrink-0" style={{ color }}>
-        <PhoneIcon className="h-3 w-3" />
-      </span>
-      <span className="truncate">{label}</span>
-      <span className="tabular-nums" style={{ color }}>
-        {m.ok}/{m.total}
-      </span>
-    </span>
-  );
-}
-
 /**
  * Блок «Статус серверов» на главной: общий статус, общая нагрузка за сутки и
  * по каждой локации — онлайн/недоступен, аптайм за 30 дней и мини-график.
- * Данные приходят с сайта аптайма (публичный /api/public). Нет ответа —
- * блок просто не показывается, главная не страдает.
+ * Nginx кабинета получает /api/public с серверным ключом и кэширует на 30 секунд.
+ * Ошибка обновления не оставляет на экране старую зелёную сводку.
  */
 export default function ServerStatus() {
   const { t } = useTranslation();
-  const { data } = useQuery({
+  const { data, isError } = useQuery({
     queryKey: ['server-status'],
-    queryFn: fetchStatus,
+    queryFn: ({ signal }) => fetchStatus(signal),
     refetchInterval: 60_000,
     staleTime: 30_000,
     retry: false,
   });
 
+  if (isError) {
+    return (
+      <section
+        aria-label="Статус серверов"
+        className="rounded-[20px] border border-[var(--xsg-line)] bg-dark-800 p-4 text-sm text-dark-300 sm:p-6"
+      >
+        <span className="font-semibold text-dark-100">Статус серверов</span>
+        <p className="mt-1 text-xs text-dark-400">
+          Не удалось обновить мониторинг. Попробуем снова через минуту.
+        </p>
+        <a
+          href={STATUS_PAGE}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-block text-xs text-accent-300"
+        >
+          Открыть мониторинг ›
+        </a>
+      </section>
+    );
+  }
   if (!data?.ok || !data.servers?.length) return null;
+  const hasMobileCard = data.servers.some((server) => server.mobile);
 
   const chip =
     data.status === 'ok'
@@ -227,6 +234,10 @@ export default function ServerStatus() {
         </div>
       </div>
 
+      {!hasMobileCard && data.mobile && (
+        <MobileCoverage mobile={data.mobile} progress={data.mobileNodes} />
+      )}
+
       <div className="grid gap-0 lg:grid-cols-4 lg:gap-3 xl:grid-cols-4">
         {data.servers.map((s) => {
           const color = s.maintenance ? AMBER : s.online ? GREEN : RED;
@@ -238,7 +249,7 @@ export default function ServerStatus() {
           return (
             <div
               key={s.name}
-              className="grid grid-cols-[minmax(0,1fr)_92px] items-center gap-3 border-t border-[var(--xsg-line)] py-2.5 lg:grid-cols-1 lg:gap-2 lg:rounded-[14px] lg:border lg:bg-dark-900/60 lg:px-3.5 lg:py-3"
+              className={`grid grid-cols-[minmax(0,1fr)_92px] content-start items-center gap-3 border-t border-[var(--xsg-line)] py-2.5 lg:gap-2 lg:rounded-[14px] lg:border lg:bg-dark-900/60 lg:px-3.5 lg:py-3 ${s.mobile ? 'lg:col-span-2 lg:grid-cols-[minmax(0,1fr)_120px]' : 'lg:grid-cols-1'}`}
             >
               <div className="flex min-w-0 flex-col gap-1.5">
                 <span className="flex items-center gap-2">
@@ -251,12 +262,6 @@ export default function ServerStatus() {
                   />
                   <b className="truncate text-sm text-dark-50">{s.name}</b>
                 </span>
-                {s.mobile && (
-                  <MobileLine
-                    m={s.mobile}
-                    label={t('dashboard.serverStatus.mobile', 'Мобильные операторы')}
-                  />
-                )}
               </div>
               <div>
                 <Spark
@@ -271,6 +276,11 @@ export default function ServerStatus() {
                   <span>{t('dashboard.serverStatus.now', 'сейчас')}</span>
                 </div>
               </div>
+              {s.mobile && (
+                <div className="col-span-2">
+                  <MobileCoverage mobile={s.mobile} progress={data.mobileNodes} />
+                </div>
+              )}
             </div>
           );
         })}

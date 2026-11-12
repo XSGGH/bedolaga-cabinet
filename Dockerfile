@@ -32,9 +32,16 @@ RUN npm run build:docker
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
 
+RUN apk add --no-cache ca-certificates && update-ca-certificates
+
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/templates/default.conf.template
+COPY docker/19-uptime-env.sh /docker-entrypoint.d/19-uptime-env.sh
+RUN chmod +x /docker-entrypoint.d/19-uptime-env.sh
+# Only the runtime secret is substituted; nginx variables must remain intact.
+ENV XSG_UPTIME_API_KEY=""
+ENV NGINX_ENVSUBST_FILTER="^XSG_UPTIME_API_KEY$"
 
 # Expose port
 EXPOSE 80
