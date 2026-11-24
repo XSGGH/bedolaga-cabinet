@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import { subscriptionApi } from '@/api/subscription';
-import { ArrowPathIcon } from '@/components/icons';
+import { ArrowPathIcon, KeyIcon } from '@/components/icons';
 import { useHaptic } from '@/platform';
 import { useDestructiveConfirm } from '@/platform/hooks/useNativeDialog';
 import type { Subscription } from '@/types';
@@ -31,6 +31,7 @@ export interface ReissueLinkButtonProps {
   subscriptionId: number | undefined;
   /** Компактная кнопка в одном ряду с «Продлить» и «Сменить тариф». */
   inline?: boolean;
+  quiet?: boolean;
 }
 
 /**
@@ -48,6 +49,7 @@ export function ReissueLinkButton({
   subscription,
   subscriptionId,
   inline = false,
+  quiet = false,
 }: ReissueLinkButtonProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -105,12 +107,16 @@ export function ReissueLinkButton({
           type="button"
           onClick={handleRevoke}
           disabled={revokeMutation.isPending || cooldown > 0}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-[14px] border border-warning-500/50 bg-gradient-to-r from-warning-500/20 to-orange-500/10 px-3 text-[14px] font-bold text-warning-300 transition-colors hover:border-warning-400 hover:from-warning-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+          className={
+            quiet
+              ? 'flex min-h-11 w-full items-center gap-2 rounded-xl px-2 text-left text-sm font-medium text-warning-300 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-400 disabled:opacity-60'
+              : 'flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-warning-500/50 bg-warning-500/10 px-3 text-sm font-semibold text-warning-300 disabled:opacity-60'
+          }
         >
           {revokeMutation.isPending ? (
             <div className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-warning-400/30 border-t-warning-400" />
           ) : (
-            <ArrowPathIcon className="h-[18px] w-[18px]" />
+            <KeyIcon className="h-[18px] w-[18px] shrink-0" />
           )}
           {cooldown > 0
             ? t('subscription.revoke.cooldown', {

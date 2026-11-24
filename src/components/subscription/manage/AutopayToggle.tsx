@@ -54,17 +54,23 @@ export function AutopayToggle({
 
   return (
     <div
-      className="flex items-center justify-between rounded-[14px] p-3.5"
+      className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl py-3"
       style={
         surface
           ? { background: surface.background, border: `1px solid ${surface.border}` }
           : undefined
       }
     >
-      <div>
+      <div className="min-w-0 flex-1">
         <div className="text-sm font-semibold text-dark-50">{t('subscription.autoRenewal')}</div>
-        <div className="mt-0.5 text-[11px] text-dark-400">
-          {t('subscription.daysBeforeExpiry', { count: subscription.autopay_days_before })}
+        <div className="mt-1 text-xs leading-relaxed text-dark-300">
+          {t('subscription.manage.autopayHint', {
+            defaultValue: 'Списывать с баланса за {{count}} дн. до окончания.',
+            count: subscription.autopay_days_before,
+          })}{' '}
+          {subscription.autopay_enabled
+            ? t('subscription.manage.on', 'Включено')
+            : t('subscription.manage.off', 'Выключено')}
         </div>
       </div>
       <button
@@ -73,21 +79,34 @@ export function AutopayToggle({
         disabled={autopayMutation.isPending}
         role="switch"
         aria-checked={subscription.autopay_enabled}
+        aria-busy={autopayMutation.isPending}
         aria-label={t('subscription.autopay', 'Auto-payment')}
-        className="relative h-7 w-[52px] rounded-full transition-colors duration-300"
-        style={{ background: subscription.autopay_enabled ? accentColor : offColor }}
+        className="relative h-11 w-[52px] shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 disabled:opacity-60"
       >
+        <span
+          aria-hidden="true"
+          className="absolute left-0 top-2 h-7 w-full rounded-full border border-dark-400/40"
+          style={{ background: subscription.autopay_enabled ? accentColor : offColor }}
+        />
         {/* translateX (compositor) instead of left (layout-thrash).
             Resting position pinned at left:3px; on toggles a 23px
             slide on the GPU. */}
         <span
-          className="absolute left-[3px] top-[3px] h-[22px] w-[22px] rounded-full bg-white transition-transform duration-300"
+          className="absolute left-[3px] top-[11px] h-[22px] w-[22px] rounded-full bg-white transition-transform duration-200 motion-reduce:transition-none"
           style={{
             transform: subscription.autopay_enabled ? 'translateX(23px)' : 'translateX(0)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
           }}
         />
       </button>
+      {autopayMutation.isError && (
+        <p role="alert" className="w-full text-xs leading-relaxed text-warning-400">
+          {t(
+            'subscription.manage.autopayError',
+            'Не удалось изменить автопродление. Настройка не изменена. Попробуйте ещё раз.',
+          )}
+        </p>
+      )}
     </div>
   );
 }

@@ -10,12 +10,14 @@ interface PurchaseCTAButtonProps {
   isMultiTariff?: boolean;
   /** Компактная кнопка внутри карточки (без подсказки). */
   inline?: boolean;
+  quiet?: boolean;
 }
 
 export default function PurchaseCTAButton({
   subscription,
   isMultiTariff = false,
   inline = false,
+  quiet = false,
 }: PurchaseCTAButtonProps) {
   const { t } = useTranslation();
 
@@ -66,8 +68,9 @@ export default function PurchaseCTAButton({
             : '/subscription/purchase?renew=1';
   const Icon = isExpired || isTrial || requiresTariff ? SparklesIcon : RefreshIcon;
 
-  const glow = 'shadow-[0_8px_24px_rgba(var(--color-accent-500),0.35)]';
-  const fill = `bg-gradient-to-r from-accent-500 to-fuchsia-500 text-white hover:brightness-110 ${glow}`;
+  const fill = quiet
+    ? 'border border-accent-400/40 bg-accent-500/10 text-accent-200 hover:bg-accent-500/20'
+    : 'bg-accent-500 text-on-accent hover:bg-accent-600';
 
   if (inline) {
     return (

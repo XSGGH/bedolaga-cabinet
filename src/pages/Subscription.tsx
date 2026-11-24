@@ -22,7 +22,6 @@ import {
   ChatIcon,
   CheckIcon,
   ChevronDownIcon,
-  ChevronRightIcon,
   ClockIcon,
   CopyIcon,
   DevicesIcon,
@@ -30,7 +29,6 @@ import {
   TrashIcon,
   WarningIcon,
 } from '../components/icons';
-import { useHaptic } from '../platform';
 import { resolveConnectionUrlForUi } from '../utils/connectionLink';
 import { AutopayToggle } from '../components/subscription/manage/AutopayToggle';
 import { DailyPausePanel } from '../components/subscription/manage/DailyPausePanel';
@@ -89,7 +87,7 @@ const CountdownTimer = memo(function CountdownTimer({
 
   return (
     <div className="flex min-w-0 flex-col items-end gap-2 text-right">
-      <div className="xsg-eyebrow flex items-center gap-1.5">{t('dashboard.remaining')}</div>
+      <div className="text-xs text-dark-300">{t('dashboard.remaining')}</div>
       {isExpired ? (
         <div className="text-2xl font-bold tracking-tight" style={{ color: tone }}>
           {t('subscription.expired')}
@@ -124,7 +122,6 @@ export default function Subscription() {
   const subscriptionId = subIdParam ? parseInt(subIdParam, 10) : undefined;
   const { isDark } = useTheme();
   const g = getGlassColors(isDark);
-  const haptic = useHaptic();
   const [copied, setCopied] = useState(false);
   const [showDeleteSheet, setShowDeleteSheet] = useState(false);
 
@@ -135,6 +132,7 @@ export default function Subscription() {
   const [targetDeviceLimit, setTargetDeviceLimit] = useState<number>(1);
   const [showTrafficTopup, setShowTrafficTopup] = useState(false);
   const [showRecurring, setShowRecurring] = useState(false);
+  const [devicesOpen, setDevicesOpen] = useState(false);
   const isDesktop = useIsDesktop();
   const [selectedTrafficPackage, setSelectedTrafficPackage] = useState<number | null>(null);
 
@@ -156,7 +154,11 @@ export default function Subscription() {
   });
   const isMultiTariff = multiSubData?.multi_tariff_enabled ?? false;
 
-  const { data: subscriptionResponse, isLoading } = useQuery({
+  const {
+    data: subscriptionResponse,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['subscription', subscriptionId],
     queryFn: () => subscriptionApi.getSubscription(subscriptionId),
     retry: false,
@@ -321,6 +323,24 @@ export default function Subscription() {
     );
   }
 
+  if (isError && !subscription)
+    return (
+      <div
+        role="status"
+        className="rounded-2xl border border-[var(--xsg-line)] bg-dark-800 p-4 text-sm text-dark-200"
+      >
+        {t('dashboard.ui.subscriptionError', 'Не удалось загрузить подписку.')}
+        <button
+          type="button"
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ['subscription', subscriptionId] })
+          }
+          className="mt-2 block min-h-11 text-accent-300"
+        >
+          {t('dashboard.ui.retry', 'Попробовать снова')}
+        </button>
+      </div>
+    );
   if (!subscription && subscriptionId) {
     return (
       <div className="mx-auto max-w-lg p-4 text-center">
@@ -341,45 +361,38 @@ export default function Subscription() {
     );
   }
 
-  const statusBadge = (sub: NonNullable<typeof subscription>) => (
-    <span
-      className="max-w-[55%] shrink-0 rounded-full px-3.5 py-1.5 text-center text-[11px] font-bold uppercase tracking-wider"
-      style={{
-        background: sub.is_active
-          ? 'rgba(var(--color-accent-500), 0.14)'
-          : sub.is_limited
-            ? 'rgba(255,184,0,0.12)'
-            : 'rgba(255,59,92,0.12)',
-        border: sub.is_active
-          ? '1px solid rgba(var(--color-accent-400), 0.45)'
-          : sub.is_limited
-            ? '1px solid rgba(255,184,0,0.25)'
-            : '1px solid rgba(255,59,92,0.25)',
-        color: sub.is_active
-          ? 'rgb(var(--color-accent-300))'
-          : sub.is_limited
-            ? 'rgb(var(--color-urgent-400))'
-            : 'rgb(var(--color-critical-500))',
-      }}
-    >
-      {sub.is_active
-        ? sub.is_trial
-          ? t('subscription.trialStatus')
-          : t('subscription.active')
-        : sub.is_limited
-          ? t('subscription.trafficLimited')
-          : sub.status === 'disabled'
-            ? t('subscription.pause.suspended')
-            : t('subscription.expired')}
-    </span>
-  );
+  const statusBadge = (sub: NonNullable<typeof subscription>) => {
+    const warning = sub.is_limited || (sub.is_active && sub.days_left <= 3);
+    const color = warning
+      ? 'text-warning-400'
+      : sub.is_active
+        ? 'text-success-400'
+        : 'text-critical-500';
+    const label = sub.is_limited
+      ? t('subscription.trafficLimited')
+      : sub.status === 'disabled'
+        ? t('subscription.pause.suspended')
+        : sub.is_active
+          ? sub.days_left <= 3
+            ? t('dashboard.ui.endingSoon', 'Скоро закончится')
+            : t('dashboard.ui.active', 'Активна')
+          : sub.is_expired
+            ? t('subscription.expired')
+            : t('dashboard.ui.statusUnknown', 'Статус уточняется');
+    return (
+      <span className={`inline-flex max-w-[55%] items-center gap-1.5 text-xs font-medium ${color}`}>
+        <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
+        {label}
+      </span>
+    );
+  };
 
   const autopayInner = subscription ? (
     <>
       <AutopayToggle
         subscription={subscription}
         subscriptionId={subscriptionId}
-        accentColor={zone.mainHex}
+        accentColor="rgb(var(--color-accent-500))"
         offColor={g.textGhost}
       />
 
@@ -402,52 +415,9 @@ export default function Subscription() {
     </>
   ) : null;
 
-  const connectInner = subscription ? (
-    <>
-      {subscription.subscription_url &&
-        (() => {
-          const connectedDevices = devicesData?.total ?? 0;
-          const isAtDeviceLimit =
-            subscription.device_limit > 0 && connectedDevices >= subscription.device_limit;
-          return (
-            <button
-              type="button"
-              disabled={isAtDeviceLimit}
-              onClick={() => {
-                if (isAtDeviceLimit) {
-                  haptic.notification('error');
-                  return;
-                }
-                navigate(subscriptionId ? `/connection?sub=${subscriptionId}` : '/connection');
-              }}
-              className={`flex min-h-16 w-full items-center gap-3.5 rounded-2xl border border-accent-500/40 bg-accent-500/15 px-4 text-left text-dark-50 transition-colors hover:border-accent-400/60 hover:bg-accent-500/25 ${isAtDeviceLimit ? 'cursor-not-allowed opacity-50' : ''}`}
-            >
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent-500/20 text-accent-300">
-                <DevicesIcon className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-base font-extrabold tracking-tight">
-                  {t('dashboard.connectDevice')}
-                </div>
-                <div className="mt-0.5 text-[12.5px] font-medium text-dark-300">
-                  {subscription.device_limit === 0
-                    ? t('dashboard.devicesConnectedUnlimited', { used: connectedDevices })
-                    : t('dashboard.devicesOfMax', {
-                        used: connectedDevices,
-                        max: subscription.device_limit,
-                      })}
-                </div>
-                {isAtDeviceLimit && (
-                  <div className="mt-0.5 text-[11px] font-bold">
-                    {t('dashboard.deviceLimitReached')}
-                  </div>
-                )}
-              </div>
-              <ChevronRightIcon className="h-5 w-5 flex-shrink-0" />
-            </button>
-          );
-        })()}
-      {displayedConnectionUrl && !shouldHideConnectionLink && (
+  const connectInner = subscription
+    ? displayedConnectionUrl &&
+      !shouldHideConnectionLink && (
         <div className="flex gap-2.5">
           <code
             className="flex h-12 min-w-0 flex-1 items-center truncate whitespace-nowrap rounded-[14px] px-4 font-mono text-[13px] text-dark-300"
@@ -465,17 +435,16 @@ export default function Subscription() {
             {copied ? <CheckIcon /> : <CopyIcon />}
           </button>
         </div>
-      )}
-    </>
-  ) : null;
+      )
+    : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-5">
       {/* Page title */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <WebBackButton to={isMultiTariff ? '/subscriptions' : '/'} />
-          <h1 className="text-2xl font-bold text-dark-50 sm:text-3xl">
+          <h1 className="min-w-0 break-words text-xl font-semibold text-dark-100 [overflow-wrap:anywhere] sm:text-2xl">
             {isMultiTariff && subscription?.tariff_name
               ? subscription.tariff_name
               : t('subscription.title')}
@@ -495,7 +464,7 @@ export default function Subscription() {
               return (
                 <>
                   <div
-                    className="relative order-1 overflow-hidden rounded-[20px] p-5 sm:p-8"
+                    className="relative order-1 overflow-hidden rounded-3xl p-4 sm:p-6"
                     style={{
                       background: g.cardBg,
                       border: subscription.is_trial
@@ -519,8 +488,10 @@ export default function Subscription() {
                     {/* ─── Header ─── */}
                     <div className="mb-4 flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <div className="xsg-eyebrow mb-2">{t('dashboard.tariff')}</div>
-                        <h2 className="break-words text-[28px] font-bold leading-tight tracking-tight text-dark-50 sm:text-[32px]">
+                        <div className="mb-2 text-xs font-medium text-dark-300">
+                          {t('dashboard.tariff')}
+                        </div>
+                        <h2 className="break-words text-xl font-bold leading-tight tracking-tight text-dark-50 [overflow-wrap:anywhere] sm:text-2xl">
                           {planTitle(subscription, t)}
                         </h2>
                       </div>
@@ -531,23 +502,12 @@ export default function Subscription() {
                       />
                     </div>
                     <div className="mb-5 text-[12.5px] text-dark-400">
-                      {t('subscription.expiresAt')}{' '}
-                      {new Date(subscription.end_date).toLocaleDateString(uiLocale(), {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                      {', '}
-                      {new Date(subscription.end_date).toLocaleTimeString(uiLocale(), {
-                        hour: '2-digit',
-                        minute: '2-digit',
+                      {t('dashboard.validUntil', {
+                        date: new Date(subscription.end_date).toLocaleDateString(uiLocale()),
                       })}
                     </div>
 
-                    <div
-                      aria-hidden="true"
-                      className="-mx-5 mb-5 h-px bg-accent-500/15 sm:-mx-8 lg:hidden"
-                    />
+                    <div aria-hidden="true" className="mb-4 h-px bg-accent-500/15" />
 
                     {/* ─── Traffic Limited Banner ─── */}
                     {subscription.is_limited && (
@@ -640,25 +600,70 @@ export default function Subscription() {
                       </div>
                     )}
 
+                    {(subscription.is_active || subscription.is_limited) &&
+                      subscription.subscription_url && (
+                        <div className="mb-4">
+                          <button
+                            type="button"
+                            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-3 py-3 text-sm font-semibold text-on-accent hover:bg-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+                            onClick={() => {
+                              if (
+                                subscription.device_limit > 0 &&
+                                (devicesData?.total ?? 0) >= subscription.device_limit
+                              ) {
+                                setDevicesOpen(true);
+                                requestAnimationFrame(() =>
+                                  document
+                                    .getElementById('subscription-devices')
+                                    ?.scrollIntoView({ behavior: 'auto', block: 'start' }),
+                                );
+                              } else
+                                navigate(
+                                  subscriptionId
+                                    ? `/connection?sub=${subscriptionId}`
+                                    : '/connection',
+                                );
+                            }}
+                          >
+                            <DevicesIcon className="h-[18px] w-[18px] shrink-0" />
+                            {subscription.device_limit > 0 &&
+                            (devicesData?.total ?? 0) >= subscription.device_limit
+                              ? t('subscription.myDevices')
+                              : t('dashboard.connectDevice')}
+                          </button>
+                          <p className="mt-2 text-center text-xs leading-relaxed text-dark-300">
+                            {subscription.device_limit > 0 &&
+                            (devicesData?.total ?? 0) >= subscription.device_limit
+                              ? t(
+                                  'dashboard.ui.allDevicesUsed',
+                                  'Все места заняты · управляйте устройствами',
+                                )
+                              : subscription.device_limit === 0
+                                ? t('dashboard.devicesConnectedUnlimited', {
+                                    used: devicesData?.total ?? 0,
+                                  })
+                                : t('dashboard.ui.connectedDevices', {
+                                    defaultValue: 'Подключено {{used}} из {{max}} устройств',
+                                    used: devicesData?.total ?? 0,
+                                    max: subscription.device_limit,
+                                  })}
+                          </p>
+                        </div>
+                      )}
                     {/* ─── Продлить + автопродление: на телефоне внизу карточки тарифа ─── */}
                     <div className="mt-5 space-y-2.5 lg:hidden">
                       <PurchaseCTAButton
+                        quiet={!!subscription?.is_active && subscription.days_left > 3}
                         subscription={subscription}
                         isMultiTariff={isMultiTariff}
                         inline
                       />
                       <ChangeTariffButton
+                        quiet
                         subscription={subscription}
                         isMultiTariff={isMultiTariff}
                         inline
                       />
-                      {canReissueLink(subscription) && (
-                        <ReissueLinkButton
-                          subscription={subscription}
-                          subscriptionId={subscriptionId}
-                          inline
-                        />
-                      )}
                     </div>
                     {!isDesktop && (
                       <div className="xsg-autopay mt-4 border-t border-accent-500/15">
@@ -685,107 +690,125 @@ export default function Subscription() {
                           </span>
                         }
                         collapsedPreview={
-                          <span
-                            aria-hidden="true"
-                            className="block h-1.5 w-full overflow-hidden rounded-full bg-accent-500/15"
-                          >
-                            <span
-                              className="block h-full rounded-full bg-accent-500"
-                              style={{ width: `${Math.min(100, Math.max(2, usedPercent))}%` }}
+                          <span className="block w-full space-y-2">
+                            <span className="block text-xs leading-relaxed text-dark-300">
+                              {t('dashboard.ui.trafficScope', 'На серверах обхода белых списков')}
+                            </span>
+                            <TrafficProgressBar
+                              usedGb={usedGb}
+                              limitGb={subscription.traffic_limit_gb}
+                              percent={usedPercent}
+                              isUnlimited={false}
+                              compact
                             />
+                            <span className="block text-xs text-dark-300">
+                              {Number.isFinite(usedGb)
+                                ? t('dashboard.ui.trafficRemaining', {
+                                    defaultValue: 'Осталось {{amount}}',
+                                    amount: formatTraffic(
+                                      Math.max(0, subscription.traffic_limit_gb - usedGb),
+                                    ),
+                                  })
+                                : t('dashboard.ui.noTraffic', 'Статистика пока недоступна')}
+                            </span>
                           </span>
                         }
                       >
                         <div className="px-5 pb-5 sm:px-7 sm:pb-7">
                           {/* ─── Traffic Progress ─── */}
                           {!isUnlimited && (
-                            <>
-                              <div className="mb-5">
-                                <div className="mb-2 flex items-center justify-between gap-x-4 gap-y-2">
-                                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                                    {subscription.traffic_limit_gb > 0 && (
-                                      <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
-                                        {t('subscription.trafficScope.badge', 'только 📡 серверы')}
-                                      </span>
-                                    )}
-                                    {(isUnlimited || zone.colorKey !== 'accent') && (
+                            <div className="mb-5">
+                              <div className="mb-2 flex items-center justify-between gap-x-4 gap-y-2">
+                                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                  {subscription.traffic_limit_gb > 0 && (
+                                    <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
+                                      {t(
+                                        'dashboard.ui.trafficScope',
+                                        'На серверах обхода белых списков',
+                                      )}
+                                    </span>
+                                  )}
+                                  {(isUnlimited || zone.colorKey !== 'accent') && (
+                                    <span
+                                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
+                                      style={{
+                                        color: `rgb(${pillRaw})`,
+                                        background: `rgba(${pillRaw}, 0.12)`,
+                                        border: `1px solid rgba(${pillRaw}, 0.35)`,
+                                      }}
+                                    >
                                       <span
-                                        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
-                                        style={{
-                                          color: `rgb(${pillRaw})`,
-                                          background: `rgba(${pillRaw}, 0.12)`,
-                                          border: `1px solid rgba(${pillRaw}, 0.35)`,
-                                        }}
-                                      >
-                                        <span
-                                          className="h-1.5 w-1.5 rounded-full"
-                                          style={{ background: `rgb(${pillRaw})` }}
-                                          aria-hidden="true"
-                                        />
-                                        {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <button
-                                    onClick={() => refreshTrafficMutation.mutate()}
-                                    disabled={
-                                      refreshTrafficMutation.isPending || trafficRefreshCooldown > 0
-                                    }
-                                    className="-mr-2 flex h-10 items-center justify-center gap-1 rounded-full px-2.5 text-xs font-medium text-dark-400 transition-colors hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
-                                    aria-label={t('common.refresh')}
-                                    title={t('common.refresh')}
-                                  >
-                                    <RefreshIcon
-                                      className="h-4 w-4"
-                                      spinning={refreshTrafficMutation.isPending}
-                                    />
-                                    {trafficRefreshCooldown > 0 && (
-                                      <span className="tabular-nums text-dark-500">
-                                        {trafficRefreshCooldown}s
-                                      </span>
-                                    )}
-                                  </button>
-                                </div>
-                                <div className="mb-3 flex items-baseline justify-between gap-3 tabular-nums">
-                                  <span className="text-[13px] text-dark-400">
-                                    <b className="text-[15px] font-bold text-dark-50">
-                                      {formatTraffic(usedGb)}
-                                    </b>
-                                    {!isUnlimited &&
-                                      ` / ${formatTraffic(subscription.traffic_limit_gb)}`}
-                                  </span>
-                                  {!isUnlimited && (
-                                    <span className="text-[13px] text-dark-400">
-                                      {Math.round(usedPercent)}%
+                                        className="h-1.5 w-1.5 rounded-full"
+                                        style={{ background: `rgb(${pillRaw})` }}
+                                        aria-hidden="true"
+                                      />
+                                      {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
                                     </span>
                                   )}
                                 </div>
-                                <TrafficProgressBar
-                                  usedGb={usedGb}
-                                  limitGb={subscription.traffic_limit_gb}
-                                  percent={usedPercent}
-                                  isUnlimited={isUnlimited}
-                                />
-                                <div className="mt-3 flex items-center justify-between gap-3">
-                                  <span className="text-xs text-dark-500">
-                                    {subscription.traffic_reset_mode &&
-                                    subscription.traffic_reset_mode !== 'NO_RESET'
-                                      ? t(
-                                          `subscription.trafficReset.${subscription.traffic_reset_mode}`,
-                                        )
-                                      : ''}
+                                <button
+                                  onClick={() => refreshTrafficMutation.mutate()}
+                                  disabled={
+                                    refreshTrafficMutation.isPending || trafficRefreshCooldown > 0
+                                  }
+                                  className="-mr-2 flex h-10 items-center justify-center gap-1 rounded-full px-2.5 text-xs font-medium text-dark-400 transition-colors hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                  aria-label={t('common.refresh')}
+                                  title={t('common.refresh')}
+                                >
+                                  <RefreshIcon
+                                    className="h-4 w-4"
+                                    spinning={refreshTrafficMutation.isPending}
+                                  />
+                                  {trafficRefreshCooldown > 0 && (
+                                    <span className="tabular-nums text-dark-500">
+                                      {trafficRefreshCooldown}s
+                                    </span>
+                                  )}
+                                </button>
+                              </div>
+                              <div className="mb-3 flex items-baseline justify-between gap-3 tabular-nums">
+                                <span className="text-[13px] text-dark-400">
+                                  <b className="text-[15px] font-bold text-dark-50">
+                                    {formatTraffic(usedGb)}
+                                  </b>
+                                  {!isUnlimited &&
+                                    ` / ${formatTraffic(subscription.traffic_limit_gb)}`}
+                                </span>
+                                {!isUnlimited && (
+                                  <span className="text-[13px] text-dark-400">
+                                    {new Intl.NumberFormat(uiLocale(), {
+                                      maximumFractionDigits: 1,
+                                    }).format(usedPercent)}
+                                    %
                                   </span>
-                                </div>
-                                {!isUnlimited && subscription.traffic_limit_gb > 0 && (
-                                  <p className="mt-3 text-[13px] leading-relaxed text-dark-300">
-                                    {t(
-                                      'subscription.trafficScope.note',
-                                      'Трафик списывается только на серверах с отметкой 📡. На остальных серверах расход не считается — они безлимитные.',
-                                    )}
-                                  </p>
                                 )}
                               </div>
-                            </>
+                              <TrafficProgressBar
+                                usedGb={usedGb}
+                                limitGb={subscription.traffic_limit_gb}
+                                percent={usedPercent}
+                                isUnlimited={isUnlimited}
+                                compact
+                              />
+                              <div className="mt-3 flex items-center justify-between gap-3">
+                                <span className="text-xs text-dark-500">
+                                  {subscription.traffic_reset_mode &&
+                                  subscription.traffic_reset_mode !== 'NO_RESET'
+                                    ? t(
+                                        `subscription.trafficReset.${subscription.traffic_reset_mode}`,
+                                      )
+                                    : ''}
+                                </span>
+                              </div>
+                              {!isUnlimited && subscription.traffic_limit_gb > 0 && (
+                                <p className="mt-3 text-[13px] leading-relaxed text-dark-300">
+                                  {t(
+                                    'subscription.trafficScope.note',
+                                    'Трафик списывается только на серверах с отметкой 📡. На остальных серверах расход не считается — они безлимитные.',
+                                  )}
+                                </p>
+                              )}
+                            </div>
                           )}
 
                           {/* ─── Purchased Traffic Packages ─── */}
@@ -844,6 +867,14 @@ export default function Subscription() {
                               </div>
                             )}
 
+                          {refreshTrafficMutation.isError && (
+                            <p role="status" className="mt-2 text-xs text-warning-400">
+                              {t(
+                                'dashboard.ui.refreshError',
+                                'Не удалось обновить. Показан последний замер.',
+                              )}
+                            </p>
+                          )}
                           {/* ─── Buy traffic (action row) ─── */}
                           {showsAddonOptions(subscription) && subscription.traffic_limit_gb > 0 && (
                             <div className="xsg-linkrow mt-3 lg:mt-5">
@@ -907,7 +938,8 @@ export default function Subscription() {
             {/* My Devices Section */}
             {subscription && (
               <div
-                className="xsg-devices relative overflow-hidden rounded-[20px]"
+                id="subscription-devices"
+                className="xsg-devices relative scroll-mt-24 overflow-hidden rounded-[20px]"
                 style={{
                   background: g.cardBg,
                   border: `1px solid ${g.cardBorder}`,
@@ -921,6 +953,8 @@ export default function Subscription() {
                 )}
                 <CollapsibleSection
                   title={t('subscription.myDevices')}
+                  open={devicesOpen}
+                  onOpenChange={setDevicesOpen}
                   summary={
                     devicesData ? (
                       <span>
@@ -977,15 +1011,13 @@ export default function Subscription() {
         <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-5">
           <div className="order-5 hidden space-y-3 empty:hidden lg:block">
             {/* Purchase / Renewal CTA (на телефоне — внутри карточки тарифа) */}
-            <PurchaseCTAButton subscription={subscription} isMultiTariff={isMultiTariff} />
-            <ChangeTariffButton subscription={subscription} isMultiTariff={isMultiTariff} />
-            {subscription && canReissueLink(subscription) && (
-              <ReissueLinkButton
-                subscription={subscription}
-                subscriptionId={subscriptionId}
-                inline
-              />
-            )}
+            <PurchaseCTAButton
+              subscription={subscription}
+              isMultiTariff={isMultiTariff}
+              inline
+              quiet={!!subscription?.is_active && subscription.days_left > 3}
+            />
+            <ChangeTariffButton quiet subscription={subscription} isMultiTariff={isMultiTariff} />
           </div>
 
           {/* Autopay + recurring (способы автоплатежа свёрнуты) — на телефоне внутри карточки тарифа */}
@@ -1002,6 +1034,22 @@ export default function Subscription() {
             </div>
           )}
 
+          {subscription && canReissueLink(subscription) && (
+            <div className="order-7 rounded-2xl border border-[var(--xsg-line)] bg-dark-800">
+              <CollapsibleSection
+                title={t('subscription.manage.additional', 'Дополнительные действия')}
+              >
+                <div className="px-4 pb-4">
+                  <ReissueLinkButton
+                    subscription={subscription}
+                    subscriptionId={subscriptionId}
+                    inline
+                    quiet
+                  />
+                </div>
+              </CollapsibleSection>
+            </div>
+          )}
           <div className="order-7 empty:hidden">
             {/* Delete expired subscription */}
             {isMultiTariff &&
