@@ -8041,6 +8041,12 @@
     "deleteAllDevices": "Delete all devices",
     "refreshTraffic": "Refresh traffic usage",
     "trafficLow": "Traffic allowance is running low",
-    "trafficEnded": "Traffic allowance exhausted"
+    "trafficEnded": "Traffic allowance exhausted",
+    "validUntil": "Valid until {{date}}",
+    "daysUnit_one": "day",
+    "daysUnit_other": "days",
+    "freeSlots_one": "{{count}} slot free",
+    "freeSlots_other": "{{count}} slots free",
+    "devicesUnknown": "Device data unavailable"
   }
 }

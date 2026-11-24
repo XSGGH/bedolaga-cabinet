@@ -399,7 +399,7 @@ export default function Dashboard() {
                 trafficData={trafficData}
                 refreshTrafficMutation={refreshTrafficMutation}
                 trafficRefreshCooldown={trafficRefreshCooldown}
-                connectedDevices={devicesData?.total ?? 0}
+                connectedDevices={devicesData?.total}
               />
             ) : null)}
 

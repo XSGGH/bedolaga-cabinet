@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router';
 import { MonitorIcon } from '@/components/icons';
 import AddonPurchaseButton from '@/components/subscription/AddonPurchaseButton';
 import { subscriptionActionClass } from '@/components/subscription/actionStyles';
+import DeviceSlotsIndicator from './DeviceSlotsIndicator';
 
 interface ConnectDeviceTileProps {
   subscription: { id: number; device_limit: number; subscription_url?: string | null };
-  connectedDevices: number;
+  connectedDevices: number | undefined;
   usedPercent?: number;
   onManage?: () => void;
   connectionPath?: string;
@@ -26,7 +27,10 @@ export default function ConnectDeviceTile({
 }: ConnectDeviceTileProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const full = subscription.device_limit > 0 && connectedDevices >= subscription.device_limit;
+  const full =
+    subscription.device_limit > 0 &&
+    connectedDevices !== undefined &&
+    connectedDevices >= subscription.device_limit;
   if (!subscription.subscription_url) return null;
   return (
     <div>
@@ -48,23 +52,10 @@ export default function ConnectDeviceTile({
         {full ? t('subscription.myDevices') : t('dashboard.connectDevice')}
       </button>
       {showSummary && (
-        <p className="mt-1.5 text-center text-xs leading-relaxed text-dark-200">
-          {subscription.device_limit === 0
-            ? t('dashboard.devicesConnectedUnlimited', { used: connectedDevices })
-            : t('dashboard.ui.connectedDevices', {
-                defaultValue: 'Подключено {{used}} из {{max}} устройств',
-                used: connectedDevices,
-                max: subscription.device_limit,
-              })}
-        </p>
-      )}
-      {showSummary && full && (
-        <p className="mt-1 text-center text-xs leading-relaxed text-warning-300">
-          {t('addonsUi.devicesFull')}
-          {canIncreaseLimit && (
-            <span className="mt-1 block text-dark-300">{t('addonsUi.devicesFullHint')}</span>
-          )}
-        </p>
+        <DeviceSlotsIndicator
+          connectedDevices={connectedDevices}
+          deviceLimit={subscription.device_limit}
+        />
       )}
       {full && canIncreaseLimit && (
         <AddonPurchaseButton

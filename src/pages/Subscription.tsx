@@ -31,6 +31,8 @@ import {
   CopyIcon,
   TrashIcon,
   WarningIcon,
+  DevicesIcon,
+  InfoIcon,
 } from '../components/icons';
 import { resolveConnectionUrlForUi } from '../utils/connectionLink';
 import { AutopayToggle } from '../components/subscription/manage/AutopayToggle';
@@ -89,8 +91,7 @@ const CountdownTimer = memo(function CountdownTimer({
   const clock = `${String(countdown.hours).padStart(2, '0')}:${String(countdown.minutes).padStart(2, '0')}:${String(countdown.seconds).padStart(2, '0')}`;
 
   return (
-    <div className="flex min-w-0 flex-col items-end gap-2 text-right">
-      <div className="text-xs text-dark-300">{t('dashboard.remaining')}</div>
+    <div className="flex min-w-0 items-baseline justify-end text-right">
       {isExpired ? (
         <div className="text-2xl font-bold tracking-tight" style={{ color: tone }}>
           {t('subscription.expired')}
@@ -103,7 +104,9 @@ const CountdownTimer = memo(function CountdownTimer({
           >
             {countdown.days}
           </span>
-          <span className="text-sm font-medium text-dark-400">{t('subscription.daysShort')}</span>
+          <span className="text-xs font-medium text-dark-400">
+            {t('subscriptionCommand.daysUnit', { count: countdown.days })}
+          </span>
         </span>
       ) : (
         <span
@@ -574,7 +577,6 @@ export default function Subscription() {
 
                 <div className="space-y-2 border-t border-divider pt-4">
                   <PurchaseCTAButton
-                    quiet={subscription.is_active && subscription.days_left > 3}
                     subscription={subscription}
                     isMultiTariff={isMultiTariff}
                     inline
@@ -683,9 +685,13 @@ export default function Subscription() {
                 )}
                 <CollapsibleSection
                   title={t('subscriptionCommand.deviceList')}
+                  variant="inset"
+                  icon={
+                    <DevicesIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-dark-300" />
+                  }
                   open={devicesOpen}
                   onOpenChange={setDevicesOpen}
-                  headerClassName="min-h-11 py-3"
+                  className="mt-2"
                 >
                   <DevicesPanel
                     subscription={subscription}
@@ -757,7 +763,10 @@ export default function Subscription() {
                   )}
                   <CollapsibleSection
                     title={t('subscriptionCommand.trafficDetails')}
-                    headerClassName="min-h-11 py-2"
+                    variant="inset"
+                    icon={
+                      <InfoIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-dark-300" />
+                    }
                   >
                     <div className="space-y-3 text-[13px] leading-relaxed text-dark-300">
                       <p>{t('subscriptionCommand.trafficScopeNote')}</p>

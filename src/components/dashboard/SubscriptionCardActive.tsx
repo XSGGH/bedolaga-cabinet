@@ -26,7 +26,7 @@ interface SubscriptionCardActiveProps {
   } | null;
   refreshTrafficMutation: UseMutationResult<unknown, unknown, void, unknown>;
   trafficRefreshCooldown: number;
-  connectedDevices: number;
+  connectedDevices: number | undefined;
 }
 
 export default function SubscriptionCardActive({

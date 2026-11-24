@@ -8660,6 +8660,16 @@
     "deleteAllDevices": "Удалить все устройства",
     "refreshTraffic": "Обновить расход трафика",
     "trafficLow": "Трафик заканчивается",
-    "trafficEnded": "Трафик закончился"
+    "trafficEnded": "Трафик закончился",
+    "validUntil": "Действует до {{date}}",
+    "daysUnit_one": "день",
+    "daysUnit_few": "дня",
+    "daysUnit_many": "дней",
+    "daysUnit_other": "дня",
+    "freeSlots_one": "{{count}} место свободно",
+    "freeSlots_few": "{{count}} места свободно",
+    "freeSlots_many": "{{count}} мест свободно",
+    "freeSlots_other": "{{count}} места свободно",
+    "devicesUnknown": "Данные устройств пока недоступны"
   }
 }

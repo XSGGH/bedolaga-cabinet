@@ -34,48 +34,40 @@ export default function SubscriptionPlanHeader({
         ? 'bg-error-500/10 text-error-400'
         : 'bg-elevated text-dark-300';
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
-        <div className="min-w-0">
-          <h2 className="break-words text-xl font-bold leading-tight tracking-tight text-dark-50 [overflow-wrap:anywhere] sm:text-2xl">
-            {planTitle(subscription, t)}
-          </h2>
-          <p className="mt-2 text-xs leading-relaxed text-dark-300">
-            {t('dashboard.validUntil', {
-              date: new Date(subscription.end_date).toLocaleDateString(uiLocale()),
-            })}
-          </p>
-        </div>
-        <div className="max-w-[150px] text-right">
-          <span
-            className={`inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium ${tone}`}
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2">
+      <h2 className="min-w-0 break-words text-xl font-bold leading-tight tracking-tight text-dark-50 [overflow-wrap:anywhere] sm:text-2xl">
+        {planTitle(subscription, t)}
+      </h2>
+      <span
+        className={`mt-0.5 inline-flex max-w-[150px] items-center gap-1.5 self-start justify-self-end rounded-md px-2 py-1 text-xs font-medium ${tone}`}
+      >
+        <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
+        {label}
+      </span>
+      <p className="min-w-0 text-xs leading-relaxed text-dark-300">
+        {t('subscriptionCommand.validUntil', {
+          date: new Date(subscription.end_date).toLocaleDateString(uiLocale()),
+        })}
+      </p>
+      <div className="max-w-[150px] justify-self-end text-right">
+        {remaining ?? (
+          <p
+            className={`font-semibold tabular-nums ${warning ? 'text-warning-300' : 'text-dark-50'}`}
           >
-            <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
-            {label}
-          </span>
-          <div className="mt-3">
-            {remaining ?? (
+            {subscription.days_left > 0 ? (
               <>
-                <p className="text-xs text-dark-300">{t('dashboard.remaining')}</p>
-                <p
-                  className={`mt-1 font-semibold tabular-nums ${warning ? 'text-warning-300' : 'text-dark-50'}`}
-                >
-                  {subscription.days_left > 0 ? (
-                    <>
-                      <span className="text-[28px] leading-none">{subscription.days_left}</span>
-                      <span className="ml-1 text-xs">{t('subscription.daysShort')}</span>
-                    </>
-                  ) : (
-                    <span className="text-sm">
-                      {subscription.time_left_display ||
-                        t('dashboard.ui.lessThanDay', 'Меньше суток')}
-                    </span>
-                  )}
-                </p>
+                <span className="text-[28px] leading-none">{subscription.days_left}</span>
+                <span className="ml-1 text-xs">
+                  {t('subscriptionCommand.daysUnit', { count: subscription.days_left })}
+                </span>
               </>
+            ) : (
+              <span className="text-sm">
+                {subscription.time_left_display || t('dashboard.ui.lessThanDay', 'Меньше суток')}
+              </span>
             )}
-          </div>
-        </div>
+          </p>
+        )}
       </div>
     </div>
   );
