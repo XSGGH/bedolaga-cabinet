@@ -92,7 +92,6 @@ afterEach(() => {
 const SELECTED = 'bg-accent-500/10';
 const BEST_VALUE_RING = 'border-accent-300';
 // Продление красит рамку и заливку инлайновым стилем, а не классом.
-const SELECTED_BORDER = '--color-accent-400';
 
 // ==================== покупка тарифа ====================
 
@@ -162,9 +161,9 @@ describe('продление: выбранный по умолчанию пер�
 
     // Рамка выбранного выгодного остаётся жёлтой, выбор виден заливкой и
     // внутренним контуром — обе метки сразу.
-    expect(cardFor(360).style.borderColor).toContain('--color-accent-300');
-    expect(cardFor(360).style.background).toContain(SELECTED_BORDER);
-    expect(cardFor(30).style.background).not.toContain(SELECTED_BORDER);
+    expect(cardFor(360).getAttribute('aria-pressed')).toBe('true');
+    expect(cardFor(360).getAttribute('aria-pressed')).toBe('true');
+    expect(cardFor(30).getAttribute('aria-pressed')).toBe('false');
   });
 
   it('без отметки оператора не выбирает ничего — как было', async () => {
@@ -173,7 +172,7 @@ describe('продление: выбранный по умолчанию пер�
     await renderRenew();
     await screen.findByText(/^30 /);
 
-    expect(cardFor(30).style.background).not.toContain(SELECTED_BORDER);
-    expect(cardFor(360).style.background).not.toContain(SELECTED_BORDER);
+    expect(cardFor(30).getAttribute('aria-pressed')).toBe('false');
+    expect(cardFor(360).getAttribute('aria-pressed')).toBe('false');
   });
 });

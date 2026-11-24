@@ -10,6 +10,7 @@ import type { Tariff, Subscription, PurchaseOptions } from '../../../types';
 import { tariffAction, type TariffActionKind } from './tariffAction';
 import { anyTariffHasMetered } from './tariffCardModel';
 import { TariffCardInfo } from './TariffCardInfo';
+import { entryPeriod } from './tariffPresentation';
 
 /** Подпись кнопки для действий, которые ведут в один и тот же сценарий выбора. */
 const TARIFF_ACTION_LABEL: Record<Exclude<TariffActionKind, 'current-daily' | 'switch'>, string> = {
@@ -140,12 +141,10 @@ export function TariffPickerGrid({
               isMultiTariff,
             });
 
-            const isPrimary = isCurrentTariff || !subscription;
-
             return (
               <div
                 key={tariff.id}
-                className={`bento-card-hover flex flex-col gap-5 p-5 text-left transition-all sm:p-7 ${
+                className={`bento-card-hover flex flex-col gap-4 p-4 text-left sm:p-5 ${
                   isCurrentTariff
                     ? 'border-accent-500'
                     : tariff.is_highlighted
@@ -164,7 +163,7 @@ export function TariffPickerGrid({
                 />
 
                 {/* Цена и действие */}
-                <div className="mt-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                <div className="mt-auto flex flex-col gap-3 ">
                   <div className="text-sm text-dark-400">
                     {(() => {
                       const promoDaily = dailyPriceQuote(tariff, applyPromoDiscount);
@@ -194,17 +193,27 @@ export function TariffPickerGrid({
                           </span>
                         );
                       }
-                      if (tariff.periods.length > 0) {
-                        const firstPeriod = tariff.periods[0];
+                      const firstPeriod = entryPeriod(tariff, applyPromoDiscount);
+                      if (firstPeriod) {
                         const promoPeriod = applyPromoDiscount(
                           firstPeriod?.price_kopeks || 0,
                           firstPeriod?.original_price_kopeks,
                         );
                         return (
                           <span className="flex flex-wrap items-baseline gap-2">
-                            <span>{t('subscription.from')}</span>
+                            {promoPeriod.price > 0 && (
+                              <span>{t('subscription.checkout.priceFrom', 'От')}</span>
+                            )}
                             <span className="text-2xl font-extrabold text-dark-50">
                               {formatPrice(promoPeriod.price)}
+                            </span>
+                            <span>
+                              {t('subscription.checkout.forPeriod', {
+                                defaultValue: 'за {{period}}',
+                                period:
+                                  firstPeriod.label ||
+                                  t('subscription.days', { count: firstPeriod.days }),
+                              })}
                             </span>
                             {promoPeriod.original && promoPeriod.original > promoPeriod.price && (
                               <span className="text-xs text-dark-500 line-through">
@@ -242,15 +251,14 @@ export function TariffPickerGrid({
                       onClick={() =>
                         action === 'switch' ? onSwitchTariff(tariff.id) : onSelectTariff(tariff)
                       }
-                      className={`h-12 w-full rounded-[14px] px-7 text-[15px] font-bold transition-colors sm:w-auto ${
-                        isPrimary
-                          ? 'bg-accent-500 text-on-accent hover:bg-accent-600'
-                          : 'border border-accent-500/40 text-accent-300 hover:bg-accent-500/10'
-                      }`}
+                      disabled={tariff.is_available === false}
+                      className="min-h-12 w-full rounded-[14px] bg-accent-500 px-5 py-3 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
                     >
-                      {action === 'switch'
-                        ? t('subscription.switchTariff.switch')
-                        : t(TARIFF_ACTION_LABEL[action])}
+                      {tariff.is_available === false
+                        ? t('subscription.checkout.unavailable', 'Недоступен')
+                        : action === 'switch'
+                          ? t('subscription.switchTariff.switch')
+                          : t(TARIFF_ACTION_LABEL[action])}
                     </button>
                   )}
                 </div>

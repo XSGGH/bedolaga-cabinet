@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router';
@@ -11,7 +11,7 @@ import { useCurrency } from '../hooks/useCurrency';
 import { useHaptic } from '../platform';
 import InsufficientBalancePrompt from '../components/InsufficientBalancePrompt';
 import { WebBackButton } from '../components/WebBackButton';
-import { BEST_VALUE_BORDER, BestValueBadge } from '../components/subscription/BestValueBadge';
+import { PeriodOption } from '../components/subscription/purchase/PeriodOption';
 import { PageSkeleton, Skeleton } from '../components/ui/skeleton';
 import { needsTariff, tariffSelectionPath } from '../utils/legacySubscription';
 
@@ -29,6 +29,15 @@ export default function RenewSubscription() {
 
   const [selectedPeriod, setSelectedPeriod] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [checkingPrice, setCheckingPrice] = useState(false);
+  const mounted = useRef(true);
+  const checking = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   // Load subscription detail for tariff name
   const { data: subscriptionResponse, isLoading: isSubscriptionLoading } = useQuery({
@@ -90,10 +99,40 @@ export default function RenewSubscription() {
     },
   });
 
-  const handleRenew = (periodDays: number) => {
+  const handleRenew = async (periodDays: number) => {
+    if (checking.current || renewMutation.isPending) return;
     impact('medium');
     setError(null);
-    renewMutation.mutate(periodDays);
+    checking.current = true;
+    setCheckingPrice(true);
+    const displayed = options?.find((option) => option.period_days === periodDays);
+    try {
+      const latest = await queryClient.fetchQuery({
+        queryKey: ['renewal-options', subId],
+        queryFn: () => subscriptionApi.getRenewalOptions(subId),
+        staleTime: 0,
+      });
+      if (!mounted.current) return;
+      const fresh = latest.find((option) => option.period_days === periodDays);
+      if (!fresh) {
+        setError('Этот период больше недоступен. Выберите другой.');
+        return;
+      }
+      if (
+        !displayed ||
+        fresh.price_kopeks !== displayed.price_kopeks ||
+        fresh.original_price_kopeks !== displayed.original_price_kopeks
+      ) {
+        setError('Стоимость обновилась. Проверьте итог и подтвердите продление ещё раз.');
+        return;
+      }
+      renewMutation.mutate(periodDays);
+    } catch {
+      if (mounted.current) setError('Не удалось обновить стоимость. Попробуйте ещё раз.');
+    } finally {
+      checking.current = false;
+      if (mounted.current) setCheckingPrice(false);
+    }
   };
 
   if (!subId) {
@@ -119,6 +158,12 @@ export default function RenewSubscription() {
 
   const insufficientMatch = error?.match(/^insufficient:(\d+)$/);
   const missingAmount = insufficientMatch ? Number(insufficientMatch[1]) : null;
+  const chosen = options?.find((option) => option.period_days === selectedPeriod);
+  const money = (kopeks: number) =>
+    kopeks === 0
+      ? t('subscription.free', 'Бесплатно')
+      : `${formatAmount(kopeks / 100)}\u00A0${currencySymbol}`;
+  const monthly = options?.find((option) => option.period_days === 30);
 
   return (
     <div className="space-y-5">
@@ -163,92 +208,42 @@ export default function RenewSubscription() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="space-y-2">
           {options.map((option) => {
-            const isSelected = selectedPeriod === option.period_days;
-            const canAfford = balanceKopeks >= option.price_kopeks;
             const perMonth = getMonthlyPriceKopeks(option.price_kopeks, option.period_days);
-            // Выбранный вариант важнее подсказки: рамка выделения уступает
-            // рамке выбора, чтобы не было двух «активных» карточек сразу.
-            const isBestValue = Boolean(option.is_highlighted);
-
+            const saving =
+              monthly && option.period_days > 30 && option.period_days % 30 === 0
+                ? (monthly.price_kopeks * option.period_days) / 30 - option.price_kopeks
+                : 0;
             return (
-              <button
-                key={option.period_days}
-                onClick={() => {
-                  impact('light');
-                  setSelectedPeriod(option.period_days);
-                  setError(null);
-                }}
-                className={`w-full rounded-2xl p-4 text-left transition-all duration-200 ${
-                  isBestValue ? 'border-2' : 'border'
-                }`}
-                style={{
-                  background: isSelected
-                    ? isDark
-                      ? 'rgba(var(--color-accent-400), 0.08)'
-                      : 'rgba(var(--color-accent-400), 0.05)'
-                    : g.cardBg,
-                  borderColor: isBestValue
-                    ? BEST_VALUE_BORDER
-                    : isSelected
-                      ? 'rgb(var(--color-accent-400))'
-                      : g.cardBorder,
-                  // Выбранный выгодный вариант несёт обе метки: жёлтый контур
-                  // снаружи и контур выбора внутри — иначе подсказка пропадала
-                  // ровно тогда, когда человек ей последовал.
-                  boxShadow:
-                    isSelected && isBestValue
-                      ? 'inset 0 0 0 2px rgb(var(--color-accent-400))'
-                      : undefined,
-                }}
-              >
-                {isBestValue && <BestValueBadge className="mb-2" />}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-base font-semibold" style={{ color: g.text }}>
-                      {option.period_days} {t('subscription.days', 'дней')}
-                    </span>
-                    {option.discount_percent > 0 && (
-                      <span className="ml-2 rounded-full bg-success-400/15 px-2 py-0.5 text-[10px] font-semibold text-success-400">
-                        -{option.discount_percent}%
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <div className="text-base font-semibold" style={{ color: g.text }}>
-                      {option.price_kopeks === 0
-                        ? t('subscription.free', 'Бесплатно')
-                        : `${formatAmount(option.price_kopeks / 100)}\u00A0${currencySymbol}`}
-                    </div>
-                    {perMonth !== null && (
-                      <div className="text-[11px]" style={{ color: g.textSecondary }}>
-                        {formatAmount(perMonth / 100)}
-                        {'\u00A0'}
-                        {currencySymbol}/{t('subscription.month', 'мес')}
-                      </div>
-                    )}
-                    {option.original_price_kopeks && (
-                      <div className="text-[11px] line-through" style={{ color: g.textSecondary }}>
-                        {formatAmount(option.original_price_kopeks / 100)}
-                        {'\u00A0'}
-                        {currencySymbol}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {!canAfford && (
-                  <div className="mt-1 text-[11px] text-error-400">
-                    {t(
-                      'subscription.insufficientBalanceAmount',
-                      'Недостаточно средств. Не хватает {{missing}}',
-                      {
-                        missing: `${formatAmount((option.price_kopeks - balanceKopeks) / 100)}\u00A0${currencySymbol}`,
-                      },
-                    )}
-                  </div>
+              <div key={option.period_days}>
+                <PeriodOption
+                  label={`${option.period_days} ${({ one: 'день', few: 'дня', many: 'дней', other: 'дня' } as Record<string, string>)[new Intl.PluralRules('ru').select(option.period_days)]}`}
+                  price={money(option.price_kopeks)}
+                  original={
+                    option.original_price_kopeks &&
+                    option.original_price_kopeks > option.price_kopeks
+                      ? money(option.original_price_kopeks)
+                      : null
+                  }
+                  monthly={perMonth !== null ? money(perMonth) : null}
+                  saving={saving > 0 ? money(saving) : null}
+                  discount={option.discount_percent}
+                  highlighted={option.is_highlighted}
+                  selected={selectedPeriod === option.period_days}
+                  disabled={renewMutation.isPending || checkingPrice}
+                  onClick={() => {
+                    impact('light');
+                    setSelectedPeriod(option.period_days);
+                    setError(null);
+                  }}
+                />
+                {balanceKopeks < option.price_kopeks && (
+                  <p className="px-4 pt-1 text-xs text-dark-300">
+                    Не хватает {money(option.price_kopeks - balanceKopeks)}
+                  </p>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>
@@ -264,14 +259,22 @@ export default function RenewSubscription() {
         </div>
       )}
 
+      {chosen && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--xsg-line)] p-4">
+          <span className="text-sm text-dark-200">{t('subscription.total')}</span>
+          <strong className="break-words text-xl text-dark-50 [overflow-wrap:anywhere]">
+            {money(chosen.price_kopeks)}
+          </strong>
+        </div>
+      )}
       {/* Renew button */}
       {selectedPeriod && (
         <button
-          onClick={() => handleRenew(selectedPeriod)}
-          disabled={renewMutation.isPending}
+          onClick={() => void handleRenew(selectedPeriod)}
+          disabled={renewMutation.isPending || checkingPrice}
           className="w-full rounded-2xl bg-accent-500 py-3.5 text-base font-semibold text-on-accent transition-colors hover:bg-accent-600 disabled:opacity-50"
         >
-          {renewMutation.isPending
+          {renewMutation.isPending || checkingPrice
             ? t('common.processing', 'Обработка...')
             : t('subscription.extend', 'Продлить подписку')}
         </button>

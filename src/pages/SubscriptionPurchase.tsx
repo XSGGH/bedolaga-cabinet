@@ -22,7 +22,7 @@ export default function SubscriptionPurchase() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const subscriptionId = searchParams.get('subscriptionId')
-    ? parseInt(searchParams.get('subscriptionId')!, 10)
+    ? parseInt(searchParams.get('subscriptionId') ?? '', 10)
     : undefined;
   const { isDark } = useTheme();
   const g = getGlassColors(isDark);
@@ -129,7 +129,7 @@ export default function SubscriptionPurchase() {
     );
   }
 
-  if (optionsError || (!purchaseOptions && !optionsLoading)) {
+  if (!purchaseOptions && (optionsError || !optionsLoading)) {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-dark-50 sm:text-3xl">{t('subscription.extend')}</h1>
@@ -301,7 +301,8 @@ export default function SubscriptionPurchase() {
               /* Tariff Purchase Form (extracted into its own component) */
               <TariffPurchaseForm
                 key={selectedTariff.id}
-                tariff={selectedTariff}
+                tariff={tariffs.find((tariff) => tariff.id === selectedTariff.id) ?? selectedTariff}
+                currentSubscription={subscription}
                 subscriptionId={subscriptionId}
                 balanceKopeks={purchaseOptions?.balance_kopeks}
                 sbpPurchaseEnabled={

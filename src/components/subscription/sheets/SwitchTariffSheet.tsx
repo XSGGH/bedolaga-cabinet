@@ -11,6 +11,7 @@ import { dailyPriceQuote } from '../purchase/dailyPrice';
 import InsufficientBalancePrompt from '../../InsufficientBalancePrompt';
 import type { Tariff } from '../../../types';
 import { Skeleton, SkeletonGroup } from '../../ui/skeleton';
+import { trafficReminder } from '../purchase/tariffPresentation';
 
 // ──────────────────────────────────────────────────────────────────
 // SwitchTariffSheet
@@ -81,9 +82,15 @@ export function SwitchTariffSheet({
       ? t('subscription.free', 'Бесплатно')
       : `${formatAmount(kopeks / 100)}\u00A0${currencySymbol}`;
 
-  const { data: switchPreview, isLoading: switchPreviewLoading } = useQuery({
-    queryKey: ['tariff-switch-preview', tariffId],
-    queryFn: () => subscriptionApi.previewTariffSwitch(tariffId!, subscriptionId),
+  const {
+    data: switchPreview,
+    isLoading: switchPreviewLoading,
+    isError: previewError,
+    error: previewFailure,
+    refetch: retryPreview,
+  } = useQuery({
+    queryKey: ['tariff-switch-preview', tariffId, subscriptionId],
+    queryFn: () => subscriptionApi.previewTariffSwitch(tariffId ?? 0, subscriptionId),
     enabled: !!tariffId,
   });
 
@@ -128,14 +135,25 @@ export function SwitchTariffSheet({
         <h3 className="font-medium text-dark-100">{t('subscription.switchTariff.title')}</h3>
         <button
           onClick={onClose}
-          className="text-sm text-dark-400 hover:text-dark-200"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-sm text-dark-300 hover:bg-dark-700/40"
           aria-label={t('common.close', 'Close')}
         >
           ✕
         </button>
       </div>
 
-      {switchPreviewLoading ? (
+      {previewError ? (
+        <div role="alert" className="space-y-2 text-sm text-dark-200">
+          <p>{getErrorMessage(previewFailure)}</p>
+          <button
+            type="button"
+            onClick={() => void retryPreview()}
+            className="min-h-11 text-accent-300"
+          >
+            {t('common.retry')}
+          </button>
+        </div>
+      ) : switchPreviewLoading ? (
         <SkeletonGroup className="space-y-3">
           <Skeleton variant="card" count={3} className="h-16" />
         </SkeletonGroup>
@@ -155,13 +173,13 @@ export function SwitchTariffSheet({
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between gap-2 text-dark-300">
                   <span className="shrink-0">{t('subscription.switchTariff.currentTariff')}</span>
-                  <span className="min-w-0 truncate font-medium text-dark-100">
+                  <span className="min-w-0 break-words text-right font-medium text-dark-100 [overflow-wrap:anywhere]">
                     {switchPreview.current_tariff_name || '-'}
                   </span>
                 </div>
                 <div className="flex justify-between gap-2 text-dark-300">
                   <span className="shrink-0">{t('subscription.switchTariff.newTariff')}</span>
-                  <span className="min-w-0 truncate font-medium text-accent-400">
+                  <span className="min-w-0 break-words text-right font-medium text-accent-400 [overflow-wrap:anywhere]">
                     {switchPreview.new_tariff_name}
                   </span>
                 </div>
@@ -170,6 +188,20 @@ export function SwitchTariffSheet({
                   <span>{switchPreview.remaining_days}</span>
                 </div>
               </div>
+
+              {targetTariff && (
+                <div className="space-y-1 text-xs leading-relaxed text-dark-300">
+                  {trafficReminder(targetTariff).map((text) => (
+                    <p key={text}>{text}</p>
+                  ))}
+                  <p>
+                    Базовый лимит тарифа:{' '}
+                    {(targetTariff.base_device_limit ?? targetTariff.device_limit) ||
+                      'без ограничений'}
+                    .
+                  </p>
+                </div>
+              )}
 
               {isDailyTariff && (
                 <div className="rounded-lg border border-accent-500/30 bg-accent-500/10 p-3 text-center">

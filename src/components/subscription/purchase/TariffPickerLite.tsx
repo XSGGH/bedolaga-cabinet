@@ -5,6 +5,7 @@ import { useCurrency } from '../../../hooks/useCurrency';
 import { usePromoDiscount } from '../../../hooks/usePromoDiscount';
 import type { Tariff } from '../../../types';
 import { dailyPriceQuote } from './dailyPrice';
+import { entryPeriod } from './tariffPresentation';
 import { tariffAction } from './tariffAction';
 import type { TariffPickerGridProps } from './TariffPickerGrid';
 
@@ -46,11 +47,11 @@ export function TariffPickerLite({
         was: daily.original && daily.original > daily.price ? formatPrice(daily.original) : null,
       };
     }
-    const first = tariff.periods[0];
+    const first = entryPeriod(tariff, applyPromoDiscount);
     if (first) {
       const promo = applyPromoDiscount(first.price_kopeks || 0, first.original_price_kopeks);
       return {
-        text: `${t('subscription.from')} ${formatPrice(promo.price)}`,
+        text: `${promo.price > 0 ? `${t('subscription.from')} ` : ''}${formatPrice(promo.price)} · ${first.label || t('subscription.days', { count: first.days })}`,
         was: promo.original && promo.original > promo.price ? formatPrice(promo.original) : null,
       };
     }
@@ -82,7 +83,7 @@ export function TariffPickerLite({
           <>
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-2">
-                <span className="truncate text-[16px] font-semibold text-dark-50">
+                <span className="break-words text-[16px] [overflow-wrap:anywhere] font-semibold text-dark-50">
                   {tariff.name}
                 </span>
                 {isCurrent && (
@@ -91,11 +92,9 @@ export function TariffPickerLite({
                   </span>
                 )}
               </span>
-              <span className="mt-1 block truncate text-[14px] text-dark-400">
-                {details(tariff)}
-              </span>
+              <span className="mt-1 block text-[14px] text-dark-400">{details(tariff)}</span>
             </span>
-            <span className="flex shrink-0 items-center gap-2">
+            <span className="flex max-w-[50%] items-center gap-2">
               <span className="text-right">
                 <span className="block text-[15px] font-medium tabular-nums text-accent-400">
                   {price.text}
