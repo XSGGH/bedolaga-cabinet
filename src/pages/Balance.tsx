@@ -16,7 +16,7 @@ import { Button } from '@/components/primitives/Button';
 import { ChevronDownIcon, ChevronRightIcon, CreditCardIcon, WalletIcon } from '@/components/icons';
 import { staggerContainer, staggerItem } from '@/components/motion/transitions';
 import { isPaidStatus, isFailedStatus } from '../utils/paymentStatus';
-import { transactionTypeBadge, transactionTypeLabelKey } from '../utils/transactionType';
+import { transactionPresentation } from '../utils/transactionPresentation';
 import { Skeleton, SkeletonGroup } from '@/components/ui/skeleton';
 
 export default function Balance() {
@@ -283,12 +283,13 @@ export default function Balance() {
                           </SkeletonGroup>
                         ) : transactions?.items && transactions.items.length > 0 ? (
                           <motion.div
-                            className="space-y-3"
+                            className="divide-y divide-divider"
                             variants={staggerContainer}
                             initial="initial"
                             animate="animate"
                           >
                             {transactions.items.map((tx) => {
+                              const presentation = transactionPresentation(tx);
                               const isZero = tx.amount_rubles === 0;
                               const isPositive = tx.amount_rubles > 0;
                               const displayAmount = Math.abs(tx.amount_rubles);
@@ -303,7 +304,7 @@ export default function Balance() {
                                 <motion.div
                                   key={tx.id}
                                   variants={staggerItem}
-                                  className="rounded-linear border border-dark-700/30 bg-dark-800/30 p-4"
+                                  className="py-3 first:pt-0 last:pb-0"
                                 >
                                   {/* Сумма — в строке с типом и датой и держит свою ширину;
                                 описание — под ними во всю ширину. Рядом с суммой
@@ -311,16 +312,16 @@ export default function Balance() {
                                 сжатия сумму уводило за край карточки, и карточка
                                 её обрезала. */}
                                   <div className="flex items-start justify-between gap-3">
-                                    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                                      <span className={transactionTypeBadge(tx.type)}>
-                                        {t(transactionTypeLabelKey(tx.type))}
+                                    <div className="min-w-0 flex-1 space-y-1">
+                                      <span className="block text-sm font-medium text-dark-100">
+                                        {t(presentation.labelKey)}
                                       </span>
-                                      <span className="text-xs text-dark-500">
+                                      <span className="block text-xs text-dark-400">
                                         {new Date(tx.created_at).toLocaleDateString(uiLocale())}
                                       </span>
                                     </div>
                                     <div
-                                      className={`shrink-0 whitespace-nowrap text-lg font-semibold ${colorClass}`}
+                                      className={`shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums ${colorClass}`}
                                     >
                                       {sign}
                                       {formatAmount(displayAmount)}
@@ -329,9 +330,9 @@ export default function Balance() {
                                     </div>
                                   </div>
                                   {/* Почта, ник, номер счёта — без пробелов, переносятся где угодно. */}
-                                  {tx.description && (
+                                  {presentation.description && (
                                     <div className="mt-2 text-sm text-dark-400 [overflow-wrap:anywhere]">
-                                      {tx.description}
+                                      {presentation.description}
                                     </div>
                                   )}
                                 </motion.div>
@@ -339,7 +340,7 @@ export default function Balance() {
                             })}
                           </motion.div>
                         ) : (
-                          <div className="py-12 text-center">
+                          <div className="py-5 text-center">
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-linear-lg bg-dark-800">
                               <WalletIcon className="h-8 w-8 text-dark-500" />
                             </div>

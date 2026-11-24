@@ -670,7 +670,7 @@ export default function Wheel() {
         {/* Управление и призы */}
         <div className="space-y-4">
           <div className={panel}>
-            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+            <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-sm font-medium text-dark-200">Доступно вращений</h2>
               <strong className="text-lg font-bold tabular-nums text-dark-50">
                 {config.daily_limit > 0
@@ -678,7 +678,7 @@ export default function Wheel() {
                   : 'Без дневного лимита'}
               </strong>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-2.5">
               {/* Cost is visible before either payment path. */}
               <div className="space-y-2">
                 {bothMethodsAvailable && (
@@ -1017,10 +1017,10 @@ export default function Wheel() {
                     {group.items.map((prize) => (
                       <span
                         key={prize.id}
-                        className="max-w-full break-words rounded-md px-2 py-1 text-xs font-medium [overflow-wrap:anywhere]"
+                        className="max-w-full break-words rounded-lg px-3 py-2 text-[13px] font-medium [overflow-wrap:anywhere]"
                         style={{
                           color,
-                          backgroundColor: 'var(--bg-inset)',
+                          backgroundColor: 'var(--bg-elevated)',
                         }}
                       >
                         {rewardTitle(prize)}

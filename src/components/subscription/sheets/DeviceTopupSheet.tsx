@@ -77,7 +77,7 @@ export function DeviceTopupSheet({
     },
   });
 
-  const actionTitle = t('subscription.actionsUi.DeviceTopupSheet', 'Добавить места');
+  const actionTitle = t('addonsUi.increaseDevices');
   if (availabilityError)
     return (
       <AddonFeedback
@@ -128,7 +128,7 @@ export function DeviceTopupSheet({
       >
         <PlusIcon className="h-4 w-4 shrink-0" />
         <span className="min-w-0 flex-1">
-          {t('subscription.actionsUi.DeviceTopupSheet', 'Добавить места')}
+          {t('addonsUi.increaseDevices')}
         </span>
         <ChevronRightIcon className="h-4 w-4 shrink-0" />
       </button>
@@ -139,7 +139,7 @@ export function DeviceTopupSheet({
       className={`rounded-xl border p-5 ${isDark ? 'border-dark-700/50 bg-dark-800/50' : 'border-champagne-300/60 bg-champagne-200/40'}`}
     >
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-medium text-dark-100">{t('subscription.buyDevices')}</h3>
+        <h3 className="font-medium text-dark-100">{t('addonsUi.devicesPurchaseTitle')}</h3>
         <button
           onClick={onClose}
           className="text-sm text-dark-400 hover:text-dark-200"

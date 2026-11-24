@@ -14,11 +14,8 @@ import { useCurrency } from '../hooks/useCurrency';
 import { StatCard } from '@/components/stats';
 import { PageSkeleton, Skeleton } from '@/components/ui/skeleton';
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
   BanknotesIcon,
   CalendarIcon,
-  CardIcon,
   CheckIcon,
   ClockIcon,
   CopyIcon,
@@ -665,7 +662,7 @@ export default function Referral() {
       <h1 className="text-2xl font-bold text-dark-50 sm:text-3xl">{t('referral.title')}</h1>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+      <div className="grid grid-cols-2 gap-1 rounded-2xl border border-line bg-surface p-2 md:grid-cols-3 [&_.rounded-2xl]:border-0 [&_.rounded-2xl]:bg-transparent [&_.rounded-2xl]:p-2">
         <div className="col-span-2 md:col-span-1">
           <StatCard
             label={t('referral.stats.totalReferrals')}
@@ -723,7 +720,7 @@ export default function Referral() {
                   <div>
                     <div className="mb-1.5 flex items-center gap-2 text-sm font-medium text-dark-300">
                       <TelegramIcon className="h-4 w-4 text-accent-400" />
-                      {t('referral.botLink')}
+                      {t('referral.viaTelegram')}
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row">
                       <input
@@ -734,7 +731,7 @@ export default function Referral() {
                       />
                       <button
                         onClick={() => copyLink(botReferralLink, 'bot')}
-                        className={`btn-primary shrink-0 px-4 ${
+                        className={`btn-secondary shrink-0 px-4 ${
                           copiedLink === 'bot' ? 'bg-success-500 hover:bg-success-500' : ''
                         }`}
                       >
@@ -750,7 +747,7 @@ export default function Referral() {
                 <div>
                   <div className="mb-1.5 flex items-center gap-2 text-sm font-medium text-dark-300">
                     <LinkIcon className="h-4 w-4 text-accent-400" />
-                    {t('referral.cabinetLink')}
+                    {t('referral.viaWebsite')}
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <input
@@ -765,7 +762,7 @@ export default function Referral() {
                       <button
                         onClick={() => copyLink(referralLink, 'cabinet')}
                         disabled={!referralLink}
-                        className={`btn-primary min-w-0 shrink-0 px-4 ${
+                        className={`btn-secondary min-w-0 shrink-0 px-4 ${
                           copiedLink === 'cabinet' ? 'bg-success-500 hover:bg-success-500' : ''
                         } ${!referralLink ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
@@ -777,7 +774,7 @@ export default function Referral() {
                       <button
                         onClick={shareLink}
                         disabled={!referralLink}
-                        className={`btn-secondary flex min-w-0 shrink-0 items-center justify-center px-4 ${
+                        className={`btn-primary flex min-w-0 shrink-0 items-center justify-center px-4 ${
                           !referralLink ? 'cursor-not-allowed opacity-50' : ''
                         }`}
                       >
@@ -830,7 +827,7 @@ export default function Referral() {
                   ))}
                 </div>
               ) : (
-                <div className="py-12 text-center">
+                <div className="py-5 text-center text-sm">
                   <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-dark-800">
                     <UsersIcon className="h-8 w-8 text-dark-500" />
                   </div>
@@ -916,40 +913,20 @@ export default function Referral() {
                       </h2>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                      <div className="col-span-2 md:col-span-1">
-                        <StatCard
-                          label={t('referral.withdrawal.available')}
-                          value={formatWithCurrency(withdrawalBalance.available_total / 100)}
-                          icon={<WalletIcon className="h-5 w-5" />}
-                          tone="success"
-                        />
-                      </div>
-                      <StatCard
-                        label={t('referral.withdrawal.totalEarned')}
-                        value={formatWithCurrency(withdrawalBalance.total_earned / 100)}
-                        icon={<BanknotesIcon className="h-5 w-5" />}
-                        tone="neutral"
-                      />
-                      <StatCard
-                        label={t('referral.withdrawal.withdrawn')}
-                        value={formatWithCurrency(withdrawalBalance.withdrawn / 100)}
-                        icon={<ArrowUpIcon className="h-5 w-5" />}
-                        tone="neutral"
-                      />
-                      <StatCard
-                        label={t('referral.withdrawal.spent')}
-                        value={formatWithCurrency(withdrawalBalance.referral_spent / 100)}
-                        icon={<CardIcon className="h-5 w-5" />}
-                        tone="neutral"
-                      />
-                      <StatCard
-                        label={t('referral.withdrawal.pending')}
-                        value={formatWithCurrency(withdrawalBalance.pending / 100)}
-                        icon={<ArrowDownIcon className="h-5 w-5" />}
-                        tone="warning"
-                      />
-                    </div>
+                    <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+                      {[
+                        ['available', withdrawalBalance.available_total],
+                        ['totalEarned', withdrawalBalance.total_earned],
+                        ['withdrawn', withdrawalBalance.withdrawn],
+                        ['spent', withdrawalBalance.referral_spent],
+                        ['pending', withdrawalBalance.pending],
+                      ].map(([key, value], index) => (
+                        <div key={String(key)} className={index === 0 ? 'col-span-2 border-b border-divider pb-3' : ''}>
+                          <dt className="text-xs text-dark-400">{t('referral.withdrawal.' + key)}</dt>
+                          <dd className={index === 0 ? 'mt-1 text-xl font-semibold text-dark-50' : 'mt-1 text-sm font-medium text-dark-200'}>{formatWithCurrency(Number(value) / 100)}</dd>
+                        </div>
+                      ))}
+                    </dl>
 
                     <div className="mt-4">
                       <button
@@ -1016,7 +993,7 @@ export default function Referral() {
                             </div>
                             {item.admin_comment && (
                               <div className="mt-1 text-xs text-dark-400 [overflow-wrap:anywhere]">
-                                {item.admin_comment}
+                                {item.status === 'rejected' && <span className="font-medium">{t('referral.rejectionReason')} </span>}{item.admin_comment}
                               </div>
                             )}
                           </div>
@@ -1033,7 +1010,7 @@ export default function Referral() {
                       ))}
                     </div>
                   ) : (
-                    <div className="py-8 text-center">
+                    <div className="py-3 text-center text-sm">
                       <div className="text-dark-400">{t('referral.withdrawal.noHistory')}</div>
                     </div>
                   )}
@@ -1174,7 +1151,7 @@ export default function Referral() {
                     </h2>
                     {partnerStatus?.latest_application?.admin_comment && (
                       <p className="mt-1 text-sm text-dark-300 [overflow-wrap:anywhere]">
-                        {partnerStatus.latest_application.admin_comment}
+                        <span className="font-medium">{t('referral.rejectionReason')} </span>{partnerStatus.latest_application.admin_comment}
                       </p>
                     )}
                     <button

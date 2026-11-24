@@ -40,7 +40,8 @@ export default function MobileCoverage({
     .join(' · ');
 
   const summary = `Мобильные сети: ${model.up} из ${model.total} проверок успешны. ${footprint}. Не требуются: ${model.notRequired}. Без результата: ${model.noResult}. Устарели: ${model.stale}. Открыть подробности`;
-  const headline =
+  const healthy = model.total > 0 && model.up === model.total && model.down === 0 && model.noResult === 0 && model.stale === 0 && !model.checking && !model.pending;
+  const headline = healthy ? 'Работают нормально' :
     model.total === 0
       ? model.notRequired > 0 && model.noResult === 0 && model.stale === 0
         ? 'Проверка не требуется'
@@ -70,9 +71,8 @@ export default function MobileCoverage({
             <span className={`block text-sm font-semibold leading-snug ${TONES[model.tone]}`}>
               {headline}
             </span>
-            <span className="block text-xs leading-relaxed text-dark-300">{caption}</span>
-            <span className="block text-xs leading-relaxed text-dark-400">
-              {model.checking ? 'Идёт проверка' : model.pending ? 'Ждём результат' : footprint}
+            <span className="block text-xs leading-relaxed text-dark-300">
+              {healthy ? 'Все необходимые проверки пройдены' : model.down > 0 ? 'Есть подтверждённые проблемы — подробнее' : model.checking ? 'Идёт проверка' : model.pending ? 'Ждём результат' : model.noResult > 0 || model.stale > 0 ? 'Часть результатов ещё уточняется' : 'Статусы по операторам и округам — подробнее'}
             </span>
           </span>
           <ChevronRightIcon className="h-4 w-4 shrink-0 text-accent-300" />

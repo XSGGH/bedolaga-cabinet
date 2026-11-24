@@ -912,6 +912,8 @@
     }
   },
   "balance": {
+    "wheelReward": "Prize wheel reward",
+    "tariffChange": "Plan change",
     "title": "Balance",
     "currentBalance": "Current Balance",
     "topUp": "Top Up",
@@ -1121,6 +1123,9 @@
     "scanQrToPay": "Scan the QR code in your banking app or open the payment page"
   },
   "referral": {
+    "viaTelegram": "Via Telegram",
+    "viaWebsite": "Via website",
+    "rejectionReason": "Reason for rejection:",
     "title": "Referral Program",
     "yourLink": "Your Referral Links",
     "botLink": "Bot link",
@@ -8015,5 +8020,18 @@
       "contactSupport": "This is a mistake — contact support",
       "dismiss": "Got it"
     }
+  },
+  "addonsUi": {
+    "title": "Additional options",
+    "devicesTitle": "More devices",
+    "devicesHint": "Increase the number of connections",
+    "devicesPurchaseTitle": "Additional device slots",
+    "increaseDevices": "Increase limit",
+    "devicesFull": "All slots are in use",
+    "devicesFullHint": "Increase the limit to connect another device",
+    "trafficTitle": "More data",
+    "trafficHint": "Extra gigabytes for special servers",
+    "buyTraffic": "Buy extra data",
+    "buy": "Buy extra"
   }
 }

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import MobileCoverage from './MobileCoverage';
 import { ChevronDownIcon } from '@/components/icons';
@@ -135,6 +136,7 @@ function hourLabel(hoursAgo: number): string {
  */
 export default function ServerStatus() {
   const { t } = useTranslation();
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const { data, isError, isLoading } = useQuery({
     queryKey: ['server-status'],
     queryFn: ({ signal }) => fetchStatus(signal),
@@ -153,10 +155,11 @@ export default function ServerStatus() {
         <p className="mt-1 text-xs text-dark-400">
           Не удалось обновить мониторинг. Попробуем снова через минуту.
         </p>
-        <a
-          href={STATUS_PAGE}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          aria-expanded={detailsOpen}
+          aria-controls="server-status-details"
+          onClick={() => setDetailsOpen((current) => !current)}
           className="mt-2 inline-block text-xs text-accent-300"
         >
           Открыть мониторинг ›
@@ -175,6 +178,8 @@ export default function ServerStatus() {
       </section>
     );
   const mobile = data.mobile ?? data.servers.find((server) => server.mobile)?.mobile;
+  const onlineCount = data.servers.filter((server) => server.online === true && !server.maintenance).length;
+  const visibleServers = detailsOpen ? data.servers : data.servers.filter((server) => server.maintenance || server.online !== true);
 
   const unavailable = data.servers.filter((s) => s.online === false && !s.maintenance).length;
   const unknown = data.servers.some((s) => typeof s.online !== 'boolean');
@@ -198,21 +203,24 @@ export default function ServerStatus() {
         <h2 className="text-base font-semibold text-dark-100">
           {t('dashboard.serverStatus.title', 'Статус серверов')}
         </h2>
-        <a
-          href={STATUS_PAGE}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          aria-expanded={detailsOpen}
+          aria-controls="server-status-details"
+          onClick={() => setDetailsOpen((current) => !current)}
           className="flex min-h-11 shrink-0 items-center text-xs font-medium text-accent-300 hover:text-accent-200"
         >
-          {t('dashboard.serverStatus.more', 'Подробнее')} ›
-        </a>
+          {detailsOpen ? t('common.hide', 'Свернуть') : t('dashboard.serverStatus.more', 'Подробнее')}
+          <ChevronDownIcon className={`ml-1 h-3.5 w-3.5 transition-transform ${detailsOpen ? 'rotate-180' : ''}`} />
+        </button>
       </div>
       <p className="flex items-center gap-2 text-sm font-medium" style={{ color: chip.color }}>
         <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
         {chip.text}
       </p>
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        {data.servers.map((s, index) => {
+      <p className="text-xs text-dark-400">{onlineCount} из {data.servers.length} доступны</p>
+      <div id="server-status-details" hidden={visibleServers.length === 0} className="divide-y divide-divider">
+        {visibleServers.map((s) => {
           const state = s.maintenance
             ? { color: AMBER, text: 'Идут работы' }
             : s.online === true
@@ -223,7 +231,7 @@ export default function ServerStatus() {
           return (
             <div
               key={s.name}
-              className={`flex min-h-11 min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--xsg-line)] bg-elevated px-3 py-2 ${data.servers.length % 2 === 1 && index === data.servers.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}
+              className="flex min-h-10 min-w-0 items-center justify-between gap-3 py-2"
             >
               <p className="break-words text-xs font-semibold leading-relaxed text-dark-100 [overflow-wrap:anywhere]">
                 {s.mobile ? s.name.replace(/^\[📡\]\s*/, '') : s.name}
@@ -243,7 +251,7 @@ export default function ServerStatus() {
         })}
       </div>
       {mobile && <MobileCoverage mobile={mobile} progress={data.mobileNodes} />}
-      <details className="group/occupancy border-t border-[var(--xsg-line)]">
+      <details hidden={!detailsOpen} className="group/occupancy border-t border-[var(--xsg-line)]">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-lg text-xs text-dark-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 [&::-webkit-details-marker]:hidden">
           <span>Загруженность серверов</span>
           <span className="flex items-center gap-2 tabular-nums">
@@ -267,6 +275,7 @@ export default function ServerStatus() {
           </div>
         </div>
       </details>
+      {detailsOpen && <a href={STATUS_PAGE} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center text-xs font-medium text-accent-300">Открыть мониторинг ›</a>}
     </section>
   );
 }

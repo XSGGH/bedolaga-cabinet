@@ -390,7 +390,7 @@ export default function Support() {
           </motion.div>
         )}
 
-      <motion.div variants={staggerItem} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <motion.div variants={staggerItem} className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
         {/* Tickets List */}
         <Card className="lg:col-span-1">
           <h2 className="mb-4 text-lg font-semibold text-dark-100">{t('support.yourTickets')}</h2>
@@ -481,7 +481,7 @@ export default function Support() {
                   </label>
                   <textarea
                     id="support-message"
-                    className="input min-h-[168px] resize-y leading-relaxed"
+                    className="input min-h-[112px] resize-y leading-relaxed"
                     placeholder={t('support.messagePlaceholder')}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
@@ -559,7 +559,7 @@ export default function Support() {
               </form>
             </div>
           ) : selectedTicket ? (
-            <div className="flex h-full flex-col">
+            <div className="flex flex-col">
               <div className="mb-6 flex flex-col gap-2 border-b border-dark-700 pb-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-dark-100">
@@ -583,17 +583,17 @@ export default function Support() {
                   <Skeleton variant="card" count={3} className="h-16" />
                 </SkeletonGroup>
               ) : ticketDetail?.messages ? (
-                <div className="scrollbar-hide mb-6 max-h-96 flex-1 space-y-4 overflow-y-auto">
+                <div className="scrollbar-hide mb-4 max-h-96 space-y-3 overflow-y-auto">
                   {ticketDetail.messages.map((msg) => (
                     <div
                       key={msg.id}
-                      className={`rounded-2xl p-4 ${
+                      className={`max-w-[94%] rounded-2xl p-3 ${
                         msg.is_from_admin
-                          ? 'ml-4 border border-accent-500/30 bg-accent-500/10'
-                          : 'mr-4 border border-line bg-elevated'
+                          ? 'mr-auto bg-elevated'
+                          : 'ml-auto bg-accent-500/10'
                       }`}
                     >
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                         <span
                           className={`text-xs font-medium ${msg.is_from_admin ? 'text-accent-400' : 'text-dark-400'}`}
                         >
@@ -605,7 +605,7 @@ export default function Support() {
                       </div>
                       {msg.message_text && (
                         <div
-                          className="whitespace-pre-wrap break-words text-dark-200 [&_a]:text-accent-400 [&_a]:underline"
+                          className="whitespace-pre-wrap break-words text-sm leading-relaxed text-dark-200 [overflow-wrap:anywhere] [&_a]:text-accent-400 [&_a]:underline"
                           dangerouslySetInnerHTML={{ __html: linkifyText(msg.message_text) }}
                         />
                       )}
@@ -713,8 +713,8 @@ export default function Support() {
               )}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-dark-800">
+            <div className="flex items-center gap-3 py-5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-elevated">
                 <ChatIcon className="h-8 w-8 text-dark-500" />
               </div>
               <div className="text-dark-400">{t('support.selectTicket')}</div>

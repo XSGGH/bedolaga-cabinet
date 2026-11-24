@@ -3,7 +3,9 @@ import { TrialAllowancePanel } from '@/components/subscription/TrialAllowancePan
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Navigate, useNavigate, useParams } from 'react-router';
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
+import { useAddonAvailability } from '@/hooks/useAddonAvailability';
+import AddonOpportunities from '@/components/subscription/AddonOpportunities';
 import { subscriptionApi } from '../api/subscription';
 import { WebBackButton } from '../components/WebBackButton';
 import ConnectDeviceTile from '../components/dashboard/ConnectDeviceTile';
@@ -135,6 +137,8 @@ export default function Subscription() {
   const [showTrafficTopup, setShowTrafficTopup] = useState(false);
   const [showRecurring, setShowRecurring] = useState(false);
   const [devicesOpen, setDevicesOpen] = useState(false);
+  const [trafficOpen, setTrafficOpen] = useState(false);
+  const [addonParams, setAddonParams] = useSearchParams();
   const isDesktop = useIsDesktop();
   const [selectedTrafficPackage, setSelectedTrafficPackage] = useState<number | null>(null);
 
@@ -176,6 +180,32 @@ export default function Subscription() {
 
   // Extract subscription from response (null if no subscription)
   const subscription = subscriptionResponse?.subscription ?? null;
+  const { canAddDevices, canAddTraffic } = useAddonAvailability(subscription, subscriptionId);
+  const openAddon = useCallback((kind: 'devices' | 'traffic') => {
+    if (kind === 'devices') {
+      if (!canAddDevices) return;
+      setDevicesOpen(true);
+      setDeviceAction('add');
+    } else {
+      if (!canAddTraffic) return;
+      setTrafficOpen(true);
+      setShowTrafficTopup(true);
+    }
+    requestAnimationFrame(() => {
+      const target = document.getElementById(kind === 'devices' ? 'subscription-device-topup' : 'subscription-traffic-topup');
+      target?.scrollIntoView({ behavior: 'auto', block: 'start' });
+      target?.focus({ preventScroll: true });
+    });
+  }, [canAddDevices, canAddTraffic]);
+  useEffect(() => {
+    const requested = addonParams.get('addon');
+    if ((requested === 'devices' && canAddDevices) || (requested === 'traffic' && canAddTraffic)) {
+      openAddon(requested);
+      const next = new URLSearchParams(addonParams);
+      next.delete('addon');
+      setAddonParams(next, { replace: true, preventScrollReset: true });
+    }
+  }, [addonParams, canAddDevices, canAddTraffic, openAddon, setAddonParams]);
   const displayedConnectionUrl = useMemo(
     () =>
       resolveConnectionUrlForUi({
@@ -624,6 +654,8 @@ export default function Subscription() {
                           <ConnectDeviceTile
                             subscription={subscription}
                             connectedDevices={devicesData?.total ?? 0}
+                            canIncreaseLimit={canAddDevices}
+                            onIncreaseLimit={() => openAddon('devices')}
                             connectionPath={
                               subscriptionId ? `/connection?sub=${subscriptionId}` : '/connection'
                             }
@@ -659,6 +691,7 @@ export default function Subscription() {
                     )}
                   </div>
 
+                  <AddonOpportunities canAddDevices={canAddDevices} canAddTraffic={canAddTraffic && !isUnlimited} onDevices={() => openAddon('devices')} onTraffic={() => openAddon('traffic')} />
                   {!isUnlimited && (
                     <div
                       className="xsg-traffic order-2 overflow-hidden rounded-[20px]"
@@ -670,6 +703,8 @@ export default function Subscription() {
                     >
                       <CollapsibleSection
                         title={t('dashboard.trafficUsageTitle')}
+                        open={trafficOpen}
+                        onOpenChange={setTrafficOpen}
                         hideSummaryWhenOpen
                         summary={
                           <span>
@@ -832,7 +867,7 @@ export default function Subscription() {
                           )}
                           {/* ─── Buy traffic (action row) ─── */}
                           {showsAddonOptions(subscription) && subscription.traffic_limit_gb > 0 && (
-                            <div className="mt-3">
+                            <div id="subscription-traffic-topup" tabIndex={-1} className="mt-3 scroll-mt-24">
                               <TrafficTopupSheet
                                 open={showTrafficTopup}
                                 onOpen={() => setShowTrafficTopup(true)}
@@ -848,6 +883,7 @@ export default function Subscription() {
                           )}
                         </div>
                       </CollapsibleSection>
+                      {canAddTraffic && <div className="px-4 pb-3 sm:px-6"><button type="button" onClick={() => openAddon('traffic')} className={`inline-flex min-h-10 items-center rounded-lg px-2 text-xs font-medium hover:bg-accent-500/10 active:bg-selected ${Number.isFinite(usedPercent) && usedPercent >= 80 ? 'text-warning-300' : 'text-accent-300'}`}>+ {t('addonsUi.buyTraffic')}</button></div>}
                     </div>
                   )}
                 </>
@@ -929,7 +965,9 @@ export default function Subscription() {
                   </div>
                   {showsAddonOptions(subscription) && (
                     <div
-                      className={`px-4 pb-4 pt-2 ${
+                      id="subscription-device-topup"
+                      tabIndex={-1}
+                      className={`scroll-mt-24 px-4 pb-4 pt-2 ${
                         showDeviceTopup || showDeviceReduction
                           ? 'space-y-3'
                           : 'grid grid-cols-1 gap-2 sm:grid-cols-2'

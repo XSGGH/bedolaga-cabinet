@@ -9,6 +9,7 @@ import { formatTraffic, formatTrafficPercent } from '../../utils/formatTraffic';
 import type { Subscription } from '../../types';
 import TrafficProgressBar from './TrafficProgressBar';
 import ConnectDeviceTile from './ConnectDeviceTile';
+import { useAddonAvailability } from '@/hooks/useAddonAvailability';
 import TrafficRefreshButton from './TrafficRefreshButton';
 
 interface SubscriptionCardActiveProps {
@@ -31,6 +32,7 @@ export default function SubscriptionCardActive({
   connectedDevices,
 }: SubscriptionCardActiveProps) {
   const { t } = useTranslation();
+  const { canAddDevices, canAddTraffic } = useAddonAvailability(subscription, subscription.id);
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
   const usedGb = trafficData?.traffic_used_gb ?? subscription.traffic_used_gb;
@@ -99,7 +101,7 @@ export default function SubscriptionCardActive({
         </div>
 
         <div className="space-y-1.5">
-          <ConnectDeviceTile subscription={subscription} connectedDevices={connectedDevices} />
+          <ConnectDeviceTile subscription={subscription} connectedDevices={connectedDevices} canIncreaseLimit={canAddDevices} />
           <Link
             to={`/subscriptions/${subscription.id}`}
             className="xsg-action-row justify-between text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
@@ -155,6 +157,7 @@ export default function SubscriptionCardActive({
                   })
                 : t('dashboard.ui.noTraffic', 'Статистика пока недоступна')}
             </p>
+            {canAddTraffic && <Link to={`/subscriptions/${subscription.id}?addon=traffic`} className={`mt-1 inline-flex min-h-10 items-center rounded-lg px-2 text-xs font-medium hover:bg-accent-500/10 active:bg-selected ${trafficKnown && usedPercent >= 80 ? 'text-warning-300' : 'text-accent-300'}`}>+ {t('addonsUi.buyTraffic')}</Link>}
             {refreshTrafficMutation.isError && (
               <p role="status" className="mt-2 text-xs text-warning-400">
                 {t('dashboard.ui.refreshError', 'Не удалось обновить. Показан последний замер.')}

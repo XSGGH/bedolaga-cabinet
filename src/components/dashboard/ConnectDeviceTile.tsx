@@ -8,6 +8,8 @@ interface ConnectDeviceTileProps {
   usedPercent?: number;
   onManage?: () => void;
   connectionPath?: string;
+  canIncreaseLimit?: boolean;
+  onIncreaseLimit?: () => void;
 }
 
 export default function ConnectDeviceTile({
@@ -15,6 +17,8 @@ export default function ConnectDeviceTile({
   connectedDevices,
   onManage,
   connectionPath,
+  canIncreaseLimit = false,
+  onIncreaseLimit,
 }: ConnectDeviceTileProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -40,9 +44,7 @@ export default function ConnectDeviceTile({
         {full ? t('subscription.myDevices') : t('dashboard.connectDevice')}
       </button>
       <p className="mt-1.5 text-center text-xs leading-relaxed text-dark-200">
-        {full
-          ? t('dashboard.ui.allDevicesUsed', 'Все места заняты · управляйте устройствами')
-          : subscription.device_limit === 0
+        {subscription.device_limit === 0
             ? t('dashboard.devicesConnectedUnlimited', { used: connectedDevices })
             : t('dashboard.ui.connectedDevices', {
                 defaultValue: 'Подключено {{used}} из {{max}} устройств',
@@ -50,6 +52,8 @@ export default function ConnectDeviceTile({
                 max: subscription.device_limit,
               })}
       </p>
+      {full && <p className="mt-1 text-center text-xs leading-relaxed text-warning-300">{t('addonsUi.devicesFull')}{canIncreaseLimit && <span className="mt-1 block text-dark-300">{t('addonsUi.devicesFullHint')}</span>}</p>}
+      {canIncreaseLimit && <button type="button" onClick={() => onIncreaseLimit ? onIncreaseLimit() : navigate(`/subscriptions/${subscription.id}?addon=devices`)} className="mx-auto mt-1 flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-medium text-accent-300 hover:bg-accent-500/10 active:bg-selected">+ {t('addonsUi.increaseDevices')}</button>}
     </div>
   );
 }
