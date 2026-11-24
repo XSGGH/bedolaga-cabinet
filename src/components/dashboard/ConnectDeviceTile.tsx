@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { MonitorIcon } from '@/components/icons';
+import AddonPurchaseButton from '@/components/subscription/AddonPurchaseButton';
 
 interface ConnectDeviceTileProps {
   subscription: { id: number; device_limit: number; subscription_url?: string | null };
@@ -64,18 +65,17 @@ export default function ConnectDeviceTile({
           )}
         </p>
       )}
-      {canIncreaseLimit && (
-        <button
-          type="button"
+      {full && canIncreaseLimit && (
+        <AddonPurchaseButton
           onClick={() =>
             onIncreaseLimit
               ? onIncreaseLimit()
               : navigate(`/subscriptions/${subscription.id}?addon=devices`)
           }
-          className="mx-auto mt-1 flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-medium text-accent-300 hover:bg-accent-500/10 active:bg-selected"
+          className="mt-2 w-full"
         >
-          + {t('addonsUi.increaseDevices')}
-        </button>
+          {t('addonsUi.increaseDevices')}
+        </AddonPurchaseButton>
       )}
     </div>
   );

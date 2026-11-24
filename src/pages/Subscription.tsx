@@ -6,6 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { useAddonAvailability } from '@/hooks/useAddonAvailability';
 import SubscriptionPlanHeader from '@/components/subscription/SubscriptionPlanHeader';
+import AddonPurchaseButton, {
+  addonActionClass,
+} from '@/components/subscription/AddonPurchaseButton';
 import { subscriptionApi } from '../api/subscription';
 import { WebBackButton } from '../components/WebBackButton';
 import ConnectDeviceTile from '../components/dashboard/ConnectDeviceTile';
@@ -470,7 +473,7 @@ export default function Subscription() {
       </div>
       {subscription ? (
         <>
-          <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+          <div className="min-w-0 space-y-4 pb-4">
             <div className="min-w-0 space-y-4">
               <section className="xsg-subscription-hero space-y-4 overflow-hidden rounded-3xl border border-line bg-surface p-4 sm:p-6">
                 <SubscriptionPlanHeader
@@ -587,6 +590,22 @@ export default function Subscription() {
                 {subscription.is_daily && !subscription.is_trial && (
                   <DailyPausePanel subscription={subscription} subscriptionId={subscriptionId} />
                 )}
+                {isMultiTariff &&
+                  !subscription.is_active &&
+                  !subscription.is_trial &&
+                  !subscription.is_limited && (
+                    <DeleteSubscriptionSheet
+                      subscriptionId={subscription.id}
+                      open={showDeleteSheet}
+                      onOpen={() => setShowDeleteSheet(true)}
+                      onClose={() => setShowDeleteSheet(false)}
+                      textSecondary={g.textSecondary}
+                      onDeleted={() => {
+                        queryClient.invalidateQueries({ queryKey: ['subscriptions-list'] });
+                        navigate('/subscriptions', { replace: true });
+                      }}
+                    />
+                  )}
               </section>
 
               <section
@@ -619,14 +638,43 @@ export default function Subscription() {
                 {devicesData && deviceLimit > 0 && connectedDevices >= deviceLimit && (
                   <p className="mt-2 text-xs text-warning-300">{t('addonsUi.devicesFull')}</p>
                 )}
-                {canAddDevices && (
-                  <button
-                    type="button"
-                    onClick={() => openAddon('devices')}
-                    className="mt-2 inline-flex min-h-11 items-center rounded-lg px-2 text-[13px] font-medium text-accent-300 hover:bg-accent-500/10 active:bg-selected"
-                  >
-                    + {t('addonsUi.increaseDevices')}
-                  </button>
+                {showsAddonOptions(subscription) && (
+                  <div className="mt-2">
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        aria-label={t('subscriptionCommand.reduceDevices')}
+                        aria-describedby={!canReduceDevices ? 'device-reduction-reason' : undefined}
+                        disabled={!canReduceDevices}
+                        title={t('subscriptionCommand.reduceDevices')}
+                        onClick={() => {
+                          setShowTrafficTopup(false);
+                          setDeviceAction('reduce');
+                        }}
+                        className={`${addonActionClass} h-11 w-11 shrink-0 px-0 text-xl`}
+                      >
+                        <span aria-hidden="true">−</span>
+                      </button>
+                      {canAddDevices && (
+                        <AddonPurchaseButton
+                          className="flex-1"
+                          onClick={() => openAddon('devices')}
+                        >
+                          {t('addonsUi.increaseDevices')}
+                        </AddonPurchaseButton>
+                      )}
+                    </div>
+                    {!canReduceDevices && (
+                      <p
+                        id="device-reduction-reason"
+                        className="mt-1.5 text-xs leading-relaxed text-dark-400"
+                      >
+                        {minimumDeviceLimit !== undefined && deviceLimit <= minimumDeviceLimit
+                          ? t('subscriptionCommand.minimumDevices', { count: minimumDeviceLimit })
+                          : t('subscriptionCommand.reductionUnavailable')}
+                      </p>
+                    )}
+                  </div>
                 )}
                 <CollapsibleSection
                   title={t('subscriptionCommand.deviceList')}
@@ -638,7 +686,6 @@ export default function Subscription() {
                     subscription={subscription}
                     subscriptionId={subscriptionId}
                     hideTitle
-                    hideBulkDelete
                   />
                 </CollapsibleSection>
               </section>
@@ -687,23 +734,13 @@ export default function Subscription() {
                     {t('subscriptionCommand.specialTraffic')}
                     {subscription.traffic_reset_mode &&
                       subscription.traffic_reset_mode !== 'NO_RESET' && (
-                        <>
-                          {' '}
-                          · {t('subscription.trafficReset.' + subscription.traffic_reset_mode)}
-                        </>
+                        <> · {t('subscription.trafficReset.' + subscription.traffic_reset_mode)}</>
                       )}
                   </p>
                   {canAddTraffic && (
-                    <button
-                      type="button"
-                      onClick={() => openAddon('traffic')}
-                      className={
-                        'inline-flex min-h-11 items-center rounded-lg px-2 text-[13px] font-medium hover:bg-accent-500/10 active:bg-selected ' +
-                        (trafficKnown && usedPercent >= 80 ? 'text-warning-300' : 'text-accent-300')
-                      }
-                    >
-                      + {t('addonsUi.buyTraffic')}
-                    </button>
+                    <AddonPurchaseButton onClick={() => openAddon('traffic')} className="w-full">
+                      {t('addonsUi.buyTraffic')}
+                    </AddonPurchaseButton>
                   )}
                   {refreshTrafficMutation.isError && (
                     <p role="status" className="text-xs text-warning-300">
@@ -718,9 +755,7 @@ export default function Subscription() {
                     headerClassName="min-h-11 py-2"
                   >
                     <div className="space-y-3 text-[13px] leading-relaxed text-dark-300">
-                      <p>
-                        {t('subscriptionCommand.trafficScopeNote')}
-                      </p>
+                      <p>{t('subscriptionCommand.trafficScopeNote')}</p>
                       {subscription.traffic_purchases &&
                         subscription.traffic_purchases.length > 0 && (
                           <div className="mb-5 space-y-2">
@@ -789,62 +824,23 @@ export default function Subscription() {
                 </section>
               )}
             </div>
-            <section className="min-w-0 rounded-2xl border border-line bg-surface px-4 sm:px-5">
-              <CollapsibleSection
-                title={t('subscription.manage.additional', 'Дополнительные действия')}
-                headerClassName="min-h-12 py-3"
-              >
-                <div className="space-y-3 pb-4">
-                  {canReduceDevices && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowTrafficTopup(false);
-                        setDeviceAction('reduce');
-                      }}
-                      className="xsg-action-row w-full text-sm font-medium"
-                    >
-                      {t('subscription.actionsUi.DeviceReductionSheet', 'Уменьшить лимит')} ›
-                    </button>
-                  )}
-                  {minimumDeviceLimit !== undefined && (
-                    <p className="text-xs text-dark-400">
-                      {t('subscriptionCommand.minimumDevices', { count: minimumDeviceLimit })}
-                    </p>
-                  )}
-                  <DevicesPanel
-                    subscription={subscription}
-                    subscriptionId={subscriptionId}
-                    hideTitle
-                    actionsOnly
-                  />
-                  {canReissueLink(subscription) && (
+            {canReissueLink(subscription) && (
+              <section className="min-w-0 rounded-2xl border border-line bg-surface px-4 sm:px-5">
+                <CollapsibleSection
+                  title={t('subscription.manage.additional', 'Дополнительные действия')}
+                  headerClassName="min-h-12 py-3"
+                >
+                  <div className="space-y-3 pb-4">
                     <ReissueLinkButton
                       subscription={subscription}
                       subscriptionId={subscriptionId}
                       inline
                       quiet
                     />
-                  )}
-                  {isMultiTariff &&
-                    !subscription.is_active &&
-                    !subscription.is_trial &&
-                    !subscription.is_limited && (
-                      <DeleteSubscriptionSheet
-                        subscriptionId={subscription.id}
-                        open={showDeleteSheet}
-                        onOpen={() => setShowDeleteSheet(true)}
-                        onClose={() => setShowDeleteSheet(false)}
-                        textSecondary={g.textSecondary}
-                        onDeleted={() => {
-                          queryClient.invalidateQueries({ queryKey: ['subscriptions-list'] });
-                          navigate('/subscriptions', { replace: true });
-                        }}
-                      />
-                    )}
-                </div>
-              </CollapsibleSection>
-            </section>
+                  </div>
+                </CollapsibleSection>
+              </section>
+            )}
           </div>
 
           {showsAddonOptions(subscription) && (

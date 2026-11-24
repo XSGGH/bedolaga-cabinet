@@ -89,6 +89,7 @@ export default function Dashboard() {
     queryFn: () => subscriptionApi.getDevices(),
     enabled: !!subscription && !isMultiTariff,
     staleTime: API.BALANCE_STALE_TIME_MS,
+    refetchOnMount: 'always',
   });
 
   // Плитка «Подключить устройство» на главной живёт в МУЛЬТИТАРИФНОЙ ветке, а
@@ -404,7 +405,10 @@ export default function Dashboard() {
               />
             ) : subscription ? (
               <SubscriptionCardActive
-                subscription={subscription}
+                subscription={{
+                  ...subscription,
+                  device_limit: devicesData?.device_limit ?? subscription.device_limit,
+                }}
                 trafficData={trafficData}
                 refreshTrafficMutation={refreshTrafficMutation}
                 trafficRefreshCooldown={trafficRefreshCooldown}

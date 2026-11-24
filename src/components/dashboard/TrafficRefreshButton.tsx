@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { ClockIcon, RefreshIcon } from '@/components/icons';
+import { RefreshIcon } from '@/components/icons';
 
 export function formatRefreshCooldown(seconds: number): string {
   const value = Number.isFinite(seconds) ? Math.max(0, Math.ceil(seconds)) : 0;
@@ -23,25 +23,22 @@ export default function TrafficRefreshButton({
         defaultValue: 'Обновление доступно через {{count}} сек.',
         count: Math.ceil(cooldown),
       })
-    : t('common.refresh');
+    : t('subscriptionCommand.refreshTraffic');
   return (
     <button
       type="button"
       onClick={onRefresh}
       disabled={pending || cooldown > 0}
-      aria-label={label}
+      aria-label={t('subscriptionCommand.refreshTraffic')}
       title={label}
       aria-busy={pending}
-      className="flex h-11 w-16 shrink-0 items-center justify-center gap-1 rounded-xl text-dark-300 transition-colors hover:bg-dark-700/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 disabled:cursor-default"
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line-strong bg-elevated text-dark-300 transition-colors hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 disabled:cursor-default"
     >
       {waiting ? (
-        <>
-          <ClockIcon className="h-3.5 w-3.5" />
-          <span className="text-xs tabular-nums">{formatRefreshCooldown(cooldown)}</span>
-        </>
+        <span className="text-[11px] tabular-nums">{formatRefreshCooldown(cooldown)}</span>
       ) : (
         <RefreshIcon
-          className={`h-4 w-4 ${pending ? 'animate-spin motion-reduce:animate-none' : ''}`}
+          className={`h-[18px] w-[18px] ${pending ? 'animate-spin motion-reduce:animate-none' : ''}`}
         />
       )}
     </button>

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { CheckIcon, CopyIcon, CogIcon } from '@/components/icons';
+import { CheckIcon, CopyIcon, CogIcon, PlusIcon } from '@/components/icons';
+import { addonActionClass } from '@/components/subscription/AddonPurchaseButton';
 import { copyToClipboard } from '@/utils/clipboard';
 import SubscriptionPlanHeader from '@/components/subscription/SubscriptionPlanHeader';
 import { formatTraffic, formatTrafficPercent } from '../../utils/formatTraffic';
@@ -40,6 +41,12 @@ export default function SubscriptionCardActive({
   const isUnlimited = trafficData?.is_unlimited ?? subscription.traffic_limit_gb === 0;
   const trafficKnown = Number.isFinite(usedGb) && Number.isFinite(usedPercent);
   const remaining = Math.max(0, subscription.traffic_limit_gb - usedGb);
+  // The API allowance already includes active top-ups; don't add purchases a second time.
+  const remainingRatio =
+    trafficKnown && !isUnlimited && subscription.traffic_limit_gb > 0
+      ? remaining / subscription.traffic_limit_gb
+      : null;
+  const trafficLow = remainingRatio !== null && remainingRatio <= 0.1;
 
   return (
     <section
@@ -74,20 +81,18 @@ export default function SubscriptionCardActive({
         {!isUnlimited && (
           <div className="border-t border-[var(--xsg-line)] pt-3 lg:col-span-2">
             <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="text-sm font-semibold text-dark-100">
-                  {t('dashboard.trafficUsageTitle')}
-                </h2>
-                <p className="mt-1 text-xs leading-relaxed text-dark-300">
-                  {t('dashboard.ui.specialServers', 'Специальные серверы (📡)')}
-                </p>
-              </div>
+              <h2 className="min-w-0 text-sm font-semibold text-dark-100">
+                {t('dashboard.trafficUsageTitle')}
+              </h2>
               <TrafficRefreshButton
                 cooldown={trafficRefreshCooldown}
                 pending={refreshTrafficMutation.isPending}
                 onRefresh={() => refreshTrafficMutation.mutate()}
               />
             </div>
+            <p className="mt-1 text-xs leading-relaxed text-dark-300">
+              {t('dashboard.ui.specialServers', 'Специальные серверы (📡)')}
+            </p>
             <div className="mb-2 mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-xs tabular-nums text-dark-300">
               <p>
                 <span className="text-base font-semibold text-dark-50">
@@ -112,12 +117,22 @@ export default function SubscriptionCardActive({
                   })
                 : t('dashboard.ui.noTraffic', 'Статистика пока недоступна')}
             </p>
-            {canAddTraffic && (
+            {trafficLow && (
+              <p role="status" className="mt-2 text-xs text-warning-300">
+                {t(
+                  remaining === 0
+                    ? 'subscriptionCommand.trafficEnded'
+                    : 'subscriptionCommand.trafficLow',
+                )}
+              </p>
+            )}
+            {canAddTraffic && trafficLow && (
               <Link
                 to={`/subscriptions/${subscription.id}?addon=traffic`}
-                className={`mt-1 inline-flex min-h-10 items-center rounded-lg px-2 text-xs font-medium hover:bg-accent-500/10 active:bg-selected ${trafficKnown && usedPercent >= 80 ? 'text-warning-300' : 'text-accent-300'}`}
+                className={`${addonActionClass} mt-2 w-full`}
               >
-                + {t('addonsUi.buyTraffic')}
+                <PlusIcon aria-hidden="true" className="h-4 w-4 shrink-0" />
+                {t('addonsUi.buyTraffic')}
               </Link>
             )}
             {refreshTrafficMutation.isError && (

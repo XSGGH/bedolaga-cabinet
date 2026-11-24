@@ -8030,11 +8030,17 @@
   },
   "subscriptionCommand": {
     "devices": "Devices",
-    "deviceList": "Device list",
+    "deviceList": "My devices",
     "specialTraffic": "For special servers",
-    "trafficDetails": "About the allowance and extra data",
+    "trafficDetails": "Allowance details",
     "trafficScopeNote": "This allowance applies only to special servers marked 📡. All other servers have unlimited data.",
     "connection": "Connection",
-    "minimumDevices": "Minimum device slots for this plan: {{count}}"
+    "minimumDevices": "Minimum device slots for this plan: {{count}}",
+    "reduceDevices": "Reduce device limit",
+    "reductionUnavailable": "Reducing the limit is currently unavailable",
+    "deleteAllDevices": "Delete all devices",
+    "refreshTraffic": "Refresh traffic usage",
+    "trafficLow": "Traffic allowance is running low",
+    "trafficEnded": "Traffic allowance exhausted"
   }
 }

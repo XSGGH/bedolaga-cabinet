@@ -8649,11 +8649,17 @@
   },
   "subscriptionCommand": {
     "devices": "Устройства",
-    "deviceList": "Список устройств",
+    "deviceList": "Мои устройства",
     "specialTraffic": "Для спецсерверов",
-    "trafficDetails": "О лимите и докупленном трафике",
+    "trafficDetails": "Подробнее о лимите",
     "trafficScopeNote": "Лимит действует только на специальных серверах с отметкой 📡. Остальные серверы — безлимитные.",
     "connection": "Подключение",
-    "minimumDevices": "Минимум мест по тарифу: {{count}}"
+    "minimumDevices": "Минимум мест по тарифу: {{count}}",
+    "reduceDevices": "Уменьшить лимит устройств",
+    "reductionUnavailable": "Уменьшение лимита сейчас недоступно",
+    "deleteAllDevices": "Удалить все устройства",
+    "refreshTraffic": "Обновить расход трафика",
+    "trafficLow": "Трафик заканчивается",
+    "trafficEnded": "Трафик закончился"
   }
 }
