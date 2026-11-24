@@ -646,7 +646,15 @@ export default function Subscription() {
                         aria-label={t('subscriptionCommand.reduceDevices')}
                         aria-describedby={!canReduceDevices ? 'device-reduction-reason' : undefined}
                         disabled={!canReduceDevices}
-                        title={t('subscriptionCommand.reduceDevices')}
+                        title={
+                          canReduceDevices
+                            ? t('subscriptionCommand.reduceDevices')
+                            : minimumDeviceLimit !== undefined && deviceLimit <= minimumDeviceLimit
+                              ? t('subscriptionCommand.minimumDevices', {
+                                  count: minimumDeviceLimit,
+                                })
+                              : t('subscriptionCommand.reductionUnavailable')
+                        }
                         onClick={() => {
                           setShowTrafficTopup(false);
                           setDeviceAction('reduce');
@@ -665,10 +673,7 @@ export default function Subscription() {
                       )}
                     </div>
                     {!canReduceDevices && (
-                      <p
-                        id="device-reduction-reason"
-                        className="mt-1.5 text-xs leading-relaxed text-dark-400"
-                      >
+                      <p id="device-reduction-reason" className="sr-only">
                         {minimumDeviceLimit !== undefined && deviceLimit <= minimumDeviceLimit
                           ? t('subscriptionCommand.minimumDevices', { count: minimumDeviceLimit })
                           : t('subscriptionCommand.reductionUnavailable')}
@@ -825,21 +830,12 @@ export default function Subscription() {
               )}
             </div>
             {canReissueLink(subscription) && (
-              <section className="min-w-0 rounded-2xl border border-line bg-surface px-4 sm:px-5">
-                <CollapsibleSection
-                  title={t('subscription.manage.additional', 'Дополнительные действия')}
-                  headerClassName="min-h-12 py-3"
-                >
-                  <div className="space-y-3 pb-4">
-                    <ReissueLinkButton
-                      subscription={subscription}
-                      subscriptionId={subscriptionId}
-                      inline
-                      quiet
-                    />
-                  </div>
-                </CollapsibleSection>
-              </section>
+              <ReissueLinkButton
+                subscription={subscription}
+                subscriptionId={subscriptionId}
+                inline
+                quiet
+              />
             )}
           </div>
 

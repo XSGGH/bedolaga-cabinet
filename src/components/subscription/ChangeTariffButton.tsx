@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { PiArrowsLeftRight } from 'react-icons/pi';
 import type { Subscription } from '../../types';
 import { needsTariff } from '../../utils/legacySubscription';
+import { subscriptionActionClass, secondaryActionClass } from './actionStyles';
 
 interface ChangeTariffButtonProps {
   subscription: Subscription | null;
@@ -37,21 +38,14 @@ export default function ChangeTariffButton({
       to={to}
       className={
         quiet
-          ? 'xsg-action-row text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400'
+          ? `${subscriptionActionClass} ${secondaryActionClass}`
           : `flex items-center justify-center gap-2 border border-accent-500/40 bg-accent-500/10 font-bold text-accent-200 transition-colors hover:border-accent-400/70 hover:bg-accent-500/20 ${
-              inline
-                ? 'h-12 rounded-[14px] px-3 text-[14px]'
-                : 'min-h-14 rounded-[20px] px-5 text-[15px]'
+              inline ? subscriptionActionClass : 'min-h-14 rounded-[20px] px-5 text-[15px]'
             }`
       }
     >
-      <PiArrowsLeftRight className="h-[18px] w-[18px]" />
+      <PiArrowsLeftRight aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
       {t('subscription.cta.changeTariff')}
-      {quiet && (
-        <span className="ml-auto text-dark-400" aria-hidden="true">
-          ›
-        </span>
-      )}
     </Link>
   );
 }

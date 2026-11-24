@@ -109,7 +109,7 @@ export function ReissueLinkButton({
           disabled={revokeMutation.isPending || cooldown > 0}
           className={
             quiet
-              ? 'flex min-h-11 w-full items-center gap-2 rounded-xl px-2 text-left text-sm font-medium text-warning-300 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-400 disabled:opacity-60'
+              ? 'mx-auto flex min-h-11 max-w-full items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-medium text-accent-300 transition-colors hover:bg-accent-500/10 active:bg-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 disabled:opacity-60'
               : 'flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-warning-500/50 bg-warning-500/10 px-3 text-sm font-semibold text-warning-300 disabled:opacity-60'
           }
         >

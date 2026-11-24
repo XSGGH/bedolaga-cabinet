@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { MonitorIcon } from '@/components/icons';
 import AddonPurchaseButton from '@/components/subscription/AddonPurchaseButton';
+import { subscriptionActionClass } from '@/components/subscription/actionStyles';
 
 interface ConnectDeviceTileProps {
   subscription: { id: number; device_limit: number; subscription_url?: string | null };
@@ -41,7 +42,7 @@ export default function ConnectDeviceTile({
                 : (connectionPath ?? `/connection?sub=${subscription.id}`),
             );
         }}
-        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-3 py-3 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-800"
+        className={`${subscriptionActionClass} bg-accent-500 text-on-accent hover:bg-accent-600 active:bg-accent-700 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-800`}
       >
         <MonitorIcon className="h-[18px] w-[18px] shrink-0" />
         {full ? t('subscription.myDevices') : t('dashboard.connectDevice')}

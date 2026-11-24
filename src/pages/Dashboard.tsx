@@ -3,7 +3,6 @@ import { useQueries, useQuery, useMutation, useQueryClient } from '@tanstack/rea
 import { Link, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/auth';
-import { displayName } from '../utils/displayName';
 import { useBlockingStore } from '../store/blocking';
 import { subscriptionApi } from '../api/subscription';
 import { referralApi } from '../api/referral';
@@ -34,7 +33,6 @@ import { getApiErrorMessage } from '../utils/api-error';
 export default function Dashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
   const refreshUser = useAuthStore((state) => state.refreshUser);
   const queryClient = useQueryClient();
   const { isCompleted: isOnboardingCompleted, complete: completeOnboarding } = useOnboarding();
@@ -289,19 +287,8 @@ export default function Dashboard() {
     setShowOnboarding(false);
   };
 
-  const userName = displayName(user);
-
   return (
     <div className="space-y-4 lg:space-y-6">
-      {/* Header */}
-      <div data-onboarding="welcome" className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="break-words text-xl font-semibold leading-snug tracking-tight text-dark-100 [overflow-wrap:anywhere] sm:text-2xl">
-            {userName ? t('dashboard.welcome', { name: userName }) : t('dashboard.welcomeNoName')}
-          </h1>
-        </div>
-      </div>
-
       {/* Pending Gift Activations */}
       {/* Предупреждение выше подарков и предложений: человек должен увидеть его
           раньше, чем всё остальное, иначе объяснение теряется в ленте. */}

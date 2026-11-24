@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon, RefreshIcon, SparklesIcon } from '@/components/icons';
 import type { Subscription } from '../../types';
 import { needsTariff, tariffSelectionPath } from '../../utils/legacySubscription';
+import { subscriptionActionClass, secondaryActionClass } from './actionStyles';
 
 interface PurchaseCTAButtonProps {
   subscription: Subscription | null;
@@ -68,17 +69,12 @@ export default function PurchaseCTAButton({
             : '/subscription/purchase?renew=1';
   const Icon = isExpired || isTrial || requiresTariff ? SparklesIcon : RefreshIcon;
 
-  const fill = quiet
-    ? 'border border-line-strong bg-elevated text-dark-100 hover:border-dark-400 hover:bg-surface-hover active:bg-inset'
-    : 'bg-accent-500 text-on-accent hover:bg-accent-600';
+  const fill = quiet ? secondaryActionClass : 'bg-accent-500 text-on-accent hover:bg-accent-600';
 
   if (inline) {
     return (
-      <Link
-        to={linkTo}
-        className={`flex h-12 items-center justify-center gap-2 rounded-[14px] px-3 text-[14px] font-bold transition-colors ${fill}`}
-      >
-        <Icon className="h-[18px] w-[18px]" />
+      <Link to={linkTo} className={`${subscriptionActionClass} ${fill}`}>
+        <Icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
         {buttonText}
       </Link>
     );

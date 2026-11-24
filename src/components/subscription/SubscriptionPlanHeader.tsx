@@ -35,15 +35,6 @@ export default function SubscriptionPlanHeader({
         : 'bg-elevated text-dark-300';
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium text-dark-300">{t('dashboard.tariff')}</span>
-        <span
-          className={`inline-flex max-w-[65%] items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium ${tone}`}
-        >
-          <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
-          {label}
-        </span>
-      </div>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
         <div className="min-w-0">
           <h2 className="break-words text-xl font-bold leading-tight tracking-tight text-dark-50 [overflow-wrap:anywhere] sm:text-2xl">
@@ -55,27 +46,35 @@ export default function SubscriptionPlanHeader({
             })}
           </p>
         </div>
-        <div className="text-right">
-          {remaining ?? (
-            <>
-              <p className="text-xs text-dark-300">{t('dashboard.remaining')}</p>
-              <p
-                className={`mt-1 font-semibold tabular-nums ${warning ? 'text-warning-300' : 'text-dark-50'}`}
-              >
-                {subscription.days_left > 0 ? (
-                  <>
-                    <span className="text-[28px] leading-none">{subscription.days_left}</span>
-                    <span className="ml-1 text-xs">{t('subscription.daysShort')}</span>
-                  </>
-                ) : (
-                  <span className="text-sm">
-                    {subscription.time_left_display ||
-                      t('dashboard.ui.lessThanDay', 'Меньше суток')}
-                  </span>
-                )}
-              </p>
-            </>
-          )}
+        <div className="max-w-[150px] text-right">
+          <span
+            className={`inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium ${tone}`}
+          >
+            <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
+            {label}
+          </span>
+          <div className="mt-3">
+            {remaining ?? (
+              <>
+                <p className="text-xs text-dark-300">{t('dashboard.remaining')}</p>
+                <p
+                  className={`mt-1 font-semibold tabular-nums ${warning ? 'text-warning-300' : 'text-dark-50'}`}
+                >
+                  {subscription.days_left > 0 ? (
+                    <>
+                      <span className="text-[28px] leading-none">{subscription.days_left}</span>
+                      <span className="ml-1 text-xs">{t('subscription.daysShort')}</span>
+                    </>
+                  ) : (
+                    <span className="text-sm">
+                      {subscription.time_left_display ||
+                        t('dashboard.ui.lessThanDay', 'Меньше суток')}
+                    </span>
+                  )}
+                </p>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

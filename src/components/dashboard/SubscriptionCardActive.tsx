@@ -4,6 +4,10 @@ import { Link } from 'react-router';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { CheckIcon, CopyIcon, CogIcon, PlusIcon } from '@/components/icons';
 import { addonActionClass } from '@/components/subscription/AddonPurchaseButton';
+import {
+  subscriptionActionClass,
+  secondaryActionClass,
+} from '@/components/subscription/actionStyles';
 import { copyToClipboard } from '@/utils/clipboard';
 import SubscriptionPlanHeader from '@/components/subscription/SubscriptionPlanHeader';
 import { formatTraffic, formatTrafficPercent } from '../../utils/formatTraffic';
@@ -52,6 +56,7 @@ export default function SubscriptionCardActive({
     <section
       aria-label={t('dashboard.ui.subscription', 'Ваша подписка')}
       className="xsg-subscription-hero overflow-hidden rounded-3xl border border-[var(--xsg-line)] bg-dark-800"
+      data-onboarding="welcome"
     >
       <div className="space-y-3 p-4 sm:p-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-8 lg:gap-y-4 lg:space-y-0">
         <div className="lg:col-span-2">
@@ -66,15 +71,10 @@ export default function SubscriptionCardActive({
           />
           <Link
             to={`/subscriptions/${subscription.id}`}
-            className="xsg-action-row justify-between text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+            className={`${subscriptionActionClass} ${secondaryActionClass}`}
           >
-            <span className="flex items-center gap-2">
-              <CogIcon className="h-4 w-4 shrink-0 text-dark-400" />
-              {t('dashboard.viewSubscription')}
-            </span>
-            <span aria-hidden="true" className="text-dark-400">
-              ›
-            </span>
+            <CogIcon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+            {t('dashboard.viewSubscription')}
           </Link>
         </div>
 
