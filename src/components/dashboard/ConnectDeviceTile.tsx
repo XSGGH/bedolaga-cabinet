@@ -9,6 +9,7 @@ interface ConnectDeviceTileProps {
   onManage?: () => void;
   connectionPath?: string;
   canIncreaseLimit?: boolean;
+  showSummary?: boolean;
   onIncreaseLimit?: () => void;
 }
 
@@ -18,6 +19,7 @@ export default function ConnectDeviceTile({
   onManage,
   connectionPath,
   canIncreaseLimit = false,
+  showSummary = true,
   onIncreaseLimit,
 }: ConnectDeviceTileProps) {
   const { t } = useTranslation();
@@ -43,17 +45,38 @@ export default function ConnectDeviceTile({
         <MonitorIcon className="h-[18px] w-[18px] shrink-0" />
         {full ? t('subscription.myDevices') : t('dashboard.connectDevice')}
       </button>
-      <p className="mt-1.5 text-center text-xs leading-relaxed text-dark-200">
-        {subscription.device_limit === 0
+      {showSummary && (
+        <p className="mt-1.5 text-center text-xs leading-relaxed text-dark-200">
+          {subscription.device_limit === 0
             ? t('dashboard.devicesConnectedUnlimited', { used: connectedDevices })
             : t('dashboard.ui.connectedDevices', {
                 defaultValue: 'Подключено {{used}} из {{max}} устройств',
                 used: connectedDevices,
                 max: subscription.device_limit,
               })}
-      </p>
-      {full && <p className="mt-1 text-center text-xs leading-relaxed text-warning-300">{t('addonsUi.devicesFull')}{canIncreaseLimit && <span className="mt-1 block text-dark-300">{t('addonsUi.devicesFullHint')}</span>}</p>}
-      {canIncreaseLimit && <button type="button" onClick={() => onIncreaseLimit ? onIncreaseLimit() : navigate(`/subscriptions/${subscription.id}?addon=devices`)} className="mx-auto mt-1 flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-medium text-accent-300 hover:bg-accent-500/10 active:bg-selected">+ {t('addonsUi.increaseDevices')}</button>}
+        </p>
+      )}
+      {showSummary && full && (
+        <p className="mt-1 text-center text-xs leading-relaxed text-warning-300">
+          {t('addonsUi.devicesFull')}
+          {canIncreaseLimit && (
+            <span className="mt-1 block text-dark-300">{t('addonsUi.devicesFullHint')}</span>
+          )}
+        </p>
+      )}
+      {canIncreaseLimit && (
+        <button
+          type="button"
+          onClick={() =>
+            onIncreaseLimit
+              ? onIncreaseLimit()
+              : navigate(`/subscriptions/${subscription.id}?addon=devices`)
+          }
+          className="mx-auto mt-1 flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-medium text-accent-300 hover:bg-accent-500/10 active:bg-selected"
+        >
+          + {t('addonsUi.increaseDevices')}
+        </button>
+      )}
     </div>
   );
 }

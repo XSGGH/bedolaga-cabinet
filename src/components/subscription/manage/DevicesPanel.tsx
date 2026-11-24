@@ -17,6 +17,8 @@ export interface DevicesPanelProps {
   subscriptionId: number | undefined;
   /** Заголовок уже есть снаружи (сворачиваемая шапка) — не дублируем. */
   hideTitle?: boolean;
+  hideBulkDelete?: boolean;
+  actionsOnly?: boolean;
 }
 
 /**
@@ -33,6 +35,8 @@ export function DevicesPanel({
   subscription,
   subscriptionId,
   hideTitle = false,
+  hideBulkDelete = false,
+  actionsOnly = false,
 }: DevicesPanelProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -90,6 +94,40 @@ export function DevicesPanel({
     renameDeviceMutation.isPending;
   const actionClass =
     'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-dark-300 hover:bg-dark-700/40 hover:text-dark-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 disabled:opacity-50';
+  if (actionsOnly)
+    return devicesData && devicesData.devices.length > 0 ? (
+      <div>
+        <div className="mt-2 border-t border-[var(--xsg-line)] pt-2">
+          <button
+            type="button"
+            disabled={busy}
+            className="min-h-11 rounded-xl px-2 text-xs font-medium text-critical-500 hover:bg-critical-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-critical-500 disabled:opacity-50"
+            onClick={async () => {
+              const confirmed = await destructiveConfirm(
+                t('subscription.devicesUi.confirmAll', {
+                  defaultValue:
+                    'Удалить все устройства ({{count}})? Список подключённых устройств подписки будет очищен.',
+                  count: devicesData.total,
+                }),
+                t('subscription.deleteAllDevices'),
+                t('subscription.deleteAllDevices'),
+              );
+              if (confirmed) deleteAllDevicesMutation.mutate();
+            }}
+          >
+            {t('subscription.deleteAllDevices')}
+          </button>
+        </div>
+        {deleteAllDevicesMutation.isError && (
+          <p role="alert" className="mt-2 text-xs text-warning-300">
+            {t(
+              'subscription.devicesUi.actionError',
+              'Не удалось сохранить изменение. Попробуйте ещё раз.',
+            )}
+          </p>
+        )}
+      </div>
+    ) : null;
   return (
     <div>
       {!hideTitle && (
@@ -266,27 +304,29 @@ export function DevicesPanel({
               );
             })}
           </div>
-          <div className="mt-2 border-t border-[var(--xsg-line)] pt-2">
-            <button
-              type="button"
-              disabled={busy}
-              className="min-h-11 rounded-xl px-2 text-xs font-medium text-critical-500 hover:bg-critical-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-critical-500 disabled:opacity-50"
-              onClick={async () => {
-                const confirmed = await destructiveConfirm(
-                  t('subscription.devicesUi.confirmAll', {
-                    defaultValue:
-                      'Удалить все устройства ({{count}})? Список подключённых устройств подписки будет очищен.',
-                    count: devicesData.total,
-                  }),
-                  t('subscription.deleteAllDevices'),
-                  t('subscription.deleteAllDevices'),
-                );
-                if (confirmed) deleteAllDevicesMutation.mutate();
-              }}
-            >
-              {t('subscription.deleteAllDevices')}
-            </button>
-          </div>
+          {!hideBulkDelete && (
+            <div className="mt-2 border-t border-[var(--xsg-line)] pt-2">
+              <button
+                type="button"
+                disabled={busy}
+                className="min-h-11 rounded-xl px-2 text-xs font-medium text-critical-500 hover:bg-critical-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-critical-500 disabled:opacity-50"
+                onClick={async () => {
+                  const confirmed = await destructiveConfirm(
+                    t('subscription.devicesUi.confirmAll', {
+                      defaultValue:
+                        'Удалить все устройства ({{count}})? Список подключённых устройств подписки будет очищен.',
+                      count: devicesData.total,
+                    }),
+                    t('subscription.deleteAllDevices'),
+                    t('subscription.deleteAllDevices'),
+                  );
+                  if (confirmed) deleteAllDevicesMutation.mutate();
+                }}
+              >
+                {t('subscription.deleteAllDevices')}
+              </button>
+            </div>
+          )}
         </>
       ) : (
         <p className="py-5 text-center text-sm text-dark-300">{t('subscription.noDevices')}</p>

@@ -1,3 +1,4 @@
+import { ResponsiveSheet } from '@/components/ui/ResponsiveSheet';
 import AddonFeedback from './AddonFeedback';
 import { useEffect, useRef } from 'react';
 import { deviceUnavailableText } from '../deviceReasons';
@@ -17,6 +18,7 @@ import { ChevronRightIcon, MinusIcon } from '../../icons';
 
 export interface DeviceReductionSheetProps {
   open: boolean;
+  modal?: boolean;
   onOpen: () => void;
   onClose: () => void;
   subscriptionPresent: boolean;
@@ -28,6 +30,7 @@ export interface DeviceReductionSheetProps {
 
 export function DeviceReductionSheet({
   open,
+  modal = false,
   onOpen,
   onClose,
   subscriptionPresent,
@@ -85,187 +88,208 @@ export function DeviceReductionSheet({
     },
   });
 
-  const actionTitle = t('subscription.actionsUi.DeviceReductionSheet', 'Уменьшить лимит');
-  if (availabilityError)
-    return (
-      <AddonFeedback
-        title={actionTitle}
-        message={t(
-          'subscription.actionsUi.checkError',
-          'Не удалось проверить доступность. Попробуйте ещё раз.',
-        )}
-        busy={checkingAvailability}
-        onRetry={() => {
-          void retryAvailability();
-        }}
-        onClose={open ? onClose : undefined}
-      />
-    );
-  if (deviceReductionInfo?.available === false)
-    return (
-      <AddonFeedback
-        title={actionTitle}
-        message={deviceUnavailableText(
-          t,
-          deviceReductionInfo,
-          'subscription.additionalOptions.reduceUnavailable',
-        )}
-        busy={checkingAvailability}
-        onRetry={() => {
-          void retryAvailability();
-        }}
-        onClose={open ? onClose : undefined}
-      />
-    );
-
-  if (!open)
-    return (
-      <button
-        type="button"
-        onClick={onOpen}
-        className="flex min-h-12 w-full items-center gap-2 rounded-xl border border-accent-400/50 bg-accent-500/10 px-3 py-2 text-left text-sm font-semibold text-accent-200 transition-colors hover:border-accent-300 hover:bg-accent-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
-      >
-        <MinusIcon className="h-4 w-4 shrink-0" />
-        <span className="min-w-0 flex-1">
-          {t('subscription.actionsUi.DeviceReductionSheet', 'Уменьшить лимит')}
-        </span>
-        <ChevronRightIcon className="h-4 w-4 shrink-0" />
-      </button>
-    );
-
-  if (!deviceReductionInfo)
-    return (
-      <AddonFeedback
-        title={actionTitle}
-        message={t('subscription.actionsUi.checking', 'Проверяем доступность…')}
-        busy
-        onClose={onClose}
-      />
-    );
-
-  return (
-    <div
-      className={`rounded-xl border p-5 ${isDark ? 'border-dark-700/50 bg-dark-800/50' : 'border-champagne-300/60 bg-champagne-200/40'}`}
-    >
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-medium text-dark-100">
-          {t('subscription.additionalOptions.reduceDevicesTitle')}
-        </h3>
+  const renderContent = () => {
+    const actionTitle = t('subscription.actionsUi.DeviceReductionSheet', 'Уменьшить лимит');
+    if (!open && modal) return null;
+    if (!open)
+      return (
         <button
-          onClick={onClose}
-          className="text-sm text-dark-400 hover:text-dark-200"
-          aria-label={t('common.close', 'Close')}
+          type="button"
+          onClick={onOpen}
+          className="flex min-h-12 w-full items-center gap-2 rounded-xl border border-accent-400/50 bg-accent-500/10 px-3 py-2 text-left text-sm font-semibold text-accent-200 transition-colors hover:border-accent-300 hover:bg-accent-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
         >
-          ✕
+          <MinusIcon className="h-4 w-4 shrink-0" />
+          <span className="min-w-0 flex-1">
+            {t('subscription.actionsUi.DeviceReductionSheet', 'Уменьшить лимит')}
+          </span>
+          <ChevronRightIcon className="h-4 w-4 shrink-0" />
         </button>
-      </div>
+      );
+    if (availabilityError)
+      return (
+        <AddonFeedback
+          title={actionTitle}
+          message={t(
+            'subscription.actionsUi.checkError',
+            'Не удалось проверить доступность. Попробуйте ещё раз.',
+          )}
+          busy={checkingAvailability}
+          onRetry={() => {
+            void retryAvailability();
+          }}
+          onClose={!modal && open ? onClose : undefined}
+        />
+      );
+    if (deviceReductionInfo?.available === false)
+      return (
+        <AddonFeedback
+          title={actionTitle}
+          message={deviceUnavailableText(
+            t,
+            deviceReductionInfo,
+            'subscription.additionalOptions.reduceUnavailable',
+          )}
+          busy={checkingAvailability}
+          onRetry={() => {
+            void retryAvailability();
+          }}
+          onClose={!modal && open ? onClose : undefined}
+        />
+      );
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-center gap-6">
-          <button
-            onClick={() =>
-              onTargetDeviceLimitChange(
-                Math.max(
+    if (!deviceReductionInfo)
+      return (
+        <AddonFeedback
+          title={actionTitle}
+          message={t('subscription.actionsUi.checking', 'Проверяем доступность…')}
+          busy
+          onClose={modal ? undefined : onClose}
+        />
+      );
+
+    return (
+      <div
+        className={
+          modal
+            ? 'px-4 pb-4 sm:px-5'
+            : `rounded-xl border p-5 ${isDark ? 'border-dark-700/50 bg-dark-800/50' : 'border-champagne-300/60 bg-champagne-200/40'}`
+        }
+      >
+        {!modal && (
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-medium text-dark-100">
+              {t('subscription.additionalOptions.reduceDevicesTitle')}
+            </h3>
+            <button
+              onClick={onClose}
+              className="text-sm text-dark-400 hover:text-dark-200"
+              aria-label={t('common.close', 'Close')}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-center gap-6">
+            <button
+              onClick={() =>
+                onTargetDeviceLimitChange(
                   Math.max(
-                    deviceReductionInfo.min_device_limit,
-                    deviceReductionInfo.connected_devices_count,
+                    Math.max(
+                      deviceReductionInfo.min_device_limit,
+                      deviceReductionInfo.connected_devices_count,
+                    ),
+                    targetDeviceLimit - 1,
                   ),
-                  targetDeviceLimit - 1,
-                ),
-              )
-            }
-            disabled={
-              targetDeviceLimit <=
-              Math.max(
-                deviceReductionInfo.min_device_limit,
-                deviceReductionInfo.connected_devices_count,
-              )
-            }
-            className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
-            aria-label={t('subscription.additionalOptions.decrementDevices', 'Уменьшить')}
-          >
-            -
-          </button>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-dark-100">{targetDeviceLimit}</div>
-            <div className="text-sm text-dark-500">
-              {t('subscription.additionalOptions.devicesUnit')}
+                )
+              }
+              disabled={
+                targetDeviceLimit <=
+                Math.max(
+                  deviceReductionInfo.min_device_limit,
+                  deviceReductionInfo.connected_devices_count,
+                )
+              }
+              className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
+              aria-label={t('subscription.additionalOptions.decrementDevices', 'Уменьшить')}
+            >
+              -
+            </button>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-dark-100">{targetDeviceLimit}</div>
+              <div className="text-sm text-dark-500">
+                {t('subscription.additionalOptions.devicesUnit')}
+              </div>
+            </div>
+            <button
+              onClick={() =>
+                onTargetDeviceLimitChange(
+                  Math.min(deviceReductionInfo.current_device_limit - 1, targetDeviceLimit + 1),
+                )
+              }
+              disabled={targetDeviceLimit >= deviceReductionInfo.current_device_limit - 1}
+              className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
+              aria-label={t('subscription.additionalOptions.incrementDevices', 'Увеличить')}
+            >
+              +
+            </button>
+          </div>
+
+          <div className="space-y-1 text-center text-sm text-dark-400">
+            <div>
+              {t('subscription.additionalOptions.currentDeviceLimit', {
+                count: deviceReductionInfo.current_device_limit,
+              })}
+            </div>
+            <div>
+              {t('subscription.additionalOptions.minDeviceLimit', {
+                count: deviceReductionInfo.min_device_limit,
+              })}
+            </div>
+            <div>
+              {t('subscription.additionalOptions.connectedDevices', {
+                count: deviceReductionInfo.connected_devices_count,
+              })}
             </div>
           </div>
-          <button
-            onClick={() =>
-              onTargetDeviceLimitChange(
-                Math.min(deviceReductionInfo.current_device_limit - 1, targetDeviceLimit + 1),
-              )
-            }
-            disabled={targetDeviceLimit >= deviceReductionInfo.current_device_limit - 1}
-            className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
-            aria-label={t('subscription.additionalOptions.incrementDevices', 'Увеличить')}
-          >
-            +
-          </button>
-        </div>
 
-        <div className="space-y-1 text-center text-sm text-dark-400">
-          <div>
-            {t('subscription.additionalOptions.currentDeviceLimit', {
-              count: deviceReductionInfo.current_device_limit,
-            })}
-          </div>
-          <div>
-            {t('subscription.additionalOptions.minDeviceLimit', {
-              count: deviceReductionInfo.min_device_limit,
-            })}
-          </div>
-          <div>
-            {t('subscription.additionalOptions.connectedDevices', {
-              count: deviceReductionInfo.connected_devices_count,
-            })}
-          </div>
-        </div>
-
-        {deviceReductionInfo.connected_devices_count > deviceReductionInfo.min_device_limit && (
-          <div className="rounded-lg bg-warning-500/10 p-3 text-center text-sm text-warning-400">
-            {t('subscription.additionalOptions.disconnectDevicesFirst', {
-              count: deviceReductionInfo.connected_devices_count,
-            })}
-          </div>
-        )}
-
-        <div className="text-center">
-          <div className="text-sm text-dark-400">
-            {t('subscription.additionalOptions.newDeviceLimit', {
-              count: targetDeviceLimit,
-            })}
-          </div>
-        </div>
-
-        <button
-          onClick={() => reduceMutation.mutate()}
-          disabled={
-            reduceMutation.isPending ||
-            targetDeviceLimit >= deviceReductionInfo.current_device_limit ||
-            targetDeviceLimit < deviceReductionInfo.min_device_limit ||
-            targetDeviceLimit < deviceReductionInfo.connected_devices_count
-          }
-          className="btn-primary w-full py-3"
-        >
-          {reduceMutation.isPending ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              {t('subscription.additionalOptions.reducing')}
-            </span>
-          ) : (
-            t('subscription.additionalOptions.reduce')
+          {deviceReductionInfo.connected_devices_count > deviceReductionInfo.min_device_limit && (
+            <div className="rounded-lg bg-warning-500/10 p-3 text-center text-sm text-warning-400">
+              {t('subscription.additionalOptions.disconnectDevicesFirst', {
+                count: deviceReductionInfo.connected_devices_count,
+              })}
+            </div>
           )}
-        </button>
 
-        {reduceMutation.isError && (
-          <div className="text-center text-sm text-error-400">
-            {getErrorMessage(reduceMutation.error)}
+          <div className="text-center">
+            <div className="text-sm text-dark-400">
+              {t('subscription.additionalOptions.newDeviceLimit', {
+                count: targetDeviceLimit,
+              })}
+            </div>
           </div>
-        )}
+
+          <button
+            onClick={() => reduceMutation.mutate()}
+            disabled={
+              reduceMutation.isPending ||
+              targetDeviceLimit >= deviceReductionInfo.current_device_limit ||
+              targetDeviceLimit < deviceReductionInfo.min_device_limit ||
+              targetDeviceLimit < deviceReductionInfo.connected_devices_count
+            }
+            className="btn-primary w-full py-3"
+          >
+            {reduceMutation.isPending ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                {t('subscription.additionalOptions.reducing')}
+              </span>
+            ) : (
+              t('subscription.additionalOptions.reduce')
+            )}
+          </button>
+
+          {reduceMutation.isError && (
+            <div className="text-center text-sm text-error-400">
+              {getErrorMessage(reduceMutation.error)}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    );
+  };
+  return modal ? (
+    <ResponsiveSheet
+      isOpen={open}
+      onClose={() => {
+        onClose();
+      }}
+      title={t('subscription.additionalOptions.reduceDevicesTitle')}
+    >
+      {renderContent()}
+    </ResponsiveSheet>
+  ) : (
+    renderContent()
   );
 }

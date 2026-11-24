@@ -1,3 +1,4 @@
+import { ResponsiveSheet } from '@/components/ui/ResponsiveSheet';
 import AddonFeedback from './AddonFeedback';
 import { useTranslation } from 'react-i18next';
 import { useCurrency } from '../../../hooks/useCurrency';
@@ -20,6 +21,7 @@ import type { PurchaseOptions, Subscription } from '../../../types';
 
 export interface DeviceTopupSheetProps {
   open: boolean;
+  modal?: boolean;
   onOpen: () => void;
   onClose: () => void;
   subscription: Subscription;
@@ -32,6 +34,7 @@ export interface DeviceTopupSheetProps {
 
 export function DeviceTopupSheet({
   open,
+  modal = false,
   onOpen,
   onClose,
   subscription,
@@ -77,212 +80,231 @@ export function DeviceTopupSheet({
     },
   });
 
-  const actionTitle = t('addonsUi.increaseDevices');
-  if (availabilityError)
-    return (
-      <AddonFeedback
-        title={actionTitle}
-        message={t(
-          'subscription.actionsUi.checkError',
-          'Не удалось проверить доступность. Попробуйте ещё раз.',
-        )}
-        busy={checkingAvailability}
-        onRetry={() => {
-          void retryAvailability();
-        }}
-        onClose={open ? onClose : undefined}
-      />
-    );
-  if (devicePriceData?.available === false)
-    return (
-      <AddonFeedback
-        title={actionTitle}
-        message={deviceUnavailableText(
-          t,
-          devicePriceData,
-          'subscription.additionalOptions.devicesUnavailable',
-        )}
-        busy={checkingAvailability}
-        onRetry={() => {
-          void retryAvailability();
-        }}
-        onClose={open ? onClose : undefined}
-      />
-    );
-  if (open && !devicePriceData)
-    return (
-      <AddonFeedback
-        title={actionTitle}
-        message={t('subscription.actionsUi.checking', 'Проверяем доступность…')}
-        busy
-        onClose={onClose}
-      />
-    );
+  const renderContent = () => {
+    const actionTitle = t('addonsUi.increaseDevices');
+    if (!open && modal) return null;
+    if (!open)
+      return (
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex min-h-12 w-full items-center gap-2 rounded-xl border border-accent-400/50 bg-accent-500/10 px-3 py-2 text-left text-sm font-semibold text-accent-200 transition-colors hover:border-accent-300 hover:bg-accent-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+        >
+          <PlusIcon className="h-4 w-4 shrink-0" />
+          <span className="min-w-0 flex-1">{t('addonsUi.increaseDevices')}</span>
+          <ChevronRightIcon className="h-4 w-4 shrink-0" />
+        </button>
+      );
+    if (availabilityError)
+      return (
+        <AddonFeedback
+          title={actionTitle}
+          message={t(
+            'subscription.actionsUi.checkError',
+            'Не удалось проверить доступность. Попробуйте ещё раз.',
+          )}
+          busy={checkingAvailability}
+          onRetry={() => {
+            void retryAvailability();
+          }}
+          onClose={!modal && open ? onClose : undefined}
+        />
+      );
+    if (devicePriceData?.available === false)
+      return (
+        <AddonFeedback
+          title={actionTitle}
+          message={deviceUnavailableText(
+            t,
+            devicePriceData,
+            'subscription.additionalOptions.devicesUnavailable',
+          )}
+          busy={checkingAvailability}
+          onRetry={() => {
+            void retryAvailability();
+          }}
+          onClose={!modal && open ? onClose : undefined}
+        />
+      );
+    if (open && !devicePriceData)
+      return (
+        <AddonFeedback
+          title={actionTitle}
+          message={t('subscription.actionsUi.checking', 'Проверяем доступность…')}
+          busy
+          onClose={modal ? undefined : onClose}
+        />
+      );
 
-  if (!open)
     return (
-      <button
-        type="button"
-        onClick={onOpen}
-        className="flex min-h-12 w-full items-center gap-2 rounded-xl border border-accent-400/50 bg-accent-500/10 px-3 py-2 text-left text-sm font-semibold text-accent-200 transition-colors hover:border-accent-300 hover:bg-accent-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+      <div
+        className={
+          modal
+            ? 'px-4 pb-4 sm:px-5'
+            : `rounded-xl border p-5 ${isDark ? 'border-dark-700/50 bg-dark-800/50' : 'border-champagne-300/60 bg-champagne-200/40'}`
+        }
       >
-        <PlusIcon className="h-4 w-4 shrink-0" />
-        <span className="min-w-0 flex-1">
-          {t('addonsUi.increaseDevices')}
-        </span>
-        <ChevronRightIcon className="h-4 w-4 shrink-0" />
-      </button>
-    );
-
-  return (
-    <div
-      className={`rounded-xl border p-5 ${isDark ? 'border-dark-700/50 bg-dark-800/50' : 'border-champagne-300/60 bg-champagne-200/40'}`}
-    >
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-medium text-dark-100">{t('addonsUi.devicesPurchaseTitle')}</h3>
-        <button
-          onClick={onClose}
-          className="text-sm text-dark-400 hover:text-dark-200"
-          aria-label={t('common.close', 'Close')}
-        >
-          ✕
-        </button>
-      </div>
-
-      <div className="space-y-4">
-        {/* Device counter */}
-        <div className="flex items-center justify-center gap-6">
-          <button
-            onClick={() => onDevicesToAddChange(Math.max(1, devicesToAdd - 1))}
-            disabled={devicesToAdd <= 1}
-            className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
-            aria-label={t('subscription.additionalOptions.decrementDevices', 'Уменьшить')}
-          >
-            -
-          </button>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-dark-100">{devicesToAdd}</div>
-            <div className="text-sm text-dark-500">
-              {t('subscription.additionalOptions.devicesUnit')}
-            </div>
-          </div>
-          <button
-            onClick={() => onDevicesToAddChange(devicesToAdd + 1)}
-            disabled={
-              devicePriceData?.max_device_limit
-                ? (devicePriceData.current_device_limit || 0) + devicesToAdd >=
-                  devicePriceData.max_device_limit
-                : false
-            }
-            className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
-            aria-label={t('subscription.additionalOptions.incrementDevices', 'Увеличить')}
-          >
-            +
-          </button>
-        </div>
-
-        {devicePriceData?.max_device_limit && (
-          <div className="text-center text-sm text-dark-400">
-            {t('subscription.additionalOptions.currentDeviceLimit', {
-              count: devicePriceData.current_device_limit || subscription.device_limit,
-            })}{' '}
-            /{' '}
-            {t('subscription.additionalOptions.maxDevices', {
-              count: devicePriceData.max_device_limit,
-            })}
+        {!modal && (
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-medium text-dark-100">{t('addonsUi.devicesPurchaseTitle')}</h3>
+            <button
+              onClick={onClose}
+              className="text-sm text-dark-400 hover:text-dark-200"
+              aria-label={t('common.close', 'Close')}
+            >
+              ✕
+            </button>
           </div>
         )}
 
-        {/* Price info */}
-        {devicePriceData?.available && devicePriceData.price_per_device_label && (
-          <div className="text-center">
-            <div className="mb-2 text-sm text-dark-400">
-              {devicePriceData.discount_percent != null &&
-              devicePriceData.discount_percent > 0 &&
-              devicePriceData.original_price_per_device_kopeks ? (
-                <span>
-                  <span className="text-dark-500 line-through">
-                    {formatPrice(devicePriceData.original_price_per_device_kopeks)}
-                  </span>
-                  <span className="mx-1">{devicePriceData.price_per_device_label}</span>
-                </span>
-              ) : (
-                devicePriceData.price_per_device_label
-              )}
-              /{t('subscription.perDevice').replace('/ ', '')} (
-              {t('subscription.days', { count: devicePriceData.days_left })})
+        <div className="space-y-4">
+          {/* Device counter */}
+          <div className="flex items-center justify-center gap-6">
+            <button
+              onClick={() => onDevicesToAddChange(Math.max(1, devicesToAdd - 1))}
+              disabled={devicesToAdd <= 1}
+              className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
+              aria-label={t('subscription.additionalOptions.decrementDevices', 'Уменьшить')}
+            >
+              -
+            </button>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-dark-100">{devicesToAdd}</div>
+              <div className="text-sm text-dark-500">
+                {t('subscription.additionalOptions.devicesUnit')}
+              </div>
             </div>
-            {devicePriceData.discount_percent != null && devicePriceData.discount_percent > 0 && (
-              <div className="mb-2">
-                <span className="inline-block rounded-full bg-success-500/20 px-2.5 py-0.5 text-sm font-medium text-success-400">
-                  -{devicePriceData.discount_percent}%
-                </span>
-              </div>
-            )}
-            {devicePriceData.total_price_kopeks === 0 ? (
-              <div className="text-2xl font-bold text-success-400">
-                {t('subscription.switchTariff.free')}
-              </div>
-            ) : (
-              <div className="text-2xl font-bold text-accent-400">
-                {devicePriceData.discount_percent != null &&
-                  devicePriceData.discount_percent > 0 &&
-                  devicePriceData.base_total_price_kopeks && (
-                    <span className="mr-2 text-lg text-dark-500 line-through">
-                      {formatPrice(devicePriceData.base_total_price_kopeks)}
-                    </span>
-                  )}
-                {devicePriceData.total_price_label}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Insufficient balance */}
-        {devicePriceData?.available &&
-          purchaseOptions &&
-          devicePriceData.total_price_kopeks &&
-          devicePriceData.total_price_kopeks > purchaseOptions.balance_kopeks && (
-            <InsufficientBalancePrompt
-              missingAmountKopeks={
-                devicePriceData.total_price_kopeks - purchaseOptions.balance_kopeks
+            <button
+              onClick={() => onDevicesToAddChange(devicesToAdd + 1)}
+              disabled={
+                devicePriceData?.max_device_limit
+                  ? (devicePriceData.current_device_limit || 0) + devicesToAdd >=
+                    devicePriceData.max_device_limit
+                  : false
               }
-              compact
-              onBeforeTopUp={async () => {
-                await subscriptionApi.saveDevicesCart(devicesToAdd, subscriptionId);
-              }}
-            />
-          )}
-
-        <button
-          onClick={() => devicePurchaseMutation.mutate()}
-          disabled={
-            devicePurchaseMutation.isPending ||
-            checkingAvailability ||
-            !devicePriceData?.available ||
-            !!(
-              devicePriceData?.total_price_kopeks &&
-              purchaseOptions &&
-              devicePriceData.total_price_kopeks > purchaseOptions.balance_kopeks
-            )
-          }
-          className="btn-primary w-full py-3"
-        >
-          {devicePurchaseMutation.isPending ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-            </span>
-          ) : (
-            t('subscription.additionalOptions.buy')
-          )}
-        </button>
-
-        {devicePurchaseMutation.isError && (
-          <div className="text-center text-sm text-error-400">
-            {getErrorMessage(devicePurchaseMutation.error)}
+              className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
+              aria-label={t('subscription.additionalOptions.incrementDevices', 'Увеличить')}
+            >
+              +
+            </button>
           </div>
-        )}
+
+          {devicePriceData?.max_device_limit && (
+            <div className="text-center text-sm text-dark-400">
+              {t('subscription.additionalOptions.currentDeviceLimit', {
+                count: devicePriceData.current_device_limit || subscription.device_limit,
+              })}{' '}
+              /{' '}
+              {t('subscription.additionalOptions.maxDevices', {
+                count: devicePriceData.max_device_limit,
+              })}
+            </div>
+          )}
+
+          {/* Price info */}
+          {devicePriceData?.available && devicePriceData.price_per_device_label && (
+            <div className="text-center">
+              <div className="mb-2 text-sm text-dark-400">
+                {devicePriceData.discount_percent != null &&
+                devicePriceData.discount_percent > 0 &&
+                devicePriceData.original_price_per_device_kopeks ? (
+                  <span>
+                    <span className="text-dark-500 line-through">
+                      {formatPrice(devicePriceData.original_price_per_device_kopeks)}
+                    </span>
+                    <span className="mx-1">{devicePriceData.price_per_device_label}</span>
+                  </span>
+                ) : (
+                  devicePriceData.price_per_device_label
+                )}
+                /{t('subscription.perDevice').replace('/ ', '')} (
+                {t('subscription.days', { count: devicePriceData.days_left })})
+              </div>
+              {devicePriceData.discount_percent != null && devicePriceData.discount_percent > 0 && (
+                <div className="mb-2">
+                  <span className="inline-block rounded-full bg-success-500/20 px-2.5 py-0.5 text-sm font-medium text-success-400">
+                    -{devicePriceData.discount_percent}%
+                  </span>
+                </div>
+              )}
+              {devicePriceData.total_price_kopeks === 0 ? (
+                <div className="text-2xl font-bold text-success-400">
+                  {t('subscription.switchTariff.free')}
+                </div>
+              ) : (
+                <div className="text-2xl font-bold text-accent-400">
+                  {devicePriceData.discount_percent != null &&
+                    devicePriceData.discount_percent > 0 &&
+                    devicePriceData.base_total_price_kopeks && (
+                      <span className="mr-2 text-lg text-dark-500 line-through">
+                        {formatPrice(devicePriceData.base_total_price_kopeks)}
+                      </span>
+                    )}
+                  {devicePriceData.total_price_label}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Insufficient balance */}
+          {devicePriceData?.available &&
+            purchaseOptions &&
+            devicePriceData.total_price_kopeks &&
+            devicePriceData.total_price_kopeks > purchaseOptions.balance_kopeks && (
+              <InsufficientBalancePrompt
+                missingAmountKopeks={
+                  devicePriceData.total_price_kopeks - purchaseOptions.balance_kopeks
+                }
+                compact
+                onBeforeTopUp={async () => {
+                  await subscriptionApi.saveDevicesCart(devicesToAdd, subscriptionId);
+                }}
+              />
+            )}
+
+          <button
+            onClick={() => devicePurchaseMutation.mutate()}
+            disabled={
+              devicePurchaseMutation.isPending ||
+              checkingAvailability ||
+              !devicePriceData?.available ||
+              !!(
+                devicePriceData?.total_price_kopeks &&
+                purchaseOptions &&
+                devicePriceData.total_price_kopeks > purchaseOptions.balance_kopeks
+              )
+            }
+            className="btn-primary w-full py-3"
+          >
+            {devicePurchaseMutation.isPending ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              </span>
+            ) : (
+              t('subscription.additionalOptions.buy')
+            )}
+          </button>
+
+          {devicePurchaseMutation.isError && (
+            <div className="text-center text-sm text-error-400">
+              {getErrorMessage(devicePurchaseMutation.error)}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    );
+  };
+  return modal ? (
+    <ResponsiveSheet
+      isOpen={open}
+      onClose={() => {
+        onClose();
+      }}
+      title={t('addonsUi.devicesPurchaseTitle')}
+    >
+      {renderContent()}
+    </ResponsiveSheet>
+  ) : (
+    renderContent()
   );
 }

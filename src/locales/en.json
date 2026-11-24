@@ -8022,16 +8022,19 @@
     }
   },
   "addonsUi": {
-    "title": "Additional options",
-    "devicesTitle": "More devices",
-    "devicesHint": "Increase the number of connections",
     "devicesPurchaseTitle": "Additional device slots",
-    "increaseDevices": "Increase limit",
+    "increaseDevices": "Buy device slot",
     "devicesFull": "All slots are in use",
-    "devicesFullHint": "Increase the limit to connect another device",
-    "trafficTitle": "More data",
-    "trafficHint": "Extra gigabytes for special servers",
-    "buyTraffic": "Buy extra data",
-    "buy": "Buy extra"
+    "devicesFullHint": "Buy a device slot to connect another device",
+    "buyTraffic": "Buy extra data"
+  },
+  "subscriptionCommand": {
+    "devices": "Devices",
+    "deviceList": "Device list",
+    "specialTraffic": "For special servers",
+    "trafficDetails": "About the allowance and extra data",
+    "trafficScopeNote": "This allowance applies only to special servers marked 📡. All other servers have unlimited data.",
+    "connection": "Connection",
+    "minimumDevices": "Minimum device slots for this plan: {{count}}"
   }
 }

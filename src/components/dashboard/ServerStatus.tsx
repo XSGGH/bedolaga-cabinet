@@ -155,11 +155,10 @@ export default function ServerStatus() {
         <p className="mt-1 text-xs text-dark-400">
           Не удалось обновить мониторинг. Попробуем снова через минуту.
         </p>
-        <button
-          type="button"
-          aria-expanded={detailsOpen}
-          aria-controls="server-status-details"
-          onClick={() => setDetailsOpen((current) => !current)}
+        <a
+          href={STATUS_PAGE}
+          target="_blank"
+          rel="noopener noreferrer"
           className="mt-2 inline-block text-xs text-accent-300"
         >
           Открыть мониторинг ›
@@ -178,8 +177,12 @@ export default function ServerStatus() {
       </section>
     );
   const mobile = data.mobile ?? data.servers.find((server) => server.mobile)?.mobile;
-  const onlineCount = data.servers.filter((server) => server.online === true && !server.maintenance).length;
-  const visibleServers = detailsOpen ? data.servers : data.servers.filter((server) => server.maintenance || server.online !== true);
+  const onlineCount = data.servers.filter(
+    (server) => server.online === true && !server.maintenance,
+  ).length;
+  const visibleServers = detailsOpen
+    ? data.servers
+    : data.servers.filter((server) => server.maintenance || server.online !== true);
 
   const unavailable = data.servers.filter((s) => s.online === false && !s.maintenance).length;
   const unknown = data.servers.some((s) => typeof s.online !== 'boolean');
@@ -210,16 +213,26 @@ export default function ServerStatus() {
           onClick={() => setDetailsOpen((current) => !current)}
           className="flex min-h-11 shrink-0 items-center text-xs font-medium text-accent-300 hover:text-accent-200"
         >
-          {detailsOpen ? t('common.hide', 'Свернуть') : t('dashboard.serverStatus.more', 'Подробнее')}
-          <ChevronDownIcon className={`ml-1 h-3.5 w-3.5 transition-transform ${detailsOpen ? 'rotate-180' : ''}`} />
+          {detailsOpen
+            ? t('common.hide', 'Свернуть')
+            : t('dashboard.serverStatus.more', 'Подробнее')}
+          <ChevronDownIcon
+            className={`ml-1 h-3.5 w-3.5 transition-transform ${detailsOpen ? 'rotate-180' : ''}`}
+          />
         </button>
       </div>
       <p className="flex items-center gap-2 text-sm font-medium" style={{ color: chip.color }}>
         <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
         {chip.text}
       </p>
-      <p className="text-xs text-dark-400">{onlineCount} из {data.servers.length} доступны</p>
-      <div id="server-status-details" hidden={visibleServers.length === 0} className="divide-y divide-divider">
+      <p className="text-xs text-dark-400">
+        {onlineCount} из {data.servers.length} доступны
+      </p>
+      <div
+        id="server-status-details"
+        hidden={visibleServers.length === 0}
+        className="divide-y divide-divider"
+      >
         {visibleServers.map((s) => {
           const state = s.maintenance
             ? { color: AMBER, text: 'Идут работы' }
@@ -275,7 +288,16 @@ export default function ServerStatus() {
           </div>
         </div>
       </details>
-      {detailsOpen && <a href={STATUS_PAGE} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center text-xs font-medium text-accent-300">Открыть мониторинг ›</a>}
+      {detailsOpen && (
+        <a
+          href={STATUS_PAGE}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-10 items-center text-xs font-medium text-accent-300"
+        >
+          Открыть мониторинг ›
+        </a>
+      )}
     </section>
   );
 }

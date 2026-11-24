@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { CheckIcon, CopyIcon, CogIcon } from '@/components/icons';
 import { copyToClipboard } from '@/utils/clipboard';
-import { uiLocale } from '@/utils/uiLocale';
+import SubscriptionPlanHeader from '@/components/subscription/SubscriptionPlanHeader';
 import { formatTraffic, formatTrafficPercent } from '../../utils/formatTraffic';
 import type { Subscription } from '../../types';
 import TrafficProgressBar from './TrafficProgressBar';
@@ -38,19 +38,6 @@ export default function SubscriptionCardActive({
   const usedGb = trafficData?.traffic_used_gb ?? subscription.traffic_used_gb;
   const usedPercent = trafficData?.traffic_used_percent ?? subscription.traffic_used_percent;
   const isUnlimited = trafficData?.is_unlimited ?? subscription.traffic_limit_gb === 0;
-  const daysLeft = subscription.days_left;
-  const endingSoon = daysLeft <= 3;
-  const status = !subscription.is_active
-    ? t('dashboard.ui.statusUnknown', 'Статус уточняется')
-    : endingSoon
-      ? t('dashboard.ui.endingSoon', 'Скоро закончится')
-      : t('dashboard.ui.active', 'Активна');
-  const statusColor = !subscription.is_active
-    ? 'text-dark-300'
-    : endingSoon
-      ? 'text-warning-400'
-      : 'text-success-400';
-  const date = new Date(subscription.end_date).toLocaleDateString(uiLocale());
   const trafficKnown = Number.isFinite(usedGb) && Number.isFinite(usedPercent);
   const remaining = Math.max(0, subscription.traffic_limit_gb - usedGb);
 
@@ -60,48 +47,16 @@ export default function SubscriptionCardActive({
       className="xsg-subscription-hero overflow-hidden rounded-3xl border border-[var(--xsg-line)] bg-dark-800"
     >
       <div className="space-y-3 p-4 sm:p-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-8 lg:gap-y-4 lg:space-y-0">
-        <div className="flex items-center justify-between gap-3 text-xs lg:col-span-2">
-          <span className="font-medium text-dark-300">{t('dashboard.tariff')}</span>
-          <span className={`inline-flex items-center gap-1.5 font-medium ${statusColor}`}>
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />
-            {status}
-          </span>
-        </div>
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-4 lg:content-start">
-          <div className="min-w-0">
-            <Link
-              to={`/subscriptions/${subscription.id}`}
-              className="block break-words text-xl font-bold leading-tight tracking-tight text-dark-50 [overflow-wrap:anywhere] hover:text-accent-300 sm:text-2xl"
-            >
-              {subscription.is_trial
-                ? t('subscription.trialStatus')
-                : subscription.tariff_name || t('subscription.currentPlan')}
-            </Link>
-            <p className="mt-2 text-xs leading-relaxed text-dark-300">
-              {t('dashboard.validUntil', { date })}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-dark-300">{t('dashboard.remaining')}</p>
-            <p
-              className={`mt-1 font-semibold tabular-nums ${endingSoon ? 'text-warning-400' : 'text-dark-50'}`}
-            >
-              {daysLeft > 0 ? (
-                <>
-                  <span className="text-[28px] leading-none">{daysLeft}</span>
-                  <span className="ml-1 text-xs">{t('subscription.daysShort')}</span>
-                </>
-              ) : (
-                <span className="text-sm">
-                  {subscription.time_left_display || t('dashboard.ui.lessThanDay', 'Меньше суток')}
-                </span>
-              )}
-            </p>
-          </div>
+        <div className="lg:col-span-2">
+          <SubscriptionPlanHeader subscription={subscription} />
         </div>
 
         <div className="space-y-1.5">
-          <ConnectDeviceTile subscription={subscription} connectedDevices={connectedDevices} canIncreaseLimit={canAddDevices} />
+          <ConnectDeviceTile
+            subscription={subscription}
+            connectedDevices={connectedDevices}
+            canIncreaseLimit={canAddDevices}
+          />
           <Link
             to={`/subscriptions/${subscription.id}`}
             className="xsg-action-row justify-between text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
@@ -157,7 +112,14 @@ export default function SubscriptionCardActive({
                   })
                 : t('dashboard.ui.noTraffic', 'Статистика пока недоступна')}
             </p>
-            {canAddTraffic && <Link to={`/subscriptions/${subscription.id}?addon=traffic`} className={`mt-1 inline-flex min-h-10 items-center rounded-lg px-2 text-xs font-medium hover:bg-accent-500/10 active:bg-selected ${trafficKnown && usedPercent >= 80 ? 'text-warning-300' : 'text-accent-300'}`}>+ {t('addonsUi.buyTraffic')}</Link>}
+            {canAddTraffic && (
+              <Link
+                to={`/subscriptions/${subscription.id}?addon=traffic`}
+                className={`mt-1 inline-flex min-h-10 items-center rounded-lg px-2 text-xs font-medium hover:bg-accent-500/10 active:bg-selected ${trafficKnown && usedPercent >= 80 ? 'text-warning-300' : 'text-accent-300'}`}
+              >
+                + {t('addonsUi.buyTraffic')}
+              </Link>
+            )}
             {refreshTrafficMutation.isError && (
               <p role="status" className="mt-2 text-xs text-warning-400">
                 {t('dashboard.ui.refreshError', 'Не удалось обновить. Показан последний замер.')}

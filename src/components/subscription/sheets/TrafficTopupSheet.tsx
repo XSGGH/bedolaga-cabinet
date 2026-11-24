@@ -1,3 +1,4 @@
+import { ResponsiveSheet } from '@/components/ui/ResponsiveSheet';
 import AddonFeedback from './AddonFeedback';
 import { useTranslation } from 'react-i18next';
 import { useCurrency } from '../../../hooks/useCurrency';
@@ -19,6 +20,7 @@ import type { PurchaseOptions, Subscription } from '../../../types';
 
 export interface TrafficTopupSheetProps {
   open: boolean;
+  modal?: boolean;
   onOpen: () => void;
   onClose: () => void;
   subscription: Subscription;
@@ -31,6 +33,7 @@ export interface TrafficTopupSheetProps {
 
 export function TrafficTopupSheet({
   open,
+  modal = false,
   onOpen,
   onClose,
   subscription,
@@ -74,196 +77,218 @@ export function TrafficTopupSheet({
     },
   });
 
-  const actionTitle = t('subscription.actionsUi.TrafficTopupSheet', 'Докупить трафик');
-  if (availabilityError)
-    return (
-      <AddonFeedback
-        title={actionTitle}
-        message={t(
-          'subscription.actionsUi.checkError',
-          'Не удалось проверить доступность. Попробуйте ещё раз.',
-        )}
-        busy={checkingAvailability}
-        onRetry={() => {
-          void retryAvailability();
-        }}
-        onClose={open ? onClose : undefined}
-      />
-    );
-  if (trafficPackages !== undefined && trafficPackages.length === 0)
-    return (
-      <AddonFeedback
-        title={actionTitle}
-        message={t(
-          'subscription.actionsUi.trafficUnavailable',
-          'Дополнительный трафик недоступен на вашем тарифе.',
-        )}
-        busy={checkingAvailability}
-        onRetry={() => {
-          void retryAvailability();
-        }}
-        onClose={open ? onClose : undefined}
-      />
-    );
-  if (open && !trafficPackages)
-    return (
-      <AddonFeedback
-        title={actionTitle}
-        message={t('subscription.actionsUi.checking', 'Проверяем доступность…')}
-        busy
-        onClose={onClose}
-      />
-    );
-
-  if (!open)
-    return (
-      <button
-        type="button"
-        onClick={onOpen}
-        className="flex min-h-12 w-full items-center gap-2 rounded-xl border border-accent-400/50 bg-accent-500/10 px-3 py-2 text-left text-sm font-semibold text-accent-200 transition-colors hover:border-accent-300 hover:bg-accent-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
-      >
-        <PlusIcon className="h-4 w-4 shrink-0" />
-        <span className="min-w-0 flex-1">
-          {t('subscription.actionsUi.TrafficTopupSheet', 'Докупить трафик')}
-        </span>
-        <ChevronRightIcon className="h-4 w-4 shrink-0" />
-      </button>
-    );
-
-  return (
-    <div
-      className={`rounded-xl border p-5 ${isDark ? 'border-dark-700/50 bg-dark-800/50' : 'border-champagne-300/60 bg-champagne-200/40'}`}
-    >
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-medium text-dark-100">
-          {t('subscription.additionalOptions.buyTrafficTitle')}
-        </h3>
+  const renderContent = () => {
+    const actionTitle = t('subscription.actionsUi.TrafficTopupSheet', 'Докупить трафик');
+    if (!open && modal) return null;
+    if (!open)
+      return (
         <button
-          onClick={() => {
-            onClose();
-            onSelectedTrafficPackageChange(null);
-          }}
-          className="text-sm text-dark-400 hover:text-dark-200"
-          aria-label={t('common.close', 'Close')}
+          type="button"
+          onClick={onOpen}
+          className="flex min-h-12 w-full items-center gap-2 rounded-xl border border-accent-400/50 bg-accent-500/10 px-3 py-2 text-left text-sm font-semibold text-accent-200 transition-colors hover:border-accent-300 hover:bg-accent-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
         >
-          ✕
+          <PlusIcon className="h-4 w-4 shrink-0" />
+          <span className="min-w-0 flex-1">
+            {t('subscription.actionsUi.TrafficTopupSheet', 'Докупить трафик')}
+          </span>
+          <ChevronRightIcon className="h-4 w-4 shrink-0" />
         </button>
-      </div>
+      );
+    if (availabilityError)
+      return (
+        <AddonFeedback
+          title={actionTitle}
+          message={t(
+            'subscription.actionsUi.checkError',
+            'Не удалось проверить доступность. Попробуйте ещё раз.',
+          )}
+          busy={checkingAvailability}
+          onRetry={() => {
+            void retryAvailability();
+          }}
+          onClose={!modal && open ? onClose : undefined}
+        />
+      );
+    if (trafficPackages !== undefined && trafficPackages.length === 0)
+      return (
+        <AddonFeedback
+          title={actionTitle}
+          message={t(
+            'subscription.actionsUi.trafficUnavailable',
+            'Дополнительный трафик недоступен на вашем тарифе.',
+          )}
+          busy={checkingAvailability}
+          onRetry={() => {
+            void retryAvailability();
+          }}
+          onClose={!modal && open ? onClose : undefined}
+        />
+      );
+    if (open && !trafficPackages)
+      return (
+        <AddonFeedback
+          title={actionTitle}
+          message={t('subscription.actionsUi.checking', 'Проверяем доступность…')}
+          busy
+          onClose={modal ? undefined : onClose}
+        />
+      );
 
-      {trafficPackages && trafficPackages.length > 0 && (
-        <div
-          className={`mb-4 rounded-lg p-2 text-xs ${isDark ? 'bg-dark-700/30 text-dark-500' : 'bg-champagne-300/40 text-champagne-600'}`}
-        >
-          ⚠️ {t('subscription.additionalOptions.trafficWarning')}
-        </div>
-      )}
-      {!trafficPackages || trafficPackages.length === 0 ? (
-        <div className="py-4 text-center text-sm text-dark-400">
-          {t('subscription.additionalOptions.trafficUnavailable')}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {/* Лист сидит в карточке с большими полями: на телефоне плитке в две
+    return (
+      <div
+        className={
+          modal
+            ? 'px-4 pb-4 sm:px-5'
+            : `rounded-xl border p-5 ${isDark ? 'border-dark-700/50 bg-dark-800/50' : 'border-champagne-300/60 bg-champagne-200/40'}`
+        }
+      >
+        {!modal && (
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-medium text-dark-100">
+              {t('subscription.additionalOptions.buyTrafficTitle')}
+            </h3>
+            <button
+              onClick={() => {
+                onClose();
+                onSelectedTrafficPackageChange(null);
+              }}
+              className="text-sm text-dark-400 hover:text-dark-200"
+              aria-label={t('common.close', 'Close')}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {trafficPackages && trafficPackages.length > 0 && (
+          <div
+            className={`mb-4 rounded-lg p-2 text-xs ${isDark ? 'bg-dark-700/30 text-dark-500' : 'bg-champagne-300/40 text-champagne-600'}`}
+          >
+            ⚠️ {t('subscription.additionalOptions.trafficWarning')}
+          </div>
+        )}
+        {!trafficPackages || trafficPackages.length === 0 ? (
+          <div className="py-4 text-center text-sm text-dark-400">
+            {t('subscription.additionalOptions.trafficUnavailable')}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Лист сидит в карточке с большими полями: на телефоне плитке в две
               колонки оставалось ~78 px, и «Безлимит» и цены рвались посреди слова.
               Поля плитки меньше, крупный шрифт — с sm, цены не рвутся. */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            {trafficPackages.map((pkg) => (
-              <button
-                key={pkg.gb}
-                onClick={() => onSelectedTrafficPackageChange(pkg.gb)}
-                className={`min-w-0 rounded-xl border px-2 py-3 text-center transition-all sm:p-4 ${
-                  selectedTrafficPackage === pkg.gb
-                    ? 'border-accent-500 bg-accent-500/10'
-                    : isDark
-                      ? 'border-dark-700/50 bg-dark-800/50 hover:border-dark-600'
-                      : 'border-champagne-300/60 bg-champagne-200/40 hover:border-champagne-400'
-                }`}
-              >
-                <div className="text-base font-semibold text-dark-100 sm:text-lg">
-                  {pkg.is_unlimited
-                    ? `♾️ ${t('subscription.additionalOptions.unlimited')}`
-                    : `${pkg.gb} ${t('common.units.gb')}`}
-                </div>
-                {pkg.discount_percent != null && pkg.discount_percent > 0 && (
-                  <div className="mb-1">
-                    <span className="inline-block rounded-full bg-success-500/20 px-2 py-0.5 text-xs font-medium text-success-400">
-                      -{pkg.discount_percent}%
-                    </span>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              {trafficPackages.map((pkg) => (
+                <button
+                  key={pkg.gb}
+                  onClick={() => onSelectedTrafficPackageChange(pkg.gb)}
+                  className={`min-w-0 rounded-xl border px-2 py-3 text-center transition-all sm:p-4 ${
+                    selectedTrafficPackage === pkg.gb
+                      ? 'border-accent-500 bg-accent-500/10'
+                      : isDark
+                        ? 'border-dark-700/50 bg-dark-800/50 hover:border-dark-600'
+                        : 'border-champagne-300/60 bg-champagne-200/40 hover:border-champagne-400'
+                  }`}
+                >
+                  <div className="text-base font-semibold text-dark-100 sm:text-lg">
+                    {pkg.is_unlimited
+                      ? `♾️ ${t('subscription.additionalOptions.unlimited')}`
+                      : `${pkg.gb} ${t('common.units.gb')}`}
                   </div>
-                )}
-                <div className="font-medium text-accent-400">
-                  {pkg.discount_percent != null &&
-                  pkg.discount_percent > 0 &&
-                  pkg.base_price_kopeks ? (
-                    <div className="flex flex-wrap items-baseline justify-center gap-x-1">
-                      <span className="whitespace-nowrap text-sm text-dark-500 line-through">
-                        {formatPrice(pkg.base_price_kopeks)}
+                  {pkg.discount_percent != null && pkg.discount_percent > 0 && (
+                    <div className="mb-1">
+                      <span className="inline-block rounded-full bg-success-500/20 px-2 py-0.5 text-xs font-medium text-success-400">
+                        -{pkg.discount_percent}%
                       </span>
-                      <span className="whitespace-nowrap">{formatPrice(pkg.price_kopeks)}</span>
                     </div>
-                  ) : (
-                    formatPrice(pkg.price_kopeks)
                   )}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {selectedTrafficPackage !== null &&
-            (() => {
-              const selectedPkg = trafficPackages.find((p) => p.gb === selectedTrafficPackage);
-              const hasEnoughBalance =
-                !selectedPkg ||
-                !purchaseOptions ||
-                selectedPkg.price_kopeks <= purchaseOptions.balance_kopeks;
-              const missingAmount =
-                selectedPkg && purchaseOptions
-                  ? selectedPkg.price_kopeks - purchaseOptions.balance_kopeks
-                  : 0;
-
-              return (
-                <>
-                  {!hasEnoughBalance && missingAmount > 0 && (
-                    <InsufficientBalancePrompt
-                      missingAmountKopeks={missingAmount}
-                      compact
-                      className="mb-3"
-                      onBeforeTopUp={async () => {
-                        await subscriptionApi.saveTrafficCart(
-                          selectedTrafficPackage,
-                          subscriptionId,
-                        );
-                      }}
-                    />
-                  )}
-                  <button
-                    onClick={() => purchaseMutation.mutate(selectedTrafficPackage)}
-                    disabled={purchaseMutation.isPending || !hasEnoughBalance}
-                    className="btn-primary w-full py-3"
-                  >
-                    {purchaseMutation.isPending ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      </span>
-                    ) : selectedPkg?.is_unlimited ? (
-                      t('subscription.additionalOptions.buyUnlimited')
+                  <div className="font-medium text-accent-400">
+                    {pkg.discount_percent != null &&
+                    pkg.discount_percent > 0 &&
+                    pkg.base_price_kopeks ? (
+                      <div className="flex flex-wrap items-baseline justify-center gap-x-1">
+                        <span className="whitespace-nowrap text-sm text-dark-500 line-through">
+                          {formatPrice(pkg.base_price_kopeks)}
+                        </span>
+                        <span className="whitespace-nowrap">{formatPrice(pkg.price_kopeks)}</span>
+                      </div>
                     ) : (
-                      t('subscription.additionalOptions.buyTrafficGb', {
-                        gb: selectedTrafficPackage,
-                      })
+                      formatPrice(pkg.price_kopeks)
                     )}
-                  </button>
-                </>
-              );
-            })()}
-
-          {purchaseMutation.isError && (
-            <div className="text-center text-sm text-error-400">
-              {getErrorMessage(purchaseMutation.error)}
+                  </div>
+                </button>
+              ))}
             </div>
-          )}
-        </div>
-      )}
-    </div>
+
+            {selectedTrafficPackage !== null &&
+              (() => {
+                const selectedPkg = trafficPackages.find((p) => p.gb === selectedTrafficPackage);
+                const hasEnoughBalance =
+                  !selectedPkg ||
+                  !purchaseOptions ||
+                  selectedPkg.price_kopeks <= purchaseOptions.balance_kopeks;
+                const missingAmount =
+                  selectedPkg && purchaseOptions
+                    ? selectedPkg.price_kopeks - purchaseOptions.balance_kopeks
+                    : 0;
+
+                return (
+                  <>
+                    {!hasEnoughBalance && missingAmount > 0 && (
+                      <InsufficientBalancePrompt
+                        missingAmountKopeks={missingAmount}
+                        compact
+                        className="mb-3"
+                        onBeforeTopUp={async () => {
+                          await subscriptionApi.saveTrafficCart(
+                            selectedTrafficPackage,
+                            subscriptionId,
+                          );
+                        }}
+                      />
+                    )}
+                    <button
+                      onClick={() => purchaseMutation.mutate(selectedTrafficPackage)}
+                      disabled={purchaseMutation.isPending || !hasEnoughBalance}
+                      className="btn-primary w-full py-3"
+                    >
+                      {purchaseMutation.isPending ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        </span>
+                      ) : selectedPkg?.is_unlimited ? (
+                        t('subscription.additionalOptions.buyUnlimited')
+                      ) : (
+                        t('subscription.additionalOptions.buyTrafficGb', {
+                          gb: selectedTrafficPackage,
+                        })
+                      )}
+                    </button>
+                  </>
+                );
+              })()}
+
+            {purchaseMutation.isError && (
+              <div className="text-center text-sm text-error-400">
+                {getErrorMessage(purchaseMutation.error)}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+  return modal ? (
+    <ResponsiveSheet
+      isOpen={open}
+      onClose={() => {
+        onClose();
+        onSelectedTrafficPackageChange(null);
+      }}
+      title={t('addonsUi.buyTraffic')}
+    >
+      {renderContent()}
+    </ResponsiveSheet>
+  ) : (
+    renderContent()
   );
 }

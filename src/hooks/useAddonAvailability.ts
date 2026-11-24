@@ -20,10 +20,32 @@ export function useAddonAvailability(subscription: Subscription | null, subscrip
     staleTime: 30_000,
     retry: false,
   });
+  const reduction = useQuery({
+    queryKey: ['device-reduction-info', subscriptionId],
+    queryFn: () => subscriptionApi.getDeviceReductionInfo(subscriptionId),
+    enabled: eligible,
+    staleTime: 30_000,
+    retry: false,
+  });
   return {
-    canAddDevices: eligible && !devices.isError && devices.data?.available === true
-      && (devices.data.can_add == null || devices.data.can_add >= 1)
-      && (!devices.data.max_device_limit || (devices.data.current_device_limit ?? subscription?.device_limit ?? 0) < devices.data.max_device_limit),
-    canAddTraffic: eligible && (subscription?.traffic_limit_gb ?? 0) > 0 && !traffic.isError && (traffic.data?.length ?? 0) > 0,
+    canReduceDevices:
+      eligible &&
+      !reduction.isError &&
+      reduction.data?.available === true &&
+      reduction.data.can_reduce > 0,
+    minimumDeviceLimit: reduction.data?.min_device_limit,
+    canAddDevices:
+      eligible &&
+      !devices.isError &&
+      devices.data?.available === true &&
+      (devices.data.can_add == null || devices.data.can_add >= 1) &&
+      (!devices.data.max_device_limit ||
+        (devices.data.current_device_limit ?? subscription?.device_limit ?? 0) <
+          devices.data.max_device_limit),
+    canAddTraffic:
+      eligible &&
+      (subscription?.traffic_limit_gb ?? 0) > 0 &&
+      !traffic.isError &&
+      (traffic.data?.length ?? 0) > 0,
   };
 }
