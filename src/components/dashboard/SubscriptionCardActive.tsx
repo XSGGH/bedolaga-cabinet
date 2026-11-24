@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { CheckIcon, CopyIcon, CogIcon, RefreshIcon } from '@/components/icons';
+import { CheckIcon, CopyIcon, CogIcon } from '@/components/icons';
 import { copyToClipboard } from '@/utils/clipboard';
 import { uiLocale } from '@/utils/uiLocale';
-import { formatTraffic } from '../../utils/formatTraffic';
+import { formatTraffic, formatTrafficPercent } from '../../utils/formatTraffic';
 import type { Subscription } from '../../types';
 import TrafficProgressBar from './TrafficProgressBar';
 import ConnectDeviceTile from './ConnectDeviceTile';
+import TrafficRefreshButton from './TrafficRefreshButton';
 
 interface SubscriptionCardActiveProps {
   subscription: Subscription;
@@ -49,9 +50,6 @@ export default function SubscriptionCardActive({
       : 'text-success-400';
   const date = new Date(subscription.end_date).toLocaleDateString(uiLocale());
   const trafficKnown = Number.isFinite(usedGb) && Number.isFinite(usedPercent);
-  const percentage = new Intl.NumberFormat(uiLocale(), { maximumFractionDigits: 1 }).format(
-    usedPercent,
-  );
   const remaining = Math.max(0, subscription.traffic_limit_gb - usedGb);
 
   return (
@@ -59,7 +57,7 @@ export default function SubscriptionCardActive({
       aria-label={t('dashboard.ui.subscription', 'Ваша подписка')}
       className="overflow-hidden rounded-3xl border border-[var(--xsg-line-strong)] bg-dark-800"
     >
-      <div className="space-y-5 p-4 sm:p-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-8 lg:gap-y-4 lg:space-y-0">
+      <div className="space-y-3 p-4 sm:p-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-8 lg:gap-y-4 lg:space-y-0">
         <div className="flex items-center justify-between gap-3 text-xs lg:col-span-2">
           <span className="font-medium text-dark-300">{t('dashboard.tariff')}</span>
           <span className={`inline-flex items-center gap-1.5 font-medium ${statusColor}`}>
@@ -100,11 +98,11 @@ export default function SubscriptionCardActive({
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <ConnectDeviceTile subscription={subscription} connectedDevices={connectedDevices} />
           <Link
             to={`/subscriptions/${subscription.id}`}
-            className="flex min-h-11 items-center justify-between gap-2 rounded-xl px-2 text-sm font-medium text-dark-200 transition-colors hover:bg-dark-700/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+            className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-dark-700/20 px-3 text-sm font-medium text-dark-100 transition-colors hover:bg-dark-700/40 active:bg-dark-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
           >
             <span className="flex items-center gap-2">
               <CogIcon className="h-4 w-4 shrink-0 text-dark-400" />
@@ -117,7 +115,7 @@ export default function SubscriptionCardActive({
         </div>
 
         {!isUnlimited && (
-          <div className="border-t border-[var(--xsg-line)] pt-4 lg:col-span-2">
+          <div className="border-t border-[var(--xsg-line)] pt-3 lg:col-span-2">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="text-sm font-semibold text-dark-100">
@@ -127,39 +125,20 @@ export default function SubscriptionCardActive({
                   {t('dashboard.ui.trafficScope', 'На серверах обхода белых списков')}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => refreshTrafficMutation.mutate()}
-                disabled={refreshTrafficMutation.isPending || trafficRefreshCooldown > 0}
-                aria-label={t('common.refresh')}
-                aria-busy={refreshTrafficMutation.isPending}
-                title={t('common.refresh')}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-dark-300 hover:bg-dark-700/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 disabled:opacity-50"
-              >
-                {trafficRefreshCooldown > 0 && !refreshTrafficMutation.isPending ? (
-                  <span className="text-xs tabular-nums">{trafficRefreshCooldown}</span>
-                ) : (
-                  <RefreshIcon
-                    className={`h-4 w-4 ${refreshTrafficMutation.isPending ? 'animate-spin motion-reduce:animate-none' : ''}`}
-                  />
-                )}
-              </button>
+              <TrafficRefreshButton
+                cooldown={trafficRefreshCooldown}
+                pending={refreshTrafficMutation.isPending}
+                onRefresh={() => refreshTrafficMutation.mutate()}
+              />
             </div>
-            <div className="mb-2 mt-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-xs tabular-nums text-dark-300">
+            <div className="mb-2 mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-xs tabular-nums text-dark-300">
               <p>
                 <span className="text-base font-semibold text-dark-50">
                   {trafficKnown ? formatTraffic(usedGb) : '—'}
                 </span>{' '}
                 / {formatTraffic(subscription.traffic_limit_gb)}
               </p>
-              {trafficKnown && (
-                <span>
-                  {usedPercent > 0 && usedPercent < 0.1
-                    ? `<${new Intl.NumberFormat(uiLocale()).format(0.1)}`
-                    : percentage}
-                  %
-                </span>
-              )}
+              {trafficKnown && <span>{formatTrafficPercent(usedPercent)}</span>}
             </div>
             <TrafficProgressBar
               usedGb={usedGb}

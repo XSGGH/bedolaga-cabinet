@@ -62,15 +62,17 @@ export function AutopayToggle({
       }
     >
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-dark-50">{t('subscription.autoRenewal')}</div>
+        <div className="text-sm font-semibold text-dark-50">
+          {t('subscription.manage.autopayTitle', 'Автопродление')}
+        </div>
         <div className="mt-1 text-xs leading-relaxed text-dark-300">
-          {t('subscription.manage.autopayHint', {
-            defaultValue: 'Списывать с баланса за {{count}} дн. до окончания.',
+          {t('subscription.manage.autopayTiming', {
+            defaultValue_one: 'С баланса за {{count}} день до окончания',
+            defaultValue_few: 'С баланса за {{count}} дня до окончания',
+            defaultValue_many: 'С баланса за {{count}} дней до окончания',
+            defaultValue: 'С баланса за {{count}} дней до окончания',
             count: subscription.autopay_days_before,
-          })}{' '}
-          {subscription.autopay_enabled
-            ? t('subscription.manage.on', 'Включено')
-            : t('subscription.manage.off', 'Выключено')}
+          })}
         </div>
       </div>
       <button

@@ -4,6 +4,12 @@ import { uiLocale } from './uiLocale';
 
 const NBSP = ' ';
 
+export function formatTrafficPercent(percent: number, locale: string = uiLocale()): string {
+  if (!Number.isFinite(percent)) return '—';
+  const formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+  return `${percent > 0 && percent < 0.1 ? `<${formatter.format(0.1)}` : formatter.format(percent)}%`;
+}
+
 /**
  * Format traffic amount with appropriate unit (MB/GB/TB).
  * Units come from i18n so RU shows «ГБ» consistently with the rest of the UI

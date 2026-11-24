@@ -69,7 +69,7 @@ export default function PurchaseCTAButton({
   const Icon = isExpired || isTrial || requiresTariff ? SparklesIcon : RefreshIcon;
 
   const fill = quiet
-    ? 'border border-accent-400/40 bg-accent-500/10 text-accent-200 hover:bg-accent-500/20'
+    ? 'border border-accent-400/60 bg-accent-500/15 text-accent-100 hover:border-accent-300 hover:bg-accent-500/25 active:bg-accent-500/30'
     : 'bg-accent-500 text-on-accent hover:bg-accent-600';
 
   if (inline) {

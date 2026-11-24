@@ -1,0 +1,49 @@
+import { useTranslation } from 'react-i18next';
+import { ClockIcon, RefreshIcon } from '@/components/icons';
+
+export function formatRefreshCooldown(seconds: number): string {
+  const value = Number.isFinite(seconds) ? Math.max(0, Math.ceil(seconds)) : 0;
+  return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`;
+}
+
+/** Presentation only: the owning page keeps its existing timer and rate limits. */
+export default function TrafficRefreshButton({
+  cooldown,
+  pending,
+  onRefresh,
+}: {
+  cooldown: number;
+  pending: boolean;
+  onRefresh: () => void;
+}) {
+  const { t } = useTranslation();
+  const waiting = cooldown > 0 && !pending;
+  const label = waiting
+    ? t('dashboard.ui.refreshWait', {
+        defaultValue: 'Обновление доступно через {{count}} сек.',
+        count: Math.ceil(cooldown),
+      })
+    : t('common.refresh');
+  return (
+    <button
+      type="button"
+      onClick={onRefresh}
+      disabled={pending || cooldown > 0}
+      aria-label={label}
+      title={label}
+      aria-busy={pending}
+      className="flex h-11 w-16 shrink-0 items-center justify-center gap-1 rounded-xl text-dark-300 transition-colors hover:bg-dark-700/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 disabled:cursor-default"
+    >
+      {waiting ? (
+        <>
+          <ClockIcon className="h-3.5 w-3.5" />
+          <span className="text-xs tabular-nums">{formatRefreshCooldown(cooldown)}</span>
+        </>
+      ) : (
+        <RefreshIcon
+          className={`h-4 w-4 ${pending ? 'animate-spin motion-reduce:animate-none' : ''}`}
+        />
+      )}
+    </button>
+  );
+}

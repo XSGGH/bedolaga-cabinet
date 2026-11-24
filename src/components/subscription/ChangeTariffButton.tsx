@@ -37,7 +37,7 @@ export default function ChangeTariffButton({
       to={to}
       className={
         quiet
-          ? 'flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-medium text-dark-200 hover:bg-dark-700/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400'
+          ? 'flex min-h-11 items-center gap-2 rounded-xl bg-dark-700/20 px-3 text-sm font-medium text-dark-100 transition-colors hover:bg-dark-700/40 active:bg-dark-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400'
           : `flex items-center justify-center gap-2 border border-accent-500/40 bg-accent-500/10 font-bold text-accent-200 transition-colors hover:border-accent-400/70 hover:bg-accent-500/20 ${
               inline
                 ? 'h-12 rounded-[14px] px-3 text-[14px]'

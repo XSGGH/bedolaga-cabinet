@@ -6,9 +6,11 @@ import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import { subscriptionApi } from '../api/subscription';
 import { WebBackButton } from '../components/WebBackButton';
+import ConnectDeviceTile from '../components/dashboard/ConnectDeviceTile';
+import TrafficRefreshButton from '../components/dashboard/TrafficRefreshButton';
 import TrafficProgressBar from '../components/dashboard/TrafficProgressBar';
 import { useTrafficZone } from '../hooks/useTrafficZone';
-import { formatTraffic } from '../utils/formatTraffic';
+import { formatTraffic, formatTrafficPercent } from '../utils/formatTraffic';
 import { getGlassColors } from '../utils/glassTheme';
 import { copyToClipboard } from '../utils/clipboard';
 import { useTheme } from '../hooks/useTheme';
@@ -24,8 +26,6 @@ import {
   ChevronDownIcon,
   ClockIcon,
   CopyIcon,
-  DevicesIcon,
-  RefreshIcon,
   TrashIcon,
   WarningIcon,
 } from '../components/icons';
@@ -486,7 +486,7 @@ export default function Subscription() {
                   header badge. */}
 
                     {/* ─── Header ─── */}
-                    <div className="mb-4 flex items-start justify-between gap-4">
+                    <div className="mb-2 flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="mb-2 text-xs font-medium text-dark-300">
                           {t('dashboard.tariff')}
@@ -501,13 +501,13 @@ export default function Subscription() {
                         glassColors={g}
                       />
                     </div>
-                    <div className="mb-5 text-[12.5px] text-dark-400">
+                    <div className="mb-3 text-xs leading-relaxed text-dark-300">
                       {t('dashboard.validUntil', {
                         date: new Date(subscription.end_date).toLocaleDateString(uiLocale()),
                       })}
                     </div>
 
-                    <div aria-hidden="true" className="mb-4 h-px bg-accent-500/15" />
+                    <div aria-hidden="true" className="mb-3 h-px bg-accent-500/15" />
 
                     {/* ─── Traffic Limited Banner ─── */}
                     {subscription.is_limited && (
@@ -602,58 +602,27 @@ export default function Subscription() {
 
                     {(subscription.is_active || subscription.is_limited) &&
                       subscription.subscription_url && (
-                        <div className="mb-4">
-                          <button
-                            type="button"
-                            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-3 py-3 text-sm font-semibold text-on-accent hover:bg-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
-                            onClick={() => {
-                              if (
-                                subscription.device_limit > 0 &&
-                                (devicesData?.total ?? 0) >= subscription.device_limit
-                              ) {
-                                setDevicesOpen(true);
-                                requestAnimationFrame(() =>
-                                  document
-                                    .getElementById('subscription-devices')
-                                    ?.scrollIntoView({ behavior: 'auto', block: 'start' }),
-                                );
-                              } else
-                                navigate(
-                                  subscriptionId
-                                    ? `/connection?sub=${subscriptionId}`
-                                    : '/connection',
-                                );
+                        <div className="mb-3">
+                          <ConnectDeviceTile
+                            subscription={subscription}
+                            connectedDevices={devicesData?.total ?? 0}
+                            connectionPath={
+                              subscriptionId ? `/connection?sub=${subscriptionId}` : '/connection'
+                            }
+                            onManage={() => {
+                              setDevicesOpen(true);
+                              requestAnimationFrame(() =>
+                                document
+                                  .getElementById('subscription-devices')
+                                  ?.scrollIntoView({ behavior: 'auto', block: 'start' }),
+                              );
                             }}
-                          >
-                            <DevicesIcon className="h-[18px] w-[18px] shrink-0" />
-                            {subscription.device_limit > 0 &&
-                            (devicesData?.total ?? 0) >= subscription.device_limit
-                              ? t('subscription.myDevices')
-                              : t('dashboard.connectDevice')}
-                          </button>
-                          <p className="mt-2 text-center text-xs leading-relaxed text-dark-300">
-                            {subscription.device_limit > 0 &&
-                            (devicesData?.total ?? 0) >= subscription.device_limit
-                              ? t(
-                                  'dashboard.ui.allDevicesUsed',
-                                  'Все места заняты · управляйте устройствами',
-                                )
-                              : subscription.device_limit === 0
-                                ? t('dashboard.devicesConnectedUnlimited', {
-                                    used: devicesData?.total ?? 0,
-                                  })
-                                : t('dashboard.ui.connectedDevices', {
-                                    defaultValue: 'Подключено {{used}} из {{max}} устройств',
-                                    used: devicesData?.total ?? 0,
-                                    max: subscription.device_limit,
-                                  })}
-                          </p>
+                          />
                         </div>
                       )}
-                    {/* ─── Продлить + автопродление: на телефоне внизу карточки тарифа ─── */}
-                    <div className="mt-5 space-y-2.5 lg:hidden">
+                    <div className="mt-3 space-y-2 lg:hidden">
                       <PurchaseCTAButton
-                        quiet={!!subscription?.is_active && subscription.days_left > 3}
+                        quiet={subscription.is_active && subscription.days_left > 3}
                         subscription={subscription}
                         isMultiTariff={isMultiTariff}
                         inline
@@ -666,7 +635,7 @@ export default function Subscription() {
                       />
                     </div>
                     {!isDesktop && (
-                      <div className="xsg-autopay mt-4 border-t border-accent-500/15">
+                      <div className="xsg-autopay mt-3 border-t border-accent-500/15">
                         {autopayInner}
                       </div>
                     )}
@@ -746,25 +715,11 @@ export default function Subscription() {
                                     </span>
                                   )}
                                 </div>
-                                <button
-                                  onClick={() => refreshTrafficMutation.mutate()}
-                                  disabled={
-                                    refreshTrafficMutation.isPending || trafficRefreshCooldown > 0
-                                  }
-                                  className="-mr-2 flex h-10 items-center justify-center gap-1 rounded-full px-2.5 text-xs font-medium text-dark-400 transition-colors hover:text-dark-100 disabled:cursor-not-allowed disabled:opacity-50"
-                                  aria-label={t('common.refresh')}
-                                  title={t('common.refresh')}
-                                >
-                                  <RefreshIcon
-                                    className="h-4 w-4"
-                                    spinning={refreshTrafficMutation.isPending}
-                                  />
-                                  {trafficRefreshCooldown > 0 && (
-                                    <span className="tabular-nums text-dark-500">
-                                      {trafficRefreshCooldown}s
-                                    </span>
-                                  )}
-                                </button>
+                                <TrafficRefreshButton
+                                  cooldown={trafficRefreshCooldown}
+                                  pending={refreshTrafficMutation.isPending}
+                                  onRefresh={() => refreshTrafficMutation.mutate()}
+                                />
                               </div>
                               <div className="mb-3 flex items-baseline justify-between gap-3 tabular-nums">
                                 <span className="text-[13px] text-dark-400">
@@ -776,10 +731,7 @@ export default function Subscription() {
                                 </span>
                                 {!isUnlimited && (
                                   <span className="text-[13px] text-dark-400">
-                                    {new Intl.NumberFormat(uiLocale(), {
-                                      maximumFractionDigits: 1,
-                                    }).format(usedPercent)}
-                                    %
+                                    {formatTrafficPercent(usedPercent)}
                                   </span>
                                 )}
                               </div>
