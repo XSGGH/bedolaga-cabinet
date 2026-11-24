@@ -67,6 +67,12 @@ const FortuneWheel = memo(function FortuneWheel({
     while (delta < 0) delta += 360;
     const to = from + SPIN_EXTRA_TURNS_DEG + delta;
     accumulatedRotation.current = to;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      group.setAttribute('transform', rotateAttr(to));
+      setRestAngle(to);
+      latestOnComplete.current();
+      return;
+    }
 
     // Крутим SVG-атрибутом по requestAnimationFrame, а не CSS-transform с переходом:
     // CSS-transform на <g> заводит отдельный композитный слой, и Android WebView на
@@ -137,7 +143,13 @@ const FortuneWheel = memo(function FortuneWheel({
       />
 
       <div className="relative" style={{ aspectRatio: '620 / 650' }}>
-        <svg viewBox={`0 -30 ${SIZE} 650`} className="h-full w-full" role="img">
+        <svg
+          viewBox={`0 -30 ${SIZE} 650`}
+          className="h-full w-full"
+          role="img"
+          aria-label="Колесо с призами"
+          aria-busy={isSpinning}
+        >
           <defs>
             <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#C79BFF" />
@@ -308,6 +320,7 @@ const FortuneWheel = memo(function FortuneWheel({
               }
               .tick-dot { animation: tickChase 6s linear infinite; }
               .tick-spinning .tick-dot { animation-duration: 2s; }
+              @media (prefers-reduced-motion: reduce) { .tick-dot { animation: none; } }
             `}
           </style>
           <g className={isSpinning ? 'tick-spinning' : undefined}>

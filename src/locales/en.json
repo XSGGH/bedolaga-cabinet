@@ -1424,7 +1424,7 @@
       "traffic_gb": "Traffic",
       "promocode": "Promo codes"
     },
-    "recentWins": "Winning right now",
+    "recentWins": "Recent wins",
     "showMore": "Show {{count}} more",
     "showLess": "Show less",
     "tapToCopy": "Tap to copy",

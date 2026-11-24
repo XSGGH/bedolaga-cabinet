@@ -27,6 +27,7 @@ const ROTATING = 'svg > g[transform^="rotate("]';
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  vi.unstubAllGlobals();
 });
 
 function follows(later: Element, earlier: Element): boolean {
@@ -99,5 +100,13 @@ describe('FortuneWheel — ничего не компонуется отдель
     expect(onSpinComplete).toHaveBeenCalledTimes(1);
     // Пять полных оборотов плюс сектор: 1800 + 90.
     expect(pick(container, ROTATING).getAttribute('transform')).toBe('rotate(1890 310 310)');
+  });
+  it('при reduced motion сразу показывает тот же целевой сектор без пяти оборотов', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true }));
+    const complete = vi.fn();
+    const { container, rerender } = render(<FortuneWheel {...rest} onSpinComplete={complete} />);
+    rerender(<FortuneWheel {...rest} isSpinning targetRotation={90} onSpinComplete={complete} />);
+    expect(pick(container, ROTATING).getAttribute('transform')).toBe('rotate(1890 310 310)');
+    expect(complete).toHaveBeenCalledTimes(1);
   });
 });

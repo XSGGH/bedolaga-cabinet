@@ -14,6 +14,14 @@ function timeAgo(
   iso: string,
   t: (key: string, options?: Record<string, unknown>) => string,
 ): string {
+  const timestamp = new Date(iso).getTime();
+  if (!Number.isFinite(timestamp)) return 'Дата не указана';
+  if (timestamp > Date.now())
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(timestamp));
   const diffMin = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60_000));
   if (diffMin < 1) return t('notifications.justNow');
   if (diffMin < 60) return t('notifications.minutesAgo', { count: diffMin });
@@ -34,7 +42,7 @@ function WinCard({
   const color = prizeTypeColor(win.prize_type);
   return (
     <div
-      className={`min-w-0 items-center gap-3 rounded-2xl border border-dark-700 bg-dark-900/80 p-3 ${hiddenOnMobile ? 'hidden sm:flex' : 'flex'}`}
+      className={`min-w-0 items-center gap-3 rounded-2xl border border-dark-700 bg-dark-900/80 p-3 ${hiddenOnMobile ? 'hidden' : 'flex'}`}
       style={{ boxShadow: `inset 0 -2px 0 ${color}55` }}
     >
       <div
@@ -47,7 +55,9 @@ function WinCard({
         <div className="line-clamp-2 break-words text-sm font-bold leading-tight text-dark-50">
           {win.prize_display_name}
         </div>
-        <div className="mt-0.5 text-xs text-dark-500">{timeAgo(win.created_at, t)}</div>
+        <time dateTime={win.created_at} className="mt-0.5 block text-xs text-dark-300">
+          {timeAgo(win.created_at, t)}
+        </time>
       </div>
     </div>
   );
@@ -72,13 +82,9 @@ export default function RecentWinsStrip() {
   return (
     <section aria-label={t('wheel.recentWins')}>
       <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-dark-500">
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success-400 opacity-60" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-success-400" />
-        </span>
         {t('wheel.recentWins')}
       </div>
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2.5">
         {data.slice(0, WINS_SHOWN).map((win, i) => (
           <WinCard key={win.id} win={win} t={t} hiddenOnMobile={!expanded && i >= WINS_COLLAPSED} />
         ))}
@@ -88,7 +94,7 @@ export default function RecentWinsStrip() {
           type="button"
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
-          className="mt-2.5 flex w-full items-center justify-center rounded-xl border border-dark-700 bg-dark-900/60 py-2.5 text-[13px] font-bold text-accent-300 transition-colors hover:border-accent-500/40 sm:hidden"
+          className="mt-2.5 flex min-h-11 w-full items-center justify-center rounded-xl border border-dark-700 bg-dark-900/60 py-2.5 text-[13px] font-bold text-accent-300 transition-colors hover:border-accent-500/40"
         >
           {expanded
             ? t('wheel.showLess')
