@@ -31,3 +31,26 @@ export function devicePresentation(device: {
           : 'unknown';
   return { name: device.local_name?.trim() ? device.local_name : system, system, platform, kind };
 }
+
+/** Add an actual short identifier only when friendly display names collide. */
+export function duplicateDeviceSuffix(
+  device: {
+    hwid: string;
+    device_model?: string | null;
+    platform?: string | null;
+    local_name?: string | null;
+  },
+  devices: (typeof device)[],
+): string | null {
+  const name = devicePresentation(device).name.toLocaleLowerCase();
+  const peers = devices.filter(
+    (other) => devicePresentation(other).name.toLocaleLowerCase() === name,
+  );
+  if (peers.length < 2) return null;
+  for (let length = 6; length < device.hwid.length; length += 2) {
+    const suffix = device.hwid.slice(-length);
+    if (peers.every((other) => other.hwid === device.hwid || !other.hwid.endsWith(suffix)))
+      return suffix.toUpperCase();
+  }
+  return device.hwid.toUpperCase();
+}

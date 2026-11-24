@@ -9,7 +9,7 @@ import { DEVICE_ALIAS_MAX_LENGTH } from '@/constants/devices';
 import { useHaptic } from '@/platform';
 import { useDestructiveConfirm } from '@/platform/hooks/useNativeDialog';
 import type { Subscription } from '@/types';
-import { devicePresentation } from '@/utils/devicePresentation';
+import { devicePresentation, duplicateDeviceSuffix } from '@/utils/devicePresentation';
 import { PiDeviceTablet } from 'react-icons/pi';
 
 export interface DevicesPanelProps {
@@ -124,6 +124,8 @@ export function DevicesPanel({
           <div className="divide-y divide-[var(--xsg-line)]">
             {devicesData.devices.map((device) => {
               const info = devicePresentation(device);
+              const suffix = duplicateDeviceSuffix(device, devicesData.devices);
+              const managementName = suffix ? `${info.name} (${suffix})` : info.name;
               const Icon =
                 info.kind === 'computer'
                   ? MonitorIcon
@@ -150,8 +152,17 @@ export function DevicesPanel({
                       <p className="break-words text-sm font-semibold leading-snug text-dark-100 [overflow-wrap:anywhere]">
                         {info.name}
                       </p>
-                      {info.platform && (
-                        <p className="mt-1 text-xs text-dark-300">{info.platform}</p>
+                      {(suffix ||
+                        (info.platform &&
+                          info.platform.toLowerCase() !== info.name.toLowerCase())) && (
+                        <p className="mt-1 text-xs text-dark-300">
+                          {info.platform && info.platform.toLowerCase() !== info.name.toLowerCase()
+                            ? info.platform
+                            : ''}
+                          {suffix
+                            ? `${info.platform && info.platform.toLowerCase() !== info.name.toLowerCase() ? ' · ' : ''}ID ${suffix}`
+                            : ''}
+                        </p>
                       )}
                     </div>
                     {!editing && (
@@ -162,7 +173,7 @@ export function DevicesPanel({
                           className={actionClass}
                           aria-label={t('subscription.devicesUi.renameNamed', {
                             defaultValue: 'Переименовать: {{name}}',
-                            name: info.name,
+                            name: managementName,
                           })}
                           title={t('subscription.renameDevice', 'Переименовать')}
                           onClick={() => {
@@ -179,14 +190,14 @@ export function DevicesPanel({
                           className={actionClass}
                           aria-label={t('subscription.devicesUi.deleteNamed', {
                             defaultValue: 'Удалить: {{name}}',
-                            name: info.name,
+                            name: managementName,
                           })}
                           title={t('subscription.deleteDevice')}
                           onClick={async () => {
                             const confirmed = await destructiveConfirm(
                               t('subscription.devicesUi.confirmOne', {
                                 defaultValue: 'Удалить «{{name}}» из списка устройств подписки?',
-                                name: info.name,
+                                name: managementName,
                               }),
                               t('subscription.deleteDevice'),
                               t('subscription.deleteDevice'),

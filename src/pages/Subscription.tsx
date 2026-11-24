@@ -123,12 +123,14 @@ export default function Subscription() {
   const { isDark } = useTheme();
   const g = getGlassColors(isDark);
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
   const [showDeleteSheet, setShowDeleteSheet] = useState(false);
 
   // Device/traffic topup state
-  const [showDeviceTopup, setShowDeviceTopup] = useState(false);
+  const [deviceAction, setDeviceAction] = useState<'add' | 'reduce' | null>(null);
+  const showDeviceTopup = deviceAction === 'add';
+  const showDeviceReduction = deviceAction === 'reduce';
   const [devicesToAdd, setDevicesToAdd] = useState(1);
-  const [showDeviceReduction, setShowDeviceReduction] = useState(false);
   const [targetDeviceLimit, setTargetDeviceLimit] = useState<number>(1);
   const [showTrafficTopup, setShowTrafficTopup] = useState(false);
   const [showRecurring, setShowRecurring] = useState(false);
@@ -226,8 +228,7 @@ export default function Subscription() {
   // Pause subscription mutation
   // Auto-close all modals/forms when success notification appears
   const handleCloseAllModals = useCallback(() => {
-    setShowDeviceTopup(false);
-    setShowDeviceReduction(false);
+    setDeviceAction(null);
     setShowTrafficTopup(false);
   }, []);
   useCloseOnSuccessNotification(handleCloseAllModals);
@@ -299,11 +300,15 @@ export default function Subscription() {
     refreshTrafficMutation.mutate();
   }, [subscription, refreshTrafficMutation, subscriptionId]);
 
-  const copyUrl = () => {
-    if (displayedConnectionUrl) {
-      void copyToClipboard(displayedConnectionUrl);
+  const copyUrl = async () => {
+    if (!displayedConnectionUrl) return;
+    try {
+      await copyToClipboard(displayedConnectionUrl);
       setCopied(true);
+      setCopyError(false);
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopyError(true);
     }
   };
 
@@ -416,22 +421,39 @@ export default function Subscription() {
   const connectInner = subscription
     ? displayedConnectionUrl &&
       !shouldHideConnectionLink && (
-        <div className="flex gap-2.5">
-          <code
-            className="flex h-12 min-w-0 flex-1 items-center truncate whitespace-nowrap rounded-[14px] px-4 font-mono text-[13px] text-dark-300"
-            style={{ background: g.codeBg, border: `1px solid ${g.codeBorder}` }}
-            title={displayedConnectionUrl}
-          >
-            <span className="truncate">{displayedConnectionUrl}</span>
-          </code>
-          <button
-            onClick={copyUrl}
-            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[14px] border border-accent-500/40 bg-dark-700 text-accent-300 transition-colors hover:border-accent-400"
-            aria-label={t('subscription.copyLink')}
-            title={t('subscription.copyLink')}
-          >
-            {copied ? <CheckIcon /> : <CopyIcon />}
-          </button>
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-dark-300">
+            {t('subscription.actionsUi.connectionLink', 'Ссылка для подключения')}
+          </p>
+          <div className="flex gap-2.5">
+            <code
+              className="flex h-12 min-w-0 flex-1 items-center truncate whitespace-nowrap rounded-[14px] px-4 font-mono text-[13px] text-dark-300"
+              style={{ background: g.codeBg, border: `1px solid ${g.codeBorder}` }}
+            >
+              <span className="truncate">{displayedConnectionUrl}</span>
+            </code>
+            <button
+              onClick={copyUrl}
+              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[14px] border border-accent-500/40 bg-dark-700 text-accent-300 transition-colors hover:border-accent-400"
+              aria-label={t('subscription.copyLink')}
+              title={t('subscription.copyLink')}
+            >
+              {copied ? <CheckIcon /> : <CopyIcon />}
+            </button>
+          </div>
+          {copied && (
+            <p role="status" className="text-xs text-success-400">
+              {t('subscription.actionsUi.copied', 'Скопировано')}
+            </p>
+          )}
+          {copyError && (
+            <p role="status" className="text-xs text-warning-400">
+              {t(
+                'subscription.actionsUi.copyError',
+                'Не удалось скопировать ссылку. Попробуйте ещё раз.',
+              )}
+            </p>
+          )}
         </div>
       )
     : null;
@@ -917,8 +939,10 @@ export default function Subscription() {
                     >
                       <DeviceTopupSheet
                         open={showDeviceTopup}
-                        onOpen={() => setShowDeviceTopup(true)}
-                        onClose={() => setShowDeviceTopup(false)}
+                        onOpen={() => setDeviceAction('add')}
+                        onClose={() =>
+                          setDeviceAction((current) => (current === 'add' ? null : current))
+                        }
                         subscription={subscription}
                         subscriptionId={subscriptionId}
                         devicesToAdd={devicesToAdd}
@@ -928,8 +952,10 @@ export default function Subscription() {
                       />
                       <DeviceReductionSheet
                         open={showDeviceReduction}
-                        onOpen={() => setShowDeviceReduction(true)}
-                        onClose={() => setShowDeviceReduction(false)}
+                        onOpen={() => setDeviceAction('reduce')}
+                        onClose={() =>
+                          setDeviceAction((current) => (current === 'reduce' ? null : current))
+                        }
                         subscriptionPresent={!!subscription}
                         subscriptionId={subscriptionId}
                         targetDeviceLimit={targetDeviceLimit}

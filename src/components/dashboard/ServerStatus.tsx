@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import MobileCoverage from './MobileCoverage';
+import { ChevronDownIcon } from '@/components/icons';
 import type { MobileProgress, MobileStatus } from './mobileCoverageModel';
 
 // Same-origin server proxy. The Uptime API key must never be sent by the browser.
@@ -211,7 +212,7 @@ export default function ServerStatus() {
         {chip.text}
       </p>
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        {data.servers.map((s) => {
+        {data.servers.map((s, index) => {
           const state = s.maintenance
             ? { color: AMBER, text: 'Идут работы' }
             : s.online === true
@@ -222,28 +223,32 @@ export default function ServerStatus() {
           return (
             <div
               key={s.name}
-              className="min-w-0 space-y-1 rounded-xl border border-[var(--xsg-line)] bg-dark-900/40 px-3 py-2.5"
+              className={`flex min-h-11 min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--xsg-line)] bg-dark-900/40 px-3 py-2 ${data.servers.length % 2 === 1 && index === data.servers.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}
             >
               <p className="break-words text-xs font-semibold leading-relaxed text-dark-100 [overflow-wrap:anywhere]">
                 {s.mobile ? s.name.replace(/^\[📡\]\s*/, '') : s.name}
               </p>
-              <p
-                className="flex items-center gap-1.5 text-xs leading-relaxed"
-                style={{ color: state.color }}
-              >
-                <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
-                {state.text}
-              </p>
+              <span className="shrink-0 text-xs" style={{ color: state.color }} title={state.text}>
+                {s.online === true && !s.maintenance ? (
+                  <>
+                    <span aria-hidden="true">✓</span>
+                    <span className="sr-only">{state.text}</span>
+                  </>
+                ) : (
+                  state.text
+                )}
+              </span>
             </div>
           );
         })}
       </div>
       {mobile && <MobileCoverage mobile={mobile} progress={data.mobileNodes} />}
-      <details className="border-t border-[var(--xsg-line)]">
+      <details className="group/occupancy border-t border-[var(--xsg-line)]">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-lg text-xs text-dark-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 [&::-webkit-details-marker]:hidden">
           <span>Загруженность серверов</span>
-          <span className="tabular-nums">
-            {Number.isFinite(data.load.now) ? `${data.load.now}%` : '—'} · График
+          <span className="flex items-center gap-2 tabular-nums">
+            {Number.isFinite(data.load.now) ? `${data.load.now}%` : '—'}
+            <ChevronDownIcon className="h-4 w-4 transition-transform group-open/occupancy:rotate-180" />
           </span>
         </summary>
         <div className="pb-2">

@@ -1,3 +1,4 @@
+import AddonFeedback from './AddonFeedback';
 import { useTranslation } from 'react-i18next';
 import { useCurrency } from '../../../hooks/useCurrency';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -50,7 +51,12 @@ export function TrafficTopupSheet({
     return `${formatAmount(rubles, rubles % 1 === 0 ? 0 : 2)}\u00A0${currencySymbol}`;
   };
 
-  const { data: trafficPackages } = useQuery({
+  const {
+    data: trafficPackages,
+    isError: availabilityError,
+    isFetching: checkingAvailability,
+    refetch: retryAvailability,
+  } = useQuery({
     queryKey: ['traffic-packages', subscriptionId],
     queryFn: () => subscriptionApi.getTrafficPackages(subscriptionId),
     enabled: open && !!subscription,
@@ -67,6 +73,47 @@ export function TrafficTopupSheet({
       onSelectedTrafficPackageChange(null);
     },
   });
+
+  const actionTitle = t('subscription.actionsUi.TrafficTopupSheet', 'Докупить трафик');
+  if (availabilityError)
+    return (
+      <AddonFeedback
+        title={actionTitle}
+        message={t(
+          'subscription.actionsUi.checkError',
+          'Не удалось проверить доступность. Попробуйте ещё раз.',
+        )}
+        busy={checkingAvailability}
+        onRetry={() => {
+          void retryAvailability();
+        }}
+        onClose={open ? onClose : undefined}
+      />
+    );
+  if (trafficPackages !== undefined && trafficPackages.length === 0)
+    return (
+      <AddonFeedback
+        title={actionTitle}
+        message={t(
+          'subscription.actionsUi.trafficUnavailable',
+          'Дополнительный трафик недоступен на вашем тарифе.',
+        )}
+        busy={checkingAvailability}
+        onRetry={() => {
+          void retryAvailability();
+        }}
+        onClose={open ? onClose : undefined}
+      />
+    );
+  if (open && !trafficPackages)
+    return (
+      <AddonFeedback
+        title={actionTitle}
+        message={t('subscription.actionsUi.checking', 'Проверяем доступность…')}
+        busy
+        onClose={onClose}
+      />
+    );
 
   if (!open)
     return (
@@ -103,12 +150,13 @@ export function TrafficTopupSheet({
         </button>
       </div>
 
-      <div
-        className={`mb-4 rounded-lg p-2 text-xs ${isDark ? 'bg-dark-700/30 text-dark-500' : 'bg-champagne-300/40 text-champagne-600'}`}
-      >
-        ⚠️ {t('subscription.additionalOptions.trafficWarning')}
-      </div>
-
+      {trafficPackages && trafficPackages.length > 0 && (
+        <div
+          className={`mb-4 rounded-lg p-2 text-xs ${isDark ? 'bg-dark-700/30 text-dark-500' : 'bg-champagne-300/40 text-champagne-600'}`}
+        >
+          ⚠️ {t('subscription.additionalOptions.trafficWarning')}
+        </div>
+      )}
       {!trafficPackages || trafficPackages.length === 0 ? (
         <div className="py-4 text-center text-sm text-dark-400">
           {t('subscription.additionalOptions.trafficUnavailable')}

@@ -35,6 +35,13 @@ export const DISTRICTS: Record<string, string> = {
   urfo: 'УФО',
   yufo: 'ЮФО',
 };
+export const DISTRICT_NAMES: Record<string, string> = {
+  cfo: 'Центральный федеральный округ',
+  pfo: 'Приволжский федеральный округ',
+  sfo: 'Сибирский федеральный округ',
+  urfo: 'Уральский федеральный округ',
+  yufo: 'Южный федеральный округ',
+};
 
 export const OPERATORS: Record<string, string> = {
   mts: 'МТС',
@@ -46,14 +53,14 @@ export const OPERATORS: Record<string, string> = {
 export const DIRECTION_STATES: Record<string, { label: string; symbol: string; color: string }> = {
   up: { label: 'VPN работает', symbol: '✓', color: 'text-success-400' },
   down: { label: 'Не удалось подключиться', symbol: '×', color: 'text-critical-500' },
-  no_bs: { label: 'Белые списки отключены — замера VPN нет', symbol: '—', color: 'text-dark-400' },
-  no_modem: { label: 'Нет результата проверки', symbol: '—', color: 'text-dark-400' },
+  no_bs: { label: 'Не требуется: белые списки отключены', symbol: '—', color: 'text-dark-300' },
+  no_modem: { label: 'Нет результата проверки', symbol: '?', color: 'text-dark-300' },
   modem_unavailable: {
     label: 'Проверка временно недоступна',
-    symbol: '—',
+    symbol: '?',
     color: 'text-dark-400',
   },
-  unknown: { label: 'Нет подтверждённого результата', symbol: '—', color: 'text-dark-400' },
+  unknown: { label: 'Нет подтверждённого результата', symbol: '?', color: 'text-dark-300' },
   stale: { label: 'Результат устарел', symbol: '◷', color: 'text-warning-400' },
 };
 
@@ -84,6 +91,10 @@ export function coverageModel(mobile: MobileStatus, progress?: MobileProgress) {
   const untested = detailed
     ? directions.filter((r) => !['up', 'down', 'stale'].includes(r.status)).length
     : count(mobile.unknown) + count(mobile.whitelist_off);
+  const notRequired = detailed
+    ? directions.filter((r) => r.status === 'no_bs').length
+    : count(mobile.whitelist_off);
+  const noResult = Math.max(0, untested - notRequired);
   const regions = [...new Set(directions.map((r) => r.region))];
   const operators = [...new Set(directions.map((r) => r.operator))];
   const down = Math.max(0, total - up);
@@ -99,6 +110,8 @@ export function coverageModel(mobile: MobileStatus, progress?: MobileProgress) {
     down,
     stale,
     untested,
+    notRequired,
+    noResult,
     tone,
     at: mobile.last_completed || progress?.last_completed || mobile.at || 0,
     checking: Boolean(progress?.checking),
@@ -112,6 +125,7 @@ export function checkTime(timestamp: number): string | null {
     timeZone: 'Europe/Moscow',
     day: '2-digit',
     month: '2-digit',
+    year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(timestamp * 1000));

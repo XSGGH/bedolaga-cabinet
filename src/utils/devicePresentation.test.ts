@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { devicePresentation } from './devicePresentation';
+import { devicePresentation, duplicateDeviceSuffix } from './devicePresentation';
 it('keeps the user alias and uses the system platform for the icon', () => {
   const device = {
     local_name: 'Мой iPhone',
@@ -24,3 +24,14 @@ it('does not guess a phone based on Android alone', () =>
   expect(devicePresentation({ platform: 'Android' }).kind).toBe('unknown'));
 it('does not infer the type from an alias', () =>
   expect(devicePresentation({ local_name: 'Мой ПК', platform: 'Unknown' }).kind).toBe('unknown'));
+it('only exposes a distinguishing suffix for duplicate names', () => {
+  const devices = [
+    { hwid: 'test-aaa111', device_model: 'iPhone12,1' },
+    { hwid: 'test-bbb222', device_model: 'iPhone 11' },
+    { hwid: 'test-ccc333', local_name: 'Мой телефон', device_model: 'iPhone 11' },
+  ];
+  expect(duplicateDeviceSuffix(devices[0], devices)).toBe('AAA111');
+  expect(duplicateDeviceSuffix(devices[1], devices)).toBe('BBB222');
+  expect(duplicateDeviceSuffix(devices[2], devices)).toBeNull();
+  expect(devices[2].local_name).toBe('Мой телефон');
+});

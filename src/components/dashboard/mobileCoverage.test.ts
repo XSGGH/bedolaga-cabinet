@@ -4,6 +4,7 @@ import {
   coverageModel,
   type MobileDirection,
   type MobileStatus,
+  DIRECTION_STATES,
 } from './mobileCoverageModel';
 
 function status(districts: MobileDirection[], rest: Partial<MobileStatus> = {}): MobileStatus {
@@ -11,6 +12,26 @@ function status(districts: MobileDirection[], rest: Partial<MobileStatus> = {}):
 }
 
 describe('mobile coverage semantics', () => {
+  it('separates 15 successes, four normal skipped checks and one unknown without reporting a failure', () => {
+    const rows = Array.from({ length: 20 }, (_, index) => ({
+      region: `r${index}`,
+      operator: 'mts',
+      status: index < 15 ? 'up' : index < 19 ? 'no_bs' : 'no_modem',
+    }));
+    expect(coverageModel(status(rows))).toMatchObject({
+      up: 15,
+      total: 15,
+      notRequired: 4,
+      noResult: 1,
+      down: 0,
+      tone: 'success',
+    });
+    expect(DIRECTION_STATES.no_bs.symbol).toBe('—');
+    expect(DIRECTION_STATES.no_modem.symbol).toBe('?');
+    expect(
+      new Set(['up', 'no_bs', 'unknown', 'down'].map((key) => DIRECTION_STATES[key].symbol)).size,
+    ).toBe(4);
+  });
   it('counts tested district/operator pairs, not operators or untested directions', () => {
     const districts = ['cfo', 'pfo', 'sfo', 'urfo', 'yufo'].flatMap((region) =>
       ['mts', 'megafon', 'beeline', 't2'].map((operator) => ({ region, operator, status: 'up' })),
@@ -71,7 +92,14 @@ describe('mobile coverage semantics', () => {
       whitelist_off: 1,
       stale: 3,
     });
-    expect(model).toMatchObject({ up: 17, total: 17, untested: 3, stale: 3 });
+    expect(model).toMatchObject({
+      up: 17,
+      total: 17,
+      untested: 3,
+      stale: 3,
+      notRequired: 1,
+      noResult: 2,
+    });
     expect(model.regions).toHaveLength(0);
   });
 

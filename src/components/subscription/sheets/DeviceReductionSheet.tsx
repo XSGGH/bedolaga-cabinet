@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import AddonFeedback from './AddonFeedback';
+import { useEffect, useRef } from 'react';
 import { deviceUnavailableText } from '../deviceReasons';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -38,15 +39,29 @@ export function DeviceReductionSheet({
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const { data: deviceReductionInfo } = useQuery({
+  const {
+    data: deviceReductionInfo,
+    isError: availabilityError,
+    isFetching: checkingAvailability,
+    refetch: retryAvailability,
+  } = useQuery({
     queryKey: ['device-reduction-info', subscriptionId],
     queryFn: () => subscriptionApi.getDeviceReductionInfo(subscriptionId),
     enabled: open && subscriptionPresent,
   });
 
-  // Seed the target limit once the info comes back.
+  const initializedFor = useRef('');
+  // Preserve an entered target when switching between the two device actions.
   useEffect(() => {
     if (deviceReductionInfo && open) {
+      const identity = JSON.stringify([
+        subscriptionId,
+        deviceReductionInfo.current_device_limit,
+        deviceReductionInfo.min_device_limit,
+        deviceReductionInfo.connected_devices_count,
+      ]);
+      if (initializedFor.current === identity) return;
+      initializedFor.current = identity;
       onTargetDeviceLimitChange(
         Math.max(
           deviceReductionInfo.min_device_limit,
@@ -57,7 +72,7 @@ export function DeviceReductionSheet({
     // onTargetDeviceLimitChange is a setter from the parent and stable
     // enough; intentionally narrow deps to avoid clobbering user input.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deviceReductionInfo, open, onTargetDeviceLimitChange]);
+  }, [deviceReductionInfo, open, onTargetDeviceLimitChange, subscriptionId]);
 
   const reduceMutation = useMutation({
     mutationFn: () => subscriptionApi.reduceDevices(targetDeviceLimit, subscriptionId),
@@ -69,6 +84,39 @@ export function DeviceReductionSheet({
       onClose();
     },
   });
+
+  const actionTitle = t('subscription.actionsUi.DeviceReductionSheet', 'Уменьшить лимит');
+  if (availabilityError)
+    return (
+      <AddonFeedback
+        title={actionTitle}
+        message={t(
+          'subscription.actionsUi.checkError',
+          'Не удалось проверить доступность. Попробуйте ещё раз.',
+        )}
+        busy={checkingAvailability}
+        onRetry={() => {
+          void retryAvailability();
+        }}
+        onClose={open ? onClose : undefined}
+      />
+    );
+  if (deviceReductionInfo?.available === false)
+    return (
+      <AddonFeedback
+        title={actionTitle}
+        message={deviceUnavailableText(
+          t,
+          deviceReductionInfo,
+          'subscription.additionalOptions.reduceUnavailable',
+        )}
+        busy={checkingAvailability}
+        onRetry={() => {
+          void retryAvailability();
+        }}
+        onClose={open ? onClose : undefined}
+      />
+    );
 
   if (!open)
     return (
@@ -83,6 +131,16 @@ export function DeviceReductionSheet({
         </span>
         <ChevronRightIcon className="h-4 w-4 shrink-0" />
       </button>
+    );
+
+  if (!deviceReductionInfo)
+    return (
+      <AddonFeedback
+        title={actionTitle}
+        message={t('subscription.actionsUi.checking', 'Проверяем доступность…')}
+        busy
+        onClose={onClose}
+      />
     );
 
   return (
@@ -102,126 +160,112 @@ export function DeviceReductionSheet({
         </button>
       </div>
 
-      {deviceReductionInfo?.available === false ? (
-        <div className="py-4 text-center text-sm text-dark-400">
-          {deviceUnavailableText(
-            t,
-            deviceReductionInfo,
-            'subscription.additionalOptions.reduceUnavailable',
-          )}
-        </div>
-      ) : deviceReductionInfo ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-center gap-6">
-            <button
-              onClick={() =>
-                onTargetDeviceLimitChange(
-                  Math.max(
-                    Math.max(
-                      deviceReductionInfo.min_device_limit,
-                      deviceReductionInfo.connected_devices_count,
-                    ),
-                    targetDeviceLimit - 1,
-                  ),
-                )
-              }
-              disabled={
-                targetDeviceLimit <=
-                Math.max(
-                  deviceReductionInfo.min_device_limit,
-                  deviceReductionInfo.connected_devices_count,
-                )
-              }
-              className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
-              aria-label={t('subscription.additionalOptions.decrementDevices', 'Уменьшить')}
-            >
-              -
-            </button>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-dark-100">{targetDeviceLimit}</div>
-              <div className="text-sm text-dark-500">
-                {t('subscription.additionalOptions.devicesUnit')}
-              </div>
-            </div>
-            <button
-              onClick={() =>
-                onTargetDeviceLimitChange(
-                  Math.min(deviceReductionInfo.current_device_limit - 1, targetDeviceLimit + 1),
-                )
-              }
-              disabled={targetDeviceLimit >= deviceReductionInfo.current_device_limit - 1}
-              className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
-              aria-label={t('subscription.additionalOptions.incrementDevices', 'Увеличить')}
-            >
-              +
-            </button>
-          </div>
-
-          <div className="space-y-1 text-center text-sm text-dark-400">
-            <div>
-              {t('subscription.additionalOptions.currentDeviceLimit', {
-                count: deviceReductionInfo.current_device_limit,
-              })}
-            </div>
-            <div>
-              {t('subscription.additionalOptions.minDeviceLimit', {
-                count: deviceReductionInfo.min_device_limit,
-              })}
-            </div>
-            <div>
-              {t('subscription.additionalOptions.connectedDevices', {
-                count: deviceReductionInfo.connected_devices_count,
-              })}
-            </div>
-          </div>
-
-          {deviceReductionInfo.connected_devices_count > deviceReductionInfo.min_device_limit && (
-            <div className="rounded-lg bg-warning-500/10 p-3 text-center text-sm text-warning-400">
-              {t('subscription.additionalOptions.disconnectDevicesFirst', {
-                count: deviceReductionInfo.connected_devices_count,
-              })}
-            </div>
-          )}
-
-          <div className="text-center">
-            <div className="text-sm text-dark-400">
-              {t('subscription.additionalOptions.newDeviceLimit', {
-                count: targetDeviceLimit,
-              })}
-            </div>
-          </div>
-
+      <div className="space-y-4">
+        <div className="flex items-center justify-center gap-6">
           <button
-            onClick={() => reduceMutation.mutate()}
-            disabled={
-              reduceMutation.isPending ||
-              targetDeviceLimit >= deviceReductionInfo.current_device_limit ||
-              targetDeviceLimit < deviceReductionInfo.min_device_limit ||
-              targetDeviceLimit < deviceReductionInfo.connected_devices_count
+            onClick={() =>
+              onTargetDeviceLimitChange(
+                Math.max(
+                  Math.max(
+                    deviceReductionInfo.min_device_limit,
+                    deviceReductionInfo.connected_devices_count,
+                  ),
+                  targetDeviceLimit - 1,
+                ),
+              )
             }
-            className="btn-primary w-full py-3"
+            disabled={
+              targetDeviceLimit <=
+              Math.max(
+                deviceReductionInfo.min_device_limit,
+                deviceReductionInfo.connected_devices_count,
+              )
+            }
+            className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
+            aria-label={t('subscription.additionalOptions.decrementDevices', 'Уменьшить')}
           >
-            {reduceMutation.isPending ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                {t('subscription.additionalOptions.reducing')}
-              </span>
-            ) : (
-              t('subscription.additionalOptions.reduce')
-            )}
+            -
           </button>
-
-          {reduceMutation.isError && (
-            <div className="text-center text-sm text-error-400">
-              {getErrorMessage(reduceMutation.error)}
+          <div className="text-center">
+            <div className="text-4xl font-bold text-dark-100">{targetDeviceLimit}</div>
+            <div className="text-sm text-dark-500">
+              {t('subscription.additionalOptions.devicesUnit')}
             </div>
+          </div>
+          <button
+            onClick={() =>
+              onTargetDeviceLimitChange(
+                Math.min(deviceReductionInfo.current_device_limit - 1, targetDeviceLimit + 1),
+              )
+            }
+            disabled={targetDeviceLimit >= deviceReductionInfo.current_device_limit - 1}
+            className="btn-secondary flex h-12 w-12 items-center justify-center !p-0 text-2xl"
+            aria-label={t('subscription.additionalOptions.incrementDevices', 'Увеличить')}
+          >
+            +
+          </button>
+        </div>
+
+        <div className="space-y-1 text-center text-sm text-dark-400">
+          <div>
+            {t('subscription.additionalOptions.currentDeviceLimit', {
+              count: deviceReductionInfo.current_device_limit,
+            })}
+          </div>
+          <div>
+            {t('subscription.additionalOptions.minDeviceLimit', {
+              count: deviceReductionInfo.min_device_limit,
+            })}
+          </div>
+          <div>
+            {t('subscription.additionalOptions.connectedDevices', {
+              count: deviceReductionInfo.connected_devices_count,
+            })}
+          </div>
+        </div>
+
+        {deviceReductionInfo.connected_devices_count > deviceReductionInfo.min_device_limit && (
+          <div className="rounded-lg bg-warning-500/10 p-3 text-center text-sm text-warning-400">
+            {t('subscription.additionalOptions.disconnectDevicesFirst', {
+              count: deviceReductionInfo.connected_devices_count,
+            })}
+          </div>
+        )}
+
+        <div className="text-center">
+          <div className="text-sm text-dark-400">
+            {t('subscription.additionalOptions.newDeviceLimit', {
+              count: targetDeviceLimit,
+            })}
+          </div>
+        </div>
+
+        <button
+          onClick={() => reduceMutation.mutate()}
+          disabled={
+            reduceMutation.isPending ||
+            targetDeviceLimit >= deviceReductionInfo.current_device_limit ||
+            targetDeviceLimit < deviceReductionInfo.min_device_limit ||
+            targetDeviceLimit < deviceReductionInfo.connected_devices_count
+          }
+          className="btn-primary w-full py-3"
+        >
+          {reduceMutation.isPending ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              {t('subscription.additionalOptions.reducing')}
+            </span>
+          ) : (
+            t('subscription.additionalOptions.reduce')
           )}
-        </div>
-      ) : (
-        <div className="flex items-center justify-center py-4">
-          <span className="h-5 w-5 animate-spin rounded-full border-2 border-accent-400/30 border-t-accent-400" />
-        </div>
-      )}
+        </button>
+
+        {reduceMutation.isError && (
+          <div className="text-center text-sm text-error-400">
+            {getErrorMessage(reduceMutation.error)}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
