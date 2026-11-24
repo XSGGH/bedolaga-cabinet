@@ -6,6 +6,7 @@ interface CollapsibleSectionProps {
   title: ReactNode;
   /** Справа в шапке: краткая сводка (например «1,4 / 170 ГБ»). */
   summary?: ReactNode;
+  hideSummaryWhenOpen?: boolean;
   /** Показывается под шапкой, пока секция свёрнута (например тонкая полоска). */
   collapsedPreview?: ReactNode;
   defaultOpen?: boolean;
@@ -25,6 +26,7 @@ interface CollapsibleSectionProps {
 export function CollapsibleSection({
   title,
   summary,
+  hideSummaryWhenOpen = false,
   collapsedPreview,
   defaultOpen = false,
   open: controlledOpen,
@@ -54,7 +56,7 @@ export function CollapsibleSection({
             {title}
           </span>
           <span className="flex min-w-0 items-center justify-end gap-2 text-[11px] text-dark-300 tabular-nums sm:text-xs">
-            {summary}
+            {(!open || !hideSummaryWhenOpen) && summary}
             <ChevronDownIcon
               className={`h-4 w-4 text-dark-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
             />

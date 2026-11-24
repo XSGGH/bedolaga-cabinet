@@ -47,9 +47,9 @@ export const DIRECTION_STATES: Record<string, { label: string; symbol: string; c
   up: { label: 'VPN работает', symbol: '✓', color: 'text-success-400' },
   down: { label: 'Не удалось подключиться', symbol: '×', color: 'text-critical-500' },
   no_bs: { label: 'Белые списки отключены — замера VPN нет', symbol: '—', color: 'text-dark-400' },
-  no_modem: { label: 'Нет модема для проверки', symbol: '—', color: 'text-dark-400' },
+  no_modem: { label: 'Нет результата проверки', symbol: '—', color: 'text-dark-400' },
   modem_unavailable: {
-    label: 'Модем недоступен — замера VPN нет',
+    label: 'Проверка временно недоступна',
     symbol: '—',
     color: 'text-dark-400',
   },

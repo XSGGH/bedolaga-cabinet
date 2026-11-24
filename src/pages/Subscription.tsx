@@ -204,8 +204,6 @@ export default function Subscription() {
   // Traffic zone (theme-aware) — called unconditionally at top level
   const usedPercent = trafficData?.traffic_used_percent ?? subscription?.traffic_used_percent ?? 0;
   const zone = useTrafficZone(usedPercent);
-  // Спокойная зона — зелёная плашка, остальные — своего цвета.
-  const pillRaw = zone.colorKey === 'accent' ? 'var(--color-success-400)' : zone.mainVarRaw;
 
   // Purchase options (needed for balance_kopeks in device/traffic/server management)
   const purchaseOptionsQuery = useQuery({
@@ -652,6 +650,7 @@ export default function Subscription() {
                     >
                       <CollapsibleSection
                         title={t('dashboard.trafficUsageTitle')}
+                        hideSummaryWhenOpen
                         summary={
                           <span>
                             <b className="font-bold text-dark-50">{formatTraffic(usedGb)}</b>
@@ -661,7 +660,7 @@ export default function Subscription() {
                         collapsedPreview={
                           <span className="block w-full space-y-2">
                             <span className="block text-xs leading-relaxed text-dark-300">
-                              {t('dashboard.ui.trafficScope', 'На серверах обхода белых списков')}
+                              {t('dashboard.ui.specialServers', 'Специальные серверы (📡)')}
                             </span>
                             <TrafficProgressBar
                               usedGb={usedGb}
@@ -683,85 +682,69 @@ export default function Subscription() {
                           </span>
                         }
                       >
-                        <div className="px-5 pb-5 sm:px-7 sm:pb-7">
-                          {/* ─── Traffic Progress ─── */}
-                          {!isUnlimited && (
-                            <div className="mb-5">
-                              <div className="mb-2 flex items-center justify-between gap-x-4 gap-y-2">
-                                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                                  {subscription.traffic_limit_gb > 0 && (
-                                    <span className="whitespace-nowrap rounded-full border border-accent-500/40 bg-accent-500/10 px-2.5 py-1 text-[11px] font-bold text-accent-300">
-                                      {t(
-                                        'dashboard.ui.trafficScope',
-                                        'На серверах обхода белых списков',
-                                      )}
-                                    </span>
-                                  )}
-                                  {(isUnlimited || zone.colorKey !== 'accent') && (
-                                    <span
-                                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
-                                      style={{
-                                        color: `rgb(${pillRaw})`,
-                                        background: `rgba(${pillRaw}, 0.12)`,
-                                        border: `1px solid rgba(${pillRaw}, 0.35)`,
-                                      }}
-                                    >
-                                      <span
-                                        className="h-1.5 w-1.5 rounded-full"
-                                        style={{ background: `rgb(${pillRaw})` }}
-                                        aria-hidden="true"
-                                      />
-                                      {isUnlimited ? t('dashboard.unlimited') : t(zone.labelKey)}
-                                    </span>
-                                  )}
-                                </div>
-                                <TrafficRefreshButton
-                                  cooldown={trafficRefreshCooldown}
-                                  pending={refreshTrafficMutation.isPending}
-                                  onRefresh={() => refreshTrafficMutation.mutate()}
-                                />
-                              </div>
-                              <div className="mb-3 flex items-baseline justify-between gap-3 tabular-nums">
-                                <span className="text-[13px] text-dark-400">
-                                  <b className="text-[15px] font-bold text-dark-50">
-                                    {formatTraffic(usedGb)}
-                                  </b>
-                                  {!isUnlimited &&
-                                    ` / ${formatTraffic(subscription.traffic_limit_gb)}`}
-                                </span>
-                                {!isUnlimited && (
-                                  <span className="text-[13px] text-dark-400">
-                                    {formatTrafficPercent(usedPercent)}
-                                  </span>
-                                )}
-                              </div>
-                              <TrafficProgressBar
-                                usedGb={usedGb}
-                                limitGb={subscription.traffic_limit_gb}
-                                percent={usedPercent}
-                                isUnlimited={isUnlimited}
-                                compact
+                        <div className="px-4 pb-4 sm:px-6 sm:pb-6">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm tabular-nums text-dark-300">
+                                <strong className="text-base font-semibold text-dark-100">
+                                  {Number.isFinite(usedGb) ? formatTraffic(usedGb) : '—'}
+                                </strong>{' '}
+                                / {formatTraffic(subscription.traffic_limit_gb)}
+                              </p>
+                              <TrafficRefreshButton
+                                cooldown={trafficRefreshCooldown}
+                                pending={refreshTrafficMutation.isPending}
+                                onRefresh={() => refreshTrafficMutation.mutate()}
                               />
-                              <div className="mt-3 flex items-center justify-between gap-3">
-                                <span className="text-xs text-dark-500">
-                                  {subscription.traffic_reset_mode &&
-                                  subscription.traffic_reset_mode !== 'NO_RESET'
-                                    ? t(
-                                        `subscription.trafficReset.${subscription.traffic_reset_mode}`,
-                                      )
-                                    : ''}
-                                </span>
-                              </div>
-                              {!isUnlimited && subscription.traffic_limit_gb > 0 && (
-                                <p className="mt-3 text-[13px] leading-relaxed text-dark-300">
+                            </div>
+                            <TrafficProgressBar
+                              usedGb={usedGb}
+                              limitGb={subscription.traffic_limit_gb}
+                              percent={usedPercent}
+                              isUnlimited={isUnlimited}
+                              compact
+                            />
+                            <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-dark-300">
+                              <span>
+                                {Number.isFinite(usedGb)
+                                  ? t('dashboard.ui.trafficRemaining', {
+                                      defaultValue: 'Осталось {{amount}}',
+                                      amount: formatTraffic(
+                                        Math.max(0, subscription.traffic_limit_gb - usedGb),
+                                      ),
+                                    })
+                                  : t('dashboard.ui.noTraffic', 'Статистика пока недоступна')}
+                              </span>
+                              <span className="tabular-nums">
+                                {formatTrafficPercent(usedPercent)}
+                              </span>
+                            </div>
+                            {subscription.traffic_reset_mode &&
+                              subscription.traffic_reset_mode !== 'NO_RESET' && (
+                                <p className="text-xs text-dark-300">
                                   {t(
-                                    'subscription.trafficScope.note',
-                                    'Трафик списывается только на серверах с отметкой 📡. На остальных серверах расход не считается — они безлимитные.',
+                                    `subscription.trafficUi.reset.${subscription.traffic_reset_mode}`,
+                                    (
+                                      {
+                                        DAY: 'Обновляется каждый день',
+                                        WEEK: 'Обновляется каждую неделю',
+                                        MONTH: 'Обновляется каждый месяц',
+                                        MONTH_ROLLING: 'Обновляется каждые 30 дней',
+                                      } as Record<string, string>
+                                    )[subscription.traffic_reset_mode] ||
+                                      t(
+                                        `subscription.trafficReset.${subscription.traffic_reset_mode}`,
+                                      ),
                                   )}
                                 </p>
                               )}
-                            </div>
-                          )}
+                            <p className="text-xs leading-relaxed text-dark-300">
+                              {t(
+                                'subscription.trafficUi.scopeNote',
+                                'Лимит действует только на специальных серверах с отметкой 📡. Остальные серверы — безлимитные.',
+                              )}
+                            </p>
+                          </div>
 
                           {/* ─── Purchased Traffic Packages ─── */}
                           {subscription.traffic_purchases &&
@@ -829,7 +812,7 @@ export default function Subscription() {
                           )}
                           {/* ─── Buy traffic (action row) ─── */}
                           {showsAddonOptions(subscription) && subscription.traffic_limit_gb > 0 && (
-                            <div className="xsg-linkrow mt-3 lg:mt-5">
+                            <div className="mt-3">
                               <TrafficTopupSheet
                                 open={showTrafficTopup}
                                 onOpen={() => setShowTrafficTopup(true)}
@@ -917,7 +900,7 @@ export default function Subscription() {
                     ) : null
                   }
                 >
-                  <div className="px-5 pt-5 sm:px-7 sm:pt-6">
+                  <div className="px-4 pt-1 sm:px-6 sm:pt-2">
                     <DevicesPanel
                       subscription={subscription}
                       subscriptionId={subscriptionId}
@@ -926,10 +909,10 @@ export default function Subscription() {
                   </div>
                   {showsAddonOptions(subscription) && (
                     <div
-                      className={`xsg-devactions mt-1 p-4 ${
+                      className={`px-4 pb-4 pt-2 ${
                         showDeviceTopup || showDeviceReduction
                           ? 'space-y-3'
-                          : 'grid grid-cols-2 gap-3'
+                          : 'grid grid-cols-1 gap-2 sm:grid-cols-2'
                       }`}
                     >
                       <DeviceTopupSheet

@@ -122,7 +122,7 @@ export default function SubscriptionCardActive({
                   {t('dashboard.trafficUsageTitle')}
                 </h2>
                 <p className="mt-1 text-xs leading-relaxed text-dark-300">
-                  {t('dashboard.ui.trafficScope', 'На серверах обхода белых списков')}
+                  {t('dashboard.ui.specialServers', 'Специальные серверы (📡)')}
                 </p>
               </div>
               <TrafficRefreshButton

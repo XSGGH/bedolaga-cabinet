@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ServerStatus, { fetchStatus } from './ServerStatus';
@@ -36,6 +36,29 @@ afterEach(() => {
 });
 
 describe('ServerStatus integration', () => {
+  it.each([
+    [false, 'Некоторые серверы недоступны', 'Недоступен'],
+    [null, 'Проверяем состояние серверов', 'Нет данных'],
+  ])(
+    'does not claim all servers are healthy when availability is %s',
+    async (online, headline, state) => {
+      const payload = {
+        ...sample,
+        servers: [...sample.servers, { name: 'Германия', online, load: [] }],
+      };
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(payload))));
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+      render(
+        <QueryClientProvider client={client}>
+          <ServerStatus />
+        </QueryClientProvider>,
+      );
+      expect(await screen.findByText(headline)).toBeTruthy();
+      expect(screen.getByText(state)).toBeTruthy();
+      expect(screen.queryByText('Все серверы работают')).toBeNull();
+      client.clear();
+    },
+  );
   it('requests only the same-origin proxy without an API key or session credentials', async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(sample)));
     vi.stubGlobal('fetch', fetcher);
@@ -79,9 +102,10 @@ describe('ServerStatus integration', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.queryByRole('table')).toBeNull();
     fireEvent.click(coverage);
-    expect(screen.getByRole('dialog', { name: 'Мобильные сети' })).toBeTruthy();
-    expect(screen.getByText('Без замера: 1')).toBeTruthy();
-    expect(screen.getByRole('cell', { name: /СФО, МТС: Нет модема/ })).toBeTruthy();
+    const dialog = screen.getByRole('dialog', { name: 'Мобильные сети' });
+    expect(dialog).toBeTruthy();
+    expect(within(dialog).getByText('Без замера: 1')).toBeTruthy();
+    expect(screen.getByRole('cell', { name: /СФО, МТС: Нет результата/ })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Закрыть' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await waitFor(() => expect(document.activeElement).toBe(coverage));
@@ -91,7 +115,7 @@ describe('ServerStatus integration', () => {
     await act(async () => {
       await client.invalidateQueries({ queryKey: ['server-status'] });
     });
-    await waitFor(() => expect(screen.queryByText('Все работают')).toBeNull());
+    await waitFor(() => expect(screen.queryByText('Все серверы работают')).toBeNull());
     expect(screen.getByText(/Не удалось обновить мониторинг/)).toBeTruthy();
     client.clear();
   });

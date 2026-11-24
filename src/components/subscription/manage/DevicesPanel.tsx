@@ -3,14 +3,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import { subscriptionApi } from '@/api/subscription';
-import { CheckIcon, PencilIcon, PhoneIcon, TrashIcon, XIcon } from '@/components/icons';
+import { MonitorIcon, DevicesIcon, PencilIcon, PhoneIcon, TrashIcon } from '@/components/icons';
 import { Skeleton, SkeletonGroup } from '@/components/ui/skeleton';
 import { DEVICE_ALIAS_MAX_LENGTH } from '@/constants/devices';
 import { useHaptic } from '@/platform';
 import { useDestructiveConfirm } from '@/platform/hooks/useNativeDialog';
 import type { Subscription } from '@/types';
-import { getGlassColors } from '@/utils/glassTheme';
-import { useTheme } from '@/hooks/useTheme';
+import { devicePresentation } from '@/utils/devicePresentation';
+import { PiDeviceTablet } from 'react-icons/pi';
 
 export interface DevicesPanelProps {
   subscription: Subscription;
@@ -38,10 +38,12 @@ export function DevicesPanel({
   const queryClient = useQueryClient();
   const haptic = useHaptic();
   const destructiveConfirm = useDestructiveConfirm();
-  const { isDark } = useTheme();
-  const g = getGlassColors(isDark);
 
-  const { data: devicesData, isLoading: devicesLoading } = useQuery({
+  const {
+    data: devicesData,
+    isLoading: devicesLoading,
+    isError: devicesError,
+  } = useQuery({
     queryKey: ['devices', subscriptionId],
     queryFn: () => subscriptionApi.getDevices(subscriptionId),
     enabled: Boolean(subscription),
@@ -82,193 +84,213 @@ export function DevicesPanel({
     },
   });
 
+  const busy =
+    deleteDeviceMutation.isPending ||
+    deleteAllDevicesMutation.isPending ||
+    renameDeviceMutation.isPending;
+  const actionClass =
+    'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-dark-300 hover:bg-dark-700/40 hover:text-dark-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 disabled:opacity-50';
   return (
-    <>
-      <div className={`mb-4 flex items-center ${hideTitle ? 'justify-end' : 'justify-between'}`}>
-        {!hideTitle && (
-          <h2 className="text-base font-bold tracking-tight text-dark-50">
-            {t('subscription.myDevices')}
-          </h2>
-        )}
-        {devicesData && devicesData.devices.length > 0 && (
-          <button
-            onClick={async () => {
-              // Platform-aware destructive confirm: Telegram native popup
-              // in Mini App, inline panel on web. Replaces the bare
-              // browser confirm() which broke premium frame + lost
-              // haptic / theming inside Telegram.
-              const confirmed = await destructiveConfirm(
-                t('subscription.confirmDeleteAllDevices'),
-                t('subscription.deleteAllDevices'),
-                t('subscription.deleteAllDevices'),
-              );
-              if (confirmed) deleteAllDevicesMutation.mutate();
-            }}
-            disabled={deleteAllDevicesMutation.isPending}
-            className="text-[11px] font-medium transition-colors"
-            style={{ color: 'rgb(var(--color-critical-500))' }}
-          >
-            {t('subscription.deleteAllDevices')}
-          </button>
-        )}
-      </div>
-
+    <div>
+      {!hideTitle && (
+        <h2 className="mb-2 text-base font-semibold text-dark-100">
+          {t('subscription.myDevices')}
+        </h2>
+      )}
       {devicesLoading ? (
         <SkeletonGroup className="space-y-3">
           <Skeleton variant="card" count={3} className="h-16" />
         </SkeletonGroup>
-      ) : devicesData && devicesData.devices.length > 0 ? (
-        <div className="space-y-2">
-          <div className="mb-2 font-mono text-[11px] text-dark-400">
-            {devicesData.device_limit === 0
-              ? `${devicesData.total} · ∞`
-              : `${devicesData.total} / ${t('subscription.devices', { count: devicesData.device_limit })}`}
-          </div>
-          {devicesData.devices.map((device) => {
-            const isEditing = editingDeviceHwid === device.hwid;
-            // Display priority: user alias → device model → platform.
-            const displayName = device.local_name?.trim() || device.device_model || device.platform;
-
-            return (
-              <div
-                key={device.hwid}
-                className="flex items-center justify-between rounded-[12px] p-3.5"
-                style={{
-                  background: g.innerBg,
-                  border: `1px solid ${g.innerBorder}`,
-                }}
-              >
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <div
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px]"
-                    style={{ background: g.trackBg, color: g.textSecondary }}
-                  >
-                    <PhoneIcon className="h-4 w-4" />
+      ) : devicesError ? (
+        <p role="status" className="py-3 text-sm text-warning-400">
+          {t(
+            'subscription.devicesUi.loadError',
+            'Не удалось загрузить устройства. Попробуйте позже.',
+          )}
+        </p>
+      ) : devicesData?.devices.length ? (
+        <>
+          {!hideTitle && (
+            <p className="mb-2 text-xs text-dark-300">
+              {devicesData.device_limit === 0
+                ? t('dashboard.devicesConnectedUnlimited', { used: devicesData.total })
+                : t('dashboard.ui.connectedDevices', {
+                    defaultValue: 'Подключено {{used}} из {{max}} устройств',
+                    used: devicesData.total,
+                    max: devicesData.device_limit,
+                  })}
+            </p>
+          )}
+          <div className="divide-y divide-[var(--xsg-line)]">
+            {devicesData.devices.map((device) => {
+              const info = devicePresentation(device);
+              const Icon =
+                info.kind === 'computer'
+                  ? MonitorIcon
+                  : info.kind === 'tablet'
+                    ? PiDeviceTablet
+                    : info.kind === 'phone'
+                      ? PhoneIcon
+                      : DevicesIcon;
+              const editing = editingDeviceHwid === device.hwid;
+              const save = () => {
+                if (!renameDeviceMutation.isPending)
+                  renameDeviceMutation.mutate({
+                    hwid: device.hwid,
+                    name: editingDeviceName.trim() || null,
+                  });
+              };
+              return (
+                <div key={device.hwid} className="py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-500/10 text-accent-300">
+                      <Icon className="h-[18px] w-[18px]" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="break-words text-sm font-semibold leading-snug text-dark-100 [overflow-wrap:anywhere]">
+                        {info.name}
+                      </p>
+                      {info.platform && (
+                        <p className="mt-1 text-xs text-dark-300">{info.platform}</p>
+                      )}
+                    </div>
+                    {!editing && (
+                      <div className="flex shrink-0">
+                        <button
+                          type="button"
+                          disabled={busy}
+                          className={actionClass}
+                          aria-label={t('subscription.devicesUi.renameNamed', {
+                            defaultValue: 'Переименовать: {{name}}',
+                            name: info.name,
+                          })}
+                          title={t('subscription.renameDevice', 'Переименовать')}
+                          onClick={() => {
+                            renameDeviceMutation.reset();
+                            setEditingDeviceHwid(device.hwid);
+                            setEditingDeviceName(device.local_name || '');
+                          }}
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          className={actionClass}
+                          aria-label={t('subscription.devicesUi.deleteNamed', {
+                            defaultValue: 'Удалить: {{name}}',
+                            name: info.name,
+                          })}
+                          title={t('subscription.deleteDevice')}
+                          onClick={async () => {
+                            const confirmed = await destructiveConfirm(
+                              t('subscription.devicesUi.confirmOne', {
+                                defaultValue: 'Удалить «{{name}}» из списка устройств подписки?',
+                                name: info.name,
+                              }),
+                              t('subscription.deleteDevice'),
+                              t('subscription.deleteDevice'),
+                            );
+                            if (confirmed) deleteDeviceMutation.mutate(device.hwid);
+                          }}
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    {isEditing ? (
+                  {editing && (
+                    <form
+                      className="mt-3 space-y-2"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        save();
+                      }}
+                    >
+                      <label className="sr-only" htmlFor={`alias-${device.hwid}`}>
+                        {t('subscription.renameDevice', 'Переименовать')}
+                      </label>
                       <input
+                        id={`alias-${device.hwid}`}
                         type="text"
                         autoFocus
                         value={editingDeviceName}
                         maxLength={DEVICE_ALIAS_MAX_LENGTH}
-                        placeholder={device.device_model || device.platform}
+                        placeholder={info.system}
                         onChange={(e) => setEditingDeviceName(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const trimmed = editingDeviceName.trim();
-                            renameDeviceMutation.mutate({
-                              hwid: device.hwid,
-                              name: trimmed || null,
-                            });
-                          } else if (e.key === 'Escape') {
+                          if (e.key === 'Escape') {
                             e.preventDefault();
                             setEditingDeviceHwid(null);
-                            setEditingDeviceName('');
                           }
                         }}
-                        className="w-full rounded-md border-none bg-transparent px-2 py-1 text-sm font-semibold text-dark-50 outline-none focus:ring-1"
-                        style={{
-                          background: g.trackBg,
-                          boxShadow: `inset 0 0 0 1px ${g.innerBorder}`,
-                        }}
+                        className="min-h-11 w-full rounded-xl border border-[var(--xsg-line-strong)] bg-dark-900 px-3 text-sm text-dark-100 focus:outline-none focus:ring-2 focus:ring-accent-400"
                       />
-                    ) : (
-                      <div className="truncate text-sm font-semibold text-dark-50">
-                        {displayName}
+                      <div className="flex gap-2">
+                        <button
+                          type="submit"
+                          // Keep the keyboard/nav layout stable until the click submits the form.
+                          onPointerDown={(event) => event.preventDefault()}
+                          disabled={busy}
+                          className="min-h-11 flex-1 rounded-xl bg-accent-500/15 px-3 text-sm font-medium text-accent-200 disabled:opacity-50"
+                        >
+                          {t('subscription.renameDeviceSave', 'Сохранить')}
+                        </button>
+                        <button
+                          type="button"
+                          onPointerDown={(event) => event.preventDefault()}
+                          disabled={busy}
+                          onClick={() => {
+                            setEditingDeviceHwid(null);
+                            setEditingDeviceName('');
+                          }}
+                          className="min-h-11 flex-1 rounded-xl px-3 text-sm text-dark-300 hover:bg-dark-700/30"
+                        >
+                          {t('subscription.renameDeviceCancel', 'Отмена')}
+                        </button>
                       </div>
-                    )}
-                    <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-dark-400">
-                      <span className="truncate">{device.platform}</span>
-                      <span className="font-mono text-dark-400">
-                        {device.hwid.slice(0, 8).toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-shrink-0 items-center gap-1">
-                  {isEditing ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const trimmed = editingDeviceName.trim();
-                          renameDeviceMutation.mutate({
-                            hwid: device.hwid,
-                            name: trimmed || null,
-                          });
-                        }}
-                        disabled={renameDeviceMutation.isPending}
-                        className="p-2 transition-colors"
-                        style={{ color: g.textSecondary }}
-                        title={t('subscription.renameDeviceSave', 'Сохранить')}
-                        aria-label={t('subscription.renameDeviceSave', 'Сохранить')}
-                      >
-                        <CheckIcon className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingDeviceHwid(null);
-                          setEditingDeviceName('');
-                        }}
-                        disabled={renameDeviceMutation.isPending}
-                        className="p-2 transition-colors"
-                        style={{ color: g.textFaint }}
-                        title={t('subscription.renameDeviceCancel', 'Отмена')}
-                        aria-label={t('subscription.renameDeviceCancel', 'Отмена')}
-                      >
-                        <XIcon className="h-4 w-4" />
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingDeviceHwid(device.hwid);
-                          setEditingDeviceName(device.local_name || '');
-                        }}
-                        className="p-2 transition-colors"
-                        style={{ color: g.textFaint }}
-                        title={t('subscription.renameDevice', 'Переименовать')}
-                        aria-label={t('subscription.renameDevice', 'Переименовать')}
-                      >
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const confirmed = await destructiveConfirm(
-                            t('subscription.confirmDeleteDevice'),
-                            t('subscription.deleteDevice'),
-                            t('subscription.deleteDevice'),
-                          );
-                          if (confirmed) deleteDeviceMutation.mutate(device.hwid);
-                        }}
-                        disabled={deleteDeviceMutation.isPending}
-                        className="p-2 transition-colors"
-                        style={{ color: g.textFaint }}
-                        title={t('subscription.deleteDevice')}
-                        aria-label={t('subscription.deleteDevice')}
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
-                    </>
+                    </form>
                   )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+          <div className="mt-2 border-t border-[var(--xsg-line)] pt-2">
+            <button
+              type="button"
+              disabled={busy}
+              className="min-h-11 rounded-xl px-2 text-xs font-medium text-critical-500 hover:bg-critical-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-critical-500 disabled:opacity-50"
+              onClick={async () => {
+                const confirmed = await destructiveConfirm(
+                  t('subscription.devicesUi.confirmAll', {
+                    defaultValue:
+                      'Удалить все устройства ({{count}})? Список подключённых устройств подписки будет очищен.',
+                    count: devicesData.total,
+                  }),
+                  t('subscription.deleteAllDevices'),
+                  t('subscription.deleteAllDevices'),
+                );
+                if (confirmed) deleteAllDevicesMutation.mutate();
+              }}
+            >
+              {t('subscription.deleteAllDevices')}
+            </button>
+          </div>
+        </>
       ) : (
-        <div className="py-8 text-center text-[12px] text-dark-400">
-          {t('subscription.noDevices')}
-        </div>
+        <p className="py-5 text-center text-sm text-dark-300">{t('subscription.noDevices')}</p>
       )}
-    </>
+      {(deleteDeviceMutation.isError ||
+        deleteAllDevicesMutation.isError ||
+        renameDeviceMutation.isError) && (
+        <p role="alert" className="mt-2 text-xs leading-relaxed text-warning-400">
+          {t(
+            'subscription.devicesUi.actionError',
+            'Не удалось сохранить изменение. Попробуйте ещё раз.',
+          )}
+        </p>
+      )}
+    </div>
   );
 }
-
 export default DevicesPanel;

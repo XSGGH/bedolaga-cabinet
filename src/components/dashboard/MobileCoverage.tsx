@@ -39,13 +39,19 @@ export default function MobileCoverage({
     .join(' · ');
   const result = model.total > 0 ? `${model.up}/${model.total}` : 'Нет замеров';
   const summary = `Мобильные сети: ${model.up} из ${model.total} проверок успешны. ${footprint}. Без замера: ${model.untested}. Устарели: ${model.stale}. Открыть подробности`;
-  const caption = model.checking
-    ? 'Идёт проверка'
-    : model.pending
-      ? 'Ждём результат'
-      : model.stale > 0
-        ? `Устарели: ${model.stale}`
-        : footprint || 'Результаты проверок';
+  const headline =
+    model.total === 0
+      ? 'Нет свежих данных'
+      : model.down > 0
+        ? 'Есть проблемы с подключением'
+        : 'Все выполненные проверки успешны';
+  const caption = [
+    model.total > 0 ? `${model.up} из ${model.total} проверок` : '',
+    model.untested > 0 ? `Без результата: ${model.untested}` : '',
+    model.stale > 0 ? `Устарели: ${model.stale}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <Dialog.Root>
@@ -53,25 +59,19 @@ export default function MobileCoverage({
         <button
           type="button"
           aria-label={summary}
-          className="flex h-[84px] min-w-0 flex-col justify-between rounded-xl border border-accent-500/25 bg-accent-500/[0.06] px-2.5 py-2.5 text-left transition-colors hover:border-accent-400/50 hover:bg-accent-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 sm:h-[88px] sm:px-3"
+          className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-accent-500/25 bg-accent-500/[0.06] px-3 py-3 text-left transition-colors hover:border-accent-400/50 hover:bg-accent-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
         >
-          <span className="text-[11px] font-medium text-dark-200 sm:text-xs">Мобильные сети</span>
-          <span className="flex items-center justify-between gap-1">
-            <span
-              className={`font-semibold leading-tight tabular-nums ${model.total > 0 ? 'text-[17px]' : 'text-xs'} ${TONES[model.tone]}`}
-            >
-              {result}
-              {model.total > 0 && (
-                <span className="ml-1 hidden text-[10px] font-medium min-[360px]:inline">
-                  успешно
-                </span>
-              )}
+          <span className="min-w-0 space-y-1">
+            <span className="block text-xs font-medium text-dark-200">Мобильные сети</span>
+            <span className={`block text-sm font-semibold leading-snug ${TONES[model.tone]}`}>
+              {headline}
             </span>
-            <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-accent-300" />
+            <span className="block text-xs leading-relaxed text-dark-300">{caption}</span>
+            <span className="block text-xs leading-relaxed text-dark-400">
+              {model.checking ? 'Идёт проверка' : model.pending ? 'Ждём результат' : footprint}
+            </span>
           </span>
-          <span className="text-[10px] leading-3 text-dark-400" title={caption}>
-            {caption.replace(/(\d+) /g, '$1\u00a0')}
-          </span>
+          <ChevronRightIcon className="h-4 w-4 shrink-0 text-accent-300" />
         </button>
       </Dialog.Trigger>
 
@@ -188,7 +188,7 @@ export default function MobileCoverage({
             )}
             {model.directions.some((r) => ['no_modem', 'modem_unavailable'].includes(r.status)) && (
               <p>
-                Нет доступного модема:{' '}
+                Не удалось выполнить проверку:{' '}
                 {model.directions
                   .filter((r) => ['no_modem', 'modem_unavailable'].includes(r.status))
                   .map(

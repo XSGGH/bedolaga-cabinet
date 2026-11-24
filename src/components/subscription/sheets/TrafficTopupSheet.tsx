@@ -68,32 +68,20 @@ export function TrafficTopupSheet({
     },
   });
 
-  if (!open) {
+  if (!open)
     return (
       <button
+        type="button"
         onClick={onOpen}
-        className={`w-full rounded-xl border p-4 text-left transition-colors ${isDark ? 'border-dark-700/50 bg-dark-800/50 hover:border-dark-600' : 'border-champagne-300/60 bg-champagne-200/40 hover:border-champagne-400'}`}
+        className="flex min-h-12 w-full items-center gap-2 rounded-xl border border-accent-400/50 bg-accent-500/10 px-3 py-2 text-left text-sm font-semibold text-accent-200 transition-colors hover:border-accent-300 hover:bg-accent-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
       >
-        <span className="xsg-linkrow-icon" aria-hidden="true">
-          <PlusIcon className="h-4 w-4" />
+        <PlusIcon className="h-4 w-4 shrink-0" />
+        <span className="min-w-0 flex-1">
+          {t('subscription.actionsUi.TrafficTopupSheet', 'Докупить трафик')}
         </span>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="font-medium text-dark-100">
-              {t('subscription.additionalOptions.buyTraffic')}
-            </div>
-            <div className="mt-1 text-sm text-dark-400">
-              {t('subscription.additionalOptions.currentTrafficLimit', {
-                limit: subscription.traffic_limit_gb,
-                used: subscription.traffic_used_gb.toFixed(1),
-              })}
-            </div>
-          </div>
-          <ChevronRightIcon className="text-dark-400" />
-        </div>
+        <ChevronRightIcon className="h-4 w-4 shrink-0" />
       </button>
     );
-  }
 
   return (
     <div
@@ -145,7 +133,7 @@ export function TrafficTopupSheet({
               >
                 <div className="text-base font-semibold text-dark-100 sm:text-lg">
                   {pkg.is_unlimited
-                    ? '♾️ ' + t('subscription.additionalOptions.unlimited')
+                    ? `♾️ ${t('subscription.additionalOptions.unlimited')}`
                     : `${pkg.gb} ${t('common.units.gb')}`}
                 </div>
                 {pkg.discount_percent != null && pkg.discount_percent > 0 && (
