@@ -10,6 +10,7 @@ import {
 } from '@/components/subscription/actionStyles';
 import { copyToClipboard } from '@/utils/clipboard';
 import SubscriptionPlanHeader from '@/components/subscription/SubscriptionPlanHeader';
+import LimitStatusNotice from '@/components/subscription/LimitStatusNotice';
 import { formatTraffic, formatTrafficPercent } from '../../utils/formatTraffic';
 import type { Subscription } from '../../types';
 import TrafficProgressBar from './TrafficProgressBar';
@@ -118,13 +119,13 @@ export default function SubscriptionCardActive({
                 : t('dashboard.ui.noTraffic', 'Статистика пока недоступна')}
             </p>
             {trafficLow && (
-              <p role="status" className="mt-2 text-xs text-warning-300">
+              <LimitStatusNotice className="mt-2" exhausted={remaining === 0}>
                 {t(
                   remaining === 0
                     ? 'subscriptionCommand.trafficEnded'
                     : 'subscriptionCommand.trafficLow',
                 )}
-              </p>
+              </LimitStatusNotice>
             )}
             {canAddTraffic && trafficLow && (
               <Link

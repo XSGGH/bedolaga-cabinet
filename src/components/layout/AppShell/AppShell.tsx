@@ -140,10 +140,10 @@ export function AppShell({ children }: AppShellProps) {
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-line bg-navigation lg:flex">
         <Link
           to="/"
-          className="flex shrink-0 items-center gap-3 px-6 pb-6 pt-7"
+          className="flex shrink-0 items-center gap-3 px-6 pb-6 pt-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-400"
           onClick={handleNavClick}
         >
-          <div className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-accent-500/15 ring-1 ring-accent-500/30">
+          <div className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center">
             <span
               className={cn(
                 'absolute text-sm font-bold text-accent-400 transition-opacity duration-200',

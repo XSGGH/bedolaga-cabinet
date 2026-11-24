@@ -186,9 +186,12 @@ export function AppHeader({
             <Link
               to="/"
               onClick={() => setMobileMenuOpen(false)}
-              className={cn('flex flex-shrink-0 items-center gap-2.5', !appName && 'mr-4')}
+              className={cn(
+                'flex flex-shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-850',
+                !appName && 'mr-4',
+              )}
             >
-              <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-linear-lg border border-dark-700/50 bg-dark-800/80 shadow-md">
+              <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center">
                 <span
                   className={cn(
                     'absolute text-lg font-bold text-accent-400 transition-opacity duration-200',

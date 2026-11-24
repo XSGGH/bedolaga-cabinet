@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { useAddonAvailability } from '@/hooks/useAddonAvailability';
 import SubscriptionPlanHeader from '@/components/subscription/SubscriptionPlanHeader';
+import LimitStatusNotice from '@/components/subscription/LimitStatusNotice';
 import AddonPurchaseButton, {
   addonActionClass,
 } from '@/components/subscription/AddonPurchaseButton';
@@ -30,7 +31,6 @@ import {
   ClockIcon,
   CopyIcon,
   TrashIcon,
-  WarningIcon,
   DevicesIcon,
   InfoIcon,
 } from '../components/icons';
@@ -463,6 +463,10 @@ export default function Subscription() {
   const usedGb = trafficData?.traffic_used_gb ?? subscription?.traffic_used_gb ?? 0;
   const isUnlimited = (trafficData?.is_unlimited ?? false) || subscription?.traffic_limit_gb === 0;
   const trafficKnown = Number.isFinite(usedGb) && Number.isFinite(usedPercent);
+  const trafficLimit = subscription?.traffic_limit_gb ?? 0;
+  const trafficRemaining = Math.max(0, trafficLimit - usedGb);
+  const trafficLow =
+    trafficKnown && !isUnlimited && trafficLimit > 0 && trafficRemaining / trafficLimit <= 0.1;
   const connectedDevices = devicesData?.total ?? devicesData?.devices?.length ?? 0;
   const deviceLimit = devicesData?.device_limit ?? subscription?.device_limit ?? 0;
 
@@ -489,37 +493,6 @@ export default function Subscription() {
                     />
                   }
                 />
-                {/* ─── Traffic Limited Banner ─── */}
-                {subscription.is_limited && (
-                  <div
-                    className="mb-6 rounded-[14px] p-4"
-                    style={{
-                      background: 'rgba(var(--color-warning-500), 0.08)',
-                      border: '1px solid rgba(var(--color-warning-500), 0.3)',
-                    }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px]"
-                        style={{ background: 'rgba(var(--color-warning-500), 0.12)' }}
-                      >
-                        <WarningIcon className="h-4 w-4 text-urgent-400" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p
-                          className="text-sm font-semibold"
-                          style={{ color: 'rgb(var(--color-urgent-400))' }}
-                        >
-                          {t('subscription.trafficLimitedTitle')}
-                        </p>
-                        <p className="mt-1 text-xs text-dark-400">
-                          {t('subscription.trafficLimitedDescription')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 {/* ─── Trial Info Banner ─── */}
                 {subscription.is_trial && subscription.is_active && (
                   <div
@@ -638,7 +611,9 @@ export default function Subscription() {
                   />
                 )}
                 {devicesData && deviceLimit > 0 && connectedDevices >= deviceLimit && (
-                  <p className="mt-2 text-xs text-warning-300">{t('addonsUi.devicesFull')}</p>
+                  <LimitStatusNotice className="mt-2">
+                    {t('addonsUi.devicesFull')}
+                  </LimitStatusNotice>
                 )}
                 {showsAddonOptions(subscription) && (
                   <div className="mt-2">
@@ -748,6 +723,17 @@ export default function Subscription() {
                         <> · {t('subscription.trafficReset.' + subscription.traffic_reset_mode)}</>
                       )}
                   </p>
+                  {(trafficLow || (subscription.is_limited && !isUnlimited)) && (
+                    <LimitStatusNotice
+                      exhausted={trafficRemaining === 0 || subscription.is_limited}
+                    >
+                      {t(
+                        trafficRemaining === 0 || subscription.is_limited
+                          ? 'subscriptionCommand.trafficEnded'
+                          : 'subscriptionCommand.trafficLow',
+                      )}
+                    </LimitStatusNotice>
+                  )}
                   {canAddTraffic && (
                     <AddonPurchaseButton onClick={() => openAddon('traffic')} className="w-full">
                       {t('addonsUi.buyTraffic')}

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { DevicesIcon } from '@/components/icons';
+import LimitStatusNotice from '@/components/subscription/LimitStatusNotice';
 
 /** Read-only occupancy: individual slots up to eight, one proportional bar above that. */
 export default function DeviceSlotsIndicator({
@@ -10,10 +11,13 @@ export default function DeviceSlotsIndicator({
   deviceLimit: number;
 }) {
   const { t } = useTranslation();
-  const known = Number.isFinite(connectedDevices) && connectedDevices! >= 0;
+  const known =
+    typeof connectedDevices === 'number' &&
+    Number.isFinite(connectedDevices) &&
+    connectedDevices >= 0;
   const unlimited = deviceLimit === 0;
   const finiteLimit = Number.isFinite(deviceLimit) && deviceLimit > 0;
-  const used = known ? connectedDevices! : 0;
+  const used = known ? connectedDevices : 0;
   const free = finiteLimit ? Math.max(0, deviceLimit - used) : 0;
   const full = known && finiteLimit && free === 0;
   const progress = finiteLimit ? Math.min(1, used / deviceLimit) : 0;
@@ -57,17 +61,17 @@ export default function DeviceSlotsIndicator({
             )}
           </div>
         )}
-        <span
-          className={`shrink-0 text-xs leading-relaxed ${full ? 'text-warning-300' : 'text-dark-300'}`}
-        >
-          {!known || (!finiteLimit && !unlimited)
-            ? t('subscriptionCommand.devicesUnknown')
-            : unlimited
-              ? t('dashboard.unlimited')
-              : full
-                ? t('addonsUi.devicesFull')
+        {full ? (
+          <LimitStatusNotice className="shrink-0">{t('addonsUi.devicesFull')}</LimitStatusNotice>
+        ) : (
+          <span className="shrink-0 text-xs leading-relaxed text-dark-300">
+            {!known || (!finiteLimit && !unlimited)
+              ? t('subscriptionCommand.devicesUnknown')
+              : unlimited
+                ? t('dashboard.unlimited')
                 : t('subscriptionCommand.freeSlots', { count: free })}
-        </span>
+          </span>
+        )}
       </div>
     </div>
   );
