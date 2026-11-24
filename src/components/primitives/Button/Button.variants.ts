@@ -20,7 +20,7 @@ export const buttonVariants = cva(
         ],
         secondary: [
           'bg-elevated text-dark-100',
-          'border border-line',
+          'border border-line-strong',
           'hover:bg-surface-hover hover:border-line-strong',
           'active:bg-dark-800',
         ],

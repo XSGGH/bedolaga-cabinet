@@ -28,7 +28,7 @@ const cardVariants = cva(
         outline: 'bg-transparent',
       },
       interactive: {
-        true: ['cursor-pointer', 'hover:border-line-strong hover:bg-surface-hover'],
+        true: ['cursor-pointer bg-elevated border-line-strong', 'hover:border-accent-500/40 hover:bg-surface-hover active:bg-selected'],
         false: '',
       },
       glow: {

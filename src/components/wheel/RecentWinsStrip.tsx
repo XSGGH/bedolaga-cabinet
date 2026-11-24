@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { wheelApi, type RecentWin } from '../../api/wheel';
 import { prizeTypeColor } from './wheelFaceModel';
+import { ChevronDownIcon } from '@/components/icons';
 
 const REFRESH_MS = 20_000;
 /** Сколько последних выигрышей показываем. */
@@ -43,7 +44,6 @@ function WinCard({
   return (
     <div
       className={`min-w-0 items-center gap-3 rounded-2xl border border-line bg-surface p-3 ${hiddenOnMobile ? 'hidden' : 'flex'}`}
-      style={{ boxShadow: `inset 0 -2px 0 ${color}55` }}
     >
       <div
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl"
@@ -81,7 +81,7 @@ export default function RecentWinsStrip() {
 
   return (
     <section aria-label={t('wheel.recentWins')}>
-      <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-dark-500">
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-dark-300">
         {t('wheel.recentWins')}
       </div>
       <div className="grid grid-cols-2 gap-2.5">
@@ -94,11 +94,12 @@ export default function RecentWinsStrip() {
           type="button"
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
-          className="mt-2.5 flex min-h-11 w-full items-center justify-center rounded-xl border border-line bg-elevated py-2.5 text-[13px] font-bold text-accent-300 transition-colors hover:border-accent-500/40"
+          className="btn-secondary mt-3 min-h-11 w-full gap-2 text-[13px]"
         >
           {expanded
             ? t('wheel.showLess')
             : t('wheel.showMore', { count: Math.min(data.length, WINS_SHOWN) - WINS_COLLAPSED })}
+          <ChevronDownIcon className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
         </button>
       )}
     </section>

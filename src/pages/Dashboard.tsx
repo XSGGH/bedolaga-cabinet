@@ -455,10 +455,10 @@ export default function Dashboard() {
           {wheelConfig?.is_enabled && (
             <Link
               to="/wheel"
-              className="group rounded-2xl border border-[var(--xsg-line)] bg-dark-800 p-4 transition-colors hover:border-[var(--xsg-line-strong)] min-[360px]:col-span-2 lg:col-span-1"
+              className="group rounded-2xl border border-accent-500/25 bg-accent-950 p-4 transition-colors hover:border-accent-400/50 hover:bg-selected active:bg-accent-900 min-[360px]:col-span-2 lg:col-span-1"
             >
               <div className="flex h-full items-center gap-3">
-                <WheelIcon className="h-6 w-6 shrink-0 text-accent-300" />
+                <WheelIcon className="h-10 w-10 shrink-0 rounded-xl bg-accent-500/10 p-2 text-accent-300" />
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm font-semibold leading-tight text-dark-100">
                     {t('wheel.banner.title')}

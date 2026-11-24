@@ -648,7 +648,7 @@ export default function Wheel() {
     }, []);
 
   const panel = 'rounded-[22px] border border-line bg-surface p-4 sm:p-5';
-  const panelTitle = 'text-xs font-bold uppercase tracking-[0.14em] text-dark-500';
+  const panelTitle = 'text-sm font-semibold text-dark-300';
 
   return (
     <div className="animate-fade-in space-y-4 pb-8">
@@ -778,6 +778,10 @@ export default function Wheel() {
                     </button>
                   </div>
                 </div>
+              ) : dailyLimitReached && !isSpinning && !isPayingStars && !pendingExternalPayment ? (
+                <p role="status" className="py-2 text-center text-sm font-medium text-dark-300">
+                  Сегодня вращения закончились
+                </p>
               ) : (
                 /* Single Spin Button */
                 <Button
@@ -976,9 +980,9 @@ export default function Wheel() {
                   return (
                     <div
                       key={prize.id}
-                      className="rounded-2xl border border-line bg-elevated px-2 py-4 text-center"
+                      className="rounded-2xl border border-accent-500/25 bg-accent-950 px-2 py-4 text-center"
                     >
-                      <div className="text-2xl font-extrabold tracking-tight text-white sm:text-[26px]">
+                      <div className="text-[28px] font-bold leading-none tracking-tight text-accent-200 sm:text-[30px]">
                         {label.main}
                       </div>
                       <div className="mt-0.5 truncate text-xs text-dark-300">
@@ -996,7 +1000,11 @@ export default function Wheel() {
           <div className={cn(panel, 'space-y-4')}>
             <div className={panelTitle}>{t('wheel.allPrizes')}</div>
             {prizeGroups.map((group) => {
-              const color = prizeTypeColor(group.type);
+              const color = group.type === 'subscription_days'
+                ? 'var(--status-success)'
+                : group.type === 'balance_bonus'
+                  ? 'var(--accent-text)'
+                  : prizeTypeColor(group.type);
               return (
                 <div key={group.type}>
                   <div className="mb-2 flex items-center gap-2">
@@ -1009,11 +1017,10 @@ export default function Wheel() {
                     {group.items.map((prize) => (
                       <span
                         key={prize.id}
-                        className="max-w-full break-words rounded-lg border px-2.5 py-1.5 text-[13px] font-bold [overflow-wrap:anywhere]"
+                        className="max-w-full break-words rounded-md px-2 py-1 text-xs font-medium [overflow-wrap:anywhere]"
                         style={{
                           color,
-                          borderColor: `${color}59`,
-                          backgroundColor: `${color}1f`,
+                          backgroundColor: 'var(--bg-inset)',
                         }}
                       >
                         {rewardTitle(prize)}

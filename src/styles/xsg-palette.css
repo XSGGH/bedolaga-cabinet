@@ -35,11 +35,11 @@
 }
 
 html:not(.light) {
-  --color-dark-950: 21, 23, 29 !important; /* base #15171D */
+  --color-dark-950: 22, 23, 30 !important; /* base #16171E */
   --color-dark-900: 25, 28, 35 !important; /* inset #191C23 */
   --color-dark-850: 27, 29, 37 !important; /* navigation #1B1D25 */
-  --color-dark-800: 29, 32, 40 !important; /* surface #1D2028 */
-  --color-dark-700: 37, 41, 51 !important; /* elevated #252933 */
+  --color-dark-800: 31, 32, 42 !important; /* surface #1F202A */
+  --color-dark-700: 39, 40, 50 !important; /* elevated #272832 */
   --color-dark-600: 44, 48, 59 !important; /* hover #2C303B */
   --color-dark-500: 146, 151, 168 !important;
   --color-dark-400: 176, 179, 192 !important;
@@ -47,21 +47,21 @@ html:not(.light) {
   --color-dark-200: 214, 214, 225 !important;
   --color-dark-100: 240, 238, 245 !important;
   --color-dark-50: var(--color-dark-100) !important;
-  --color-border-default: 56, 61, 73;
+  --color-border-default: 57, 58, 73;
   --color-border-strong: 80, 86, 102;
   --color-border-divider: 52, 56, 68;
-  /* Form boundaries need 3:1 against both inset and elevated surfaces. */
-  --color-border-control: 111, 118, 137;
+  /* Control outlines remain distinct from decorative card boundaries. */
+  --color-border-control: 104, 110, 129;
   --color-accent-50: 243, 237, 251 !important;
   --color-accent-100: 232, 221, 246 !important;
   --color-accent-200: 216, 198, 240 !important;
   --color-accent-300: 205, 182, 238 !important;
   --color-accent-400: 195, 168, 234 !important;
-  --color-accent-500: 173, 137, 226 !important;
+  --color-accent-500: 178, 133, 232 !important;
   --color-accent-600: 192, 160, 237 !important;
   --color-accent-700: 150, 113, 207 !important;
   --color-accent-800: 112, 84, 143 !important;
-  --color-accent-900: 51, 42, 66 !important;
+  --color-accent-900: 48, 40, 57 !important;
   --color-accent-950: 41, 36, 53 !important;
   --color-on-accent: 25, 21, 31 !important;
   --color-on-success: var(--color-on-accent) !important;

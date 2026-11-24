@@ -69,14 +69,14 @@ export default function PurchaseCTAButton({
   const Icon = isExpired || isTrial || requiresTariff ? SparklesIcon : RefreshIcon;
 
   const fill = quiet
-    ? 'border border-accent-400/60 bg-accent-500/15 text-accent-100 hover:border-accent-300 hover:bg-accent-500/25 active:bg-accent-500/30'
+    ? 'border border-line-strong bg-elevated text-dark-100 hover:border-dark-400 hover:bg-surface-hover active:bg-inset'
     : 'bg-accent-500 text-on-accent hover:bg-accent-600';
 
   if (inline) {
     return (
       <Link
         to={linkTo}
-        className={`flex h-12 items-center justify-center gap-2 rounded-[14px] px-3 text-[14px] font-bold transition-[filter] ${fill}`}
+        className={`flex h-12 items-center justify-center gap-2 rounded-[14px] px-3 text-[14px] font-bold transition-colors ${fill}`}
       >
         <Icon className="h-[18px] w-[18px]" />
         {buttonText}
@@ -87,7 +87,7 @@ export default function PurchaseCTAButton({
   return (
     <Link
       to={linkTo}
-      className={`group flex min-h-16 items-center gap-3.5 rounded-[20px] px-5 py-4 transition-[filter] ${fill}`}
+      className={`group flex min-h-16 items-center gap-3.5 rounded-[20px] px-5 py-4 transition-colors ${fill}`}
     >
       <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/20">
         <Icon className="h-5 w-5" />

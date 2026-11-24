@@ -335,7 +335,7 @@ export default function Support() {
 
   return (
     <motion.div
-      className="space-y-6"
+      className="xsg-support space-y-4 pb-4"
       variants={staggerContainer}
       initial="initial"
       animate="animate"
@@ -413,7 +413,7 @@ export default function Support() {
                   className={`w-full rounded-2xl border p-4 text-left transition-colors ${
                     selectedTicket?.id === ticket.id
                       ? 'border-accent-500 bg-accent-500/10'
-                      : 'border-line bg-elevated hover:border-line-strong hover:bg-surface-hover'
+                      : 'border-transparent bg-inset hover:border-line hover:bg-elevated active:bg-surface-hover'
                   }`}
                 >
                   <div className="mb-2 flex items-start justify-between gap-2">
@@ -481,7 +481,7 @@ export default function Support() {
                   </label>
                   <textarea
                     id="support-message"
-                    className="input min-h-[150px]"
+                    className="input min-h-[168px] resize-y leading-relaxed"
                     placeholder={t('support.messagePlaceholder')}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
@@ -520,7 +520,7 @@ export default function Support() {
                       type="button"
                       onClick={() => createFileInputRef.current?.click()}
                       disabled={createAttachments.some((a) => a.uploading)}
-                      className="mt-2 flex items-center gap-2 text-sm text-dark-400 transition-colors hover:text-dark-200 disabled:opacity-50"
+                      className="mt-2 flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm text-dark-300 transition-colors hover:bg-elevated hover:text-dark-100 disabled:opacity-50"
                     >
                       <ImageIcon />
                       {t('support.attachImage')}{' '}

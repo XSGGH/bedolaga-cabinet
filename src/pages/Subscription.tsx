@@ -484,7 +484,7 @@ export default function Subscription() {
               return (
                 <>
                   <div
-                    className="relative order-1 overflow-hidden rounded-3xl p-4 sm:p-6"
+                    className="xsg-subscription-hero relative order-1 overflow-hidden rounded-3xl p-4 sm:p-6"
                     style={{
                       background: g.cardBg,
                       border: subscription.is_trial
@@ -653,7 +653,7 @@ export default function Subscription() {
                       />
                     </div>
                     {!isDesktop && (
-                      <div className="xsg-autopay mt-3 border-t border-accent-500/15">
+                      <div className="xsg-autopay mt-4 border-t border-divider">
                         {autopayInner}
                       </div>
                     )}

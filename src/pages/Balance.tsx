@@ -199,7 +199,7 @@ export default function Balance() {
           it stuck at opacity 0 */}
             {paymentMethods && paymentMethods.length > 0 && (
               <motion.div variants={staggerItem} initial="initial" animate="animate">
-                <Card>
+                <Card variant="outline" className="border-0 p-0 sm:p-0">
                   <h2 className="mb-4 text-lg font-semibold text-dark-100">
                     {t('balance.topUpBalance')}
                   </h2>
@@ -214,23 +214,21 @@ export default function Balance() {
                       });
 
                       return (
-                        <Card
+                        <button
                           key={method.id}
-                          interactive={method.is_available}
-                          className={
-                            !method.is_available
-                              ? 'cursor-not-allowed bg-elevated [&_*]:text-dark-500'
-                              : 'bg-elevated'
-                          }
+                          type="button"
+                          disabled={!method.is_available}
+                          className="group flex w-full items-center gap-3 rounded-2xl border border-line-strong bg-surface p-4 text-left transition-colors hover:border-accent-500/40 hover:bg-elevated active:bg-selected disabled:cursor-not-allowed disabled:[&_*]:text-dark-500"
                           onClick={() =>
                             method.is_available && navigate(`/balance/top-up/${method.id}`)
                           }
                         >
+                          <div className="min-w-0 flex-1">
                           <div className="font-semibold text-dark-100">
                             {method.name || translatedName}
                           </div>
                           {(method.description || translatedDesc) && (
-                            <div className="mt-1 text-sm text-dark-500">
+                            <div className="mt-1 text-sm leading-relaxed text-dark-400">
                               {method.description || translatedDesc}
                             </div>
                           )}
@@ -241,7 +239,11 @@ export default function Balance() {
                             {'\u00A0'}
                             {currencySymbol}
                           </div>
-                        </Card>
+                          </div>
+                          {method.is_available && (
+                            <ChevronRightIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-dark-400 transition-colors group-hover:text-accent-300" />
+                          )}
+                        </button>
                       );
                     })}
                   </div>

@@ -84,7 +84,7 @@ export default function TrafficProgressBar({
           height: barHeight,
           borderRadius: 999,
           background: g.trackBg,
-          border: `1px solid ${g.trackBorder}`,
+          border: `1px solid ${g.innerBorder}`,
         }}
       >
         {/* Warning zone tint backgrounds */}

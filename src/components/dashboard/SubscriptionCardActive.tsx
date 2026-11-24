@@ -55,7 +55,7 @@ export default function SubscriptionCardActive({
   return (
     <section
       aria-label={t('dashboard.ui.subscription', 'Ваша подписка')}
-      className="overflow-hidden rounded-3xl border border-[var(--xsg-line-strong)] bg-dark-800"
+      className="xsg-subscription-hero overflow-hidden rounded-3xl border border-[var(--xsg-line)] bg-dark-800"
     >
       <div className="space-y-3 p-4 sm:p-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-8 lg:gap-y-4 lg:space-y-0">
         <div className="flex items-center justify-between gap-3 text-xs lg:col-span-2">
@@ -102,7 +102,7 @@ export default function SubscriptionCardActive({
           <ConnectDeviceTile subscription={subscription} connectedDevices={connectedDevices} />
           <Link
             to={`/subscriptions/${subscription.id}`}
-            className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-dark-700/20 px-3 text-sm font-medium text-dark-100 transition-colors hover:bg-dark-700/40 active:bg-dark-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+            className="xsg-action-row justify-between text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
           >
             <span className="flex items-center gap-2">
               <CogIcon className="h-4 w-4 shrink-0 text-dark-400" />
