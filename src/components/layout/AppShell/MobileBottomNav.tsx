@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
 import { usePlatform } from '@/platform';
@@ -32,6 +32,7 @@ export function MobileBottomNav({ items, isMenuOpen = false }: MobileBottomNavPr
   const location = useLocation();
   const { haptic } = usePlatform();
   const isKeyboardOpen = useVirtualKeyboard();
+  const reducedMotion = useReducedMotion();
 
   const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
@@ -58,8 +59,7 @@ export function MobileBottomNav({ items, isMenuOpen = false }: MobileBottomNavPr
         left: 'max(16px, env(safe-area-inset-left, 0px))',
         right: 'max(16px, env(safe-area-inset-right, 0px))',
         borderRadius: 'var(--bento-radius, 24px)',
-        padding: '8px 4px',
-        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.45)',
+        padding: '6px 4px',
       }}
     >
       <div className="flex justify-around">
@@ -69,13 +69,14 @@ export function MobileBottomNav({ items, isMenuOpen = false }: MobileBottomNavPr
             <Link
               key={item.path}
               to={item.path}
+              aria-current={isActive(item.path) ? 'page' : undefined}
               onClick={handleNavClick}
               className={cn(
                 // На 360 пяти пунктам достаётся по ~64 px: при px-3 подпись
                 // «Колесо удачи» заходила на соседа. Боковых полей нет (подсветка —
                 // по всему пункту), подпись короткая (navShort), а если и она не
                 // влезла — многоточие, не наезд.
-                'relative flex min-w-0 flex-1 flex-col items-center justify-center rounded-2xl px-0 py-2.5 transition-all duration-200',
+                'relative flex min-h-[62px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl px-0 py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400',
                 isActive(item.path) ? 'text-accent-400' : 'text-dark-400 hover:text-dark-200',
               )}
             >
@@ -83,11 +84,15 @@ export function MobileBottomNav({ items, isMenuOpen = false }: MobileBottomNavPr
                 <motion.div
                   layoutId="bottom-nav-active"
                   className="absolute inset-0 rounded-2xl bg-accent-500/15"
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  transition={
+                    reducedMotion
+                      ? { duration: 0 }
+                      : { type: 'spring', stiffness: 500, damping: 30 }
+                  }
                 />
               )}
               <Icon className="relative z-10 h-5 w-5" />
-              <span className="relative z-10 mt-1 max-w-full truncate text-2xs">
+              <span className="relative z-10 mt-1 max-w-full truncate text-[10px] leading-4 min-[360px]:text-[11px]">
                 {t(`navShort.${item.key}`, { defaultValue: t(`nav.${item.key}`) })}
               </span>
             </Link>

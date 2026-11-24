@@ -29,7 +29,7 @@ export default function TrafficProgressBar({
 
   // Gradient always starts from the accent color (normal zone)
   const startColor = 'rgb(var(--color-accent-400))';
-  const clampedPercent = Math.min(percent, 100);
+  const clampedPercent = Number.isFinite(percent) ? Math.max(0, Math.min(percent, 100)) : 0;
   const barHeight = compact ? 6 : 10;
 
   // Multi-segment gradient matching prototype
@@ -42,7 +42,7 @@ export default function TrafficProgressBar({
     if (percent < 90)
       return `linear-gradient(90deg, ${startColor}, rgb(var(--color-warning-400)), rgb(var(--color-warning-300)), ${zone.mainVar})`;
     return `linear-gradient(90deg, ${startColor}, rgb(var(--color-warning-400)), rgb(var(--color-warning-300)), rgb(var(--color-error-400)))`;
-  }, [percent, zone.mainVar, startColor]);
+  }, [percent, zone.mainVar]);
 
   if (isUnlimited) {
     return (
@@ -58,7 +58,7 @@ export default function TrafficProgressBar({
           }}
         >
           <div
-            className="absolute inset-0 animate-unlimited-flow"
+            className="absolute inset-0 animate-unlimited-flow motion-reduce:animate-none"
             style={{
               background: `linear-gradient(90deg, rgba(${zone.mainVarRaw}, 0.31), ${zone.mainVar}, rgba(${zone.mainVarRaw}, 0.31))`,
               backgroundSize: '200% 100%',
@@ -98,9 +98,9 @@ export default function TrafficProgressBar({
         {/* Fill bar — scaleX (compositor) instead of width (layout reflow).
             Use top-left origin so fill grows left→right same as width. */}
         <div
-          className="absolute bottom-0 left-0 top-0 w-full origin-left overflow-hidden"
+          className="absolute bottom-0 left-0 top-0 w-full origin-left overflow-hidden motion-reduce:!transition-none"
           style={{
-            transform: `scaleX(${Math.max(clampedPercent, 2.5) / 100})`,
+            transform: `scaleX(${clampedPercent / 100})`,
             borderRadius: 999,
             transition: 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
           }}

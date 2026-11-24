@@ -22,13 +22,13 @@ export default function StatsGrid({
 
   const chevron = <ChevronRightIcon className="h-4 w-4 shrink-0 text-dark-500" />;
   const tile =
-    'block h-full rounded-2xl border border-[var(--xsg-line)] bg-dark-800 p-4 transition-colors hover:border-[var(--xsg-line-strong)]';
+    'block min-w-0 h-full rounded-2xl border border-[var(--xsg-line)] bg-dark-800 p-3.5 transition-colors hover:border-[var(--xsg-line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400';
 
   return (
     <>
       <Link to="/balance" className={tile} data-onboarding="balance">
         <div className="flex items-center justify-between gap-2">
-          <span className="xsg-eyebrow">{t('dashboard.stats.balance')}</span>
+          <span className="text-xs font-medium text-dark-300">{t('dashboard.stats.balance')}</span>
           {chevron}
         </div>
         <div className="mt-2.5 text-[22px] font-bold leading-none tracking-tight tabular-nums text-dark-50 [overflow-wrap:anywhere]">
@@ -38,18 +38,21 @@ export default function StatsGrid({
       </Link>
       <Link to="/referral" className={tile}>
         <div className="flex items-center justify-between gap-2">
-          <span className="xsg-eyebrow">{t('dashboard.stats.referrals')}</span>
+          <span className="text-xs font-medium text-dark-300">
+            {t('dashboard.stats.referrals')}
+          </span>
           {chevron}
         </div>
         {refLoading ? (
           <Skeleton className="mt-2.5 h-6 w-20 rounded" />
         ) : (
-          <div className="mt-2.5 flex items-baseline gap-2.5">
-            <span className="text-[22px] font-bold leading-none tabular-nums text-dark-50">
+          <div className="mt-2.5 min-w-0 space-y-2">
+            <span className="block break-words text-[22px] font-bold leading-none tabular-nums text-dark-50 [overflow-wrap:anywhere]">
               {referralCount}
             </span>
-            <span className="text-xs tabular-nums text-dark-400">
-              +{formatAmount(earningsRubles)}&nbsp;{currencySymbol}
+            <span className="block text-xs tabular-nums text-dark-300 [overflow-wrap:anywhere]">
+              {t('dashboard.ui.referralEarnings', 'Доход')}: {formatAmount(earningsRubles)}{' '}
+              {currencySymbol}
             </span>
           </div>
         )}

@@ -278,7 +278,7 @@ export function AppHeader({
                   haptic.impact('light');
                   setMobileMenuOpen(!mobileMenuOpen);
                 }}
-                className={`rounded-xl p-2.5 transition-all duration-200 ${
+                className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200 ${
                   mobileMenuOpen
                     ? 'bg-dark-700 text-dark-100'
                     : 'text-dark-400 hover:bg-dark-800 hover:text-dark-100'

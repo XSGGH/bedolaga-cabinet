@@ -227,7 +227,9 @@ export default function TicketNotificationBell({
       {/* Bell button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative rounded-xl border p-2 transition-all duration-200 ${
+        aria-label={t('notifications.ticketNotifications', 'Ticket notifications')}
+        aria-expanded={isOpen}
+        className={`relative flex h-11 w-11 items-center justify-center rounded-xl border transition-colors duration-200 ${
           isOpen
             ? 'border-dark-600 bg-dark-700 text-accent-400'
             : 'border-dark-700/50 bg-dark-800/50 text-dark-400 hover:bg-dark-700 hover:text-accent-400'

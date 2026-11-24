@@ -21,13 +21,12 @@ import ServerStatus from '../components/dashboard/ServerStatus';
 import StatsGrid from '../components/dashboard/StatsGrid';
 import ChannelPromo from '../components/dashboard/ChannelPromo';
 import { giftApi } from '../api/gift';
-import { promoApi } from '../api/promo';
 import AbuseNoticeCard from '../components/dashboard/AbuseNoticeCard';
 import PendingGiftCard from '../components/dashboard/PendingGiftCard';
 import SubscriptionListCard from '../components/subscription/SubscriptionListCard';
 import { DeviceLimitSheet } from '../components/subscription/DeviceLimitSheet';
 import { API } from '../config/constants';
-import { ChevronRightIcon, StarIcon } from '@/components/icons';
+import { ChevronRightIcon, WheelIcon } from '@/components/icons';
 import { Skeleton, SkeletonGroup } from '@/components/ui/skeleton';
 import { safeLocal } from '../utils/safeStorage';
 import { getApiErrorMessage } from '../utils/api-error';
@@ -64,7 +63,11 @@ export default function Dashboard() {
   });
   const isMultiTariff = multiSubData?.multi_tariff_enabled ?? false;
 
-  const { data: subscriptionResponse, isLoading: subLoading } = useQuery({
+  const {
+    data: subscriptionResponse,
+    isLoading: subLoading,
+    isError: subError,
+  } = useQuery({
     queryKey: ['subscription'],
     queryFn: () => subscriptionApi.getSubscription(),
     retry: false,
@@ -133,13 +136,6 @@ export default function Dashboard() {
     queryKey: ['pending-gifts'],
     queryFn: giftApi.getPendingGifts,
     staleTime: 30_000,
-    retry: false,
-  });
-
-  const { data: promoGroupData } = useQuery({
-    queryKey: ['promo-group-discounts'],
-    queryFn: promoApi.getGroupDiscounts,
-    staleTime: 60_000,
     retry: false,
   });
 
@@ -299,23 +295,10 @@ export default function Dashboard() {
       {/* Header */}
       <div data-onboarding="welcome" className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight text-dark-50 sm:text-[32px] sm:leading-tight">
+          <h1 className="break-words text-xl font-semibold leading-snug tracking-tight text-dark-100 [overflow-wrap:anywhere] sm:text-2xl">
             {userName ? t('dashboard.welcome', { name: userName }) : t('dashboard.welcomeNoName')}
           </h1>
         </div>
-        {promoGroupData?.group_name && (
-          <span
-            className="mt-1 inline-flex max-w-[180px] shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11.5px] font-bold uppercase tracking-wider"
-            style={{
-              background: 'rgba(var(--color-accent-500), 0.14)',
-              border: '1px solid rgba(var(--color-accent-400), 0.45)',
-              color: 'rgb(var(--color-accent-300))',
-            }}
-          >
-            <StarIcon filled className="h-2.5 w-2.5 shrink-0" />
-            <span className="truncate">{promoGroupData.group_name}</span>
-          </span>
-        )}
       </div>
 
       {/* Pending Gift Activations */}
@@ -397,6 +380,20 @@ export default function Dashboard() {
                   <Skeleton className="h-12 w-full rounded-xl" />
                 </div>
               </SkeletonGroup>
+            ) : subError && !subscription ? (
+              <div
+                role="status"
+                className="rounded-2xl border border-[var(--xsg-line)] bg-dark-800 p-4 text-sm text-dark-200"
+              >
+                {t('dashboard.ui.subscriptionError', 'Не удалось загрузить подписку.')}
+                <button
+                  type="button"
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['subscription'] })}
+                  className="mt-2 block min-h-11 text-accent-300 hover:underline"
+                >
+                  {t('dashboard.ui.retry', 'Попробовать снова')}
+                </button>
+              </div>
             ) : subscription?.is_expired ||
               subscription?.status === 'disabled' ||
               subscription?.is_limited ? (
@@ -446,7 +443,7 @@ export default function Dashboard() {
         </div>
 
         {/* Плитки под карточкой подписки: баланс, рефералы, колесо — в один ряд. */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 lg:grid-cols-3">
           <StatsGrid
             balanceRubles={balanceData?.balance_rubles || 0}
             referralCount={referralInfo?.total_referrals || 0}
@@ -456,20 +453,21 @@ export default function Dashboard() {
 
           {/* Fortune Wheel Banner */}
           {wheelConfig?.is_enabled && (
-            <Link to="/wheel" className="xsg-wheel group col-span-2 block lg:col-span-1">
-              <div className="relative flex items-center gap-4">
-                <span className="xsg-wheel-disc" aria-hidden="true">
-                  <span className="xsg-wheel-hub" />
-                </span>
+            <Link
+              to="/wheel"
+              className="group rounded-2xl border border-[var(--xsg-line)] bg-dark-800 p-4 transition-colors hover:border-[var(--xsg-line-strong)] min-[360px]:col-span-2 lg:col-span-1"
+            >
+              <div className="flex h-full items-center gap-3">
+                <WheelIcon className="h-6 w-6 shrink-0 text-accent-300" />
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-lg font-extrabold leading-tight tracking-tight text-dark-50">
+                  <h3 className="text-sm font-semibold leading-tight text-dark-100">
                     {t('wheel.banner.title')}
                   </h3>
-                  <p className="mt-1 text-[13px] leading-snug text-dark-300">
+                  <p className="mt-1 text-xs leading-relaxed text-dark-300">
                     {t('wheel.banner.description')}
                   </p>
                 </div>
-                <span className="xsg-wheel-cta flex-shrink-0">
+                <span className="shrink-0 text-xs font-medium text-accent-300">
                   <span className="hidden sm:inline lg:hidden xl:inline">
                     {t('wheel.banner.button')}
                   </span>
@@ -479,7 +477,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          <div className="col-span-2 lg:col-span-3">
+          <div className="min-[360px]:col-span-2 lg:col-span-3">
             <ChannelPromo />
           </div>
         </div>
