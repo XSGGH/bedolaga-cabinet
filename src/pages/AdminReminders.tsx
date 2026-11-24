@@ -41,7 +41,7 @@ export default function AdminReminders() {
           <button
             type="button"
             onClick={() => navigate('/admin/reminders/create')}
-            className="flex items-center gap-2 rounded-xl bg-accent-500 px-4 py-2 text-sm font-medium text-white"
+            className="flex items-center gap-2 rounded-xl bg-accent-500 px-4 py-2 text-sm font-medium text-on-accent"
           >
             <PlusIcon /> {t('admin.reminders.create')}
           </button>

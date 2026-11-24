@@ -6,8 +6,10 @@
  * Правила действуют только в тёмной теме (светлая у нас выключена).
  *
  * Принципы: плотные непрозрачные поверхности без «стекла», тонкая граница
- * цвета акцента, никаких свечений и подъёма карточек при наведении.
+ * нейтрального цвета, без свечений и подъёма карточек при наведении.
  */
+
+@import "./xsg-palette.css";
 
 :root {
   --bento-radius: 20px;
@@ -16,47 +18,23 @@
   --bento-padding-lg: 26px;
 }
 
-/*
- * Палитра закреплена намертво (значения из утверждённого макета): цвета тёмной
- * темы из админки на неё больше не влияют, иначе плитки сливаются с фоном.
- * !important перебивает инлайн-переменные, которые ставит скрипт темы.
- */
-html:not(.light) {
-  --color-dark-950: 6, 3, 12 !important;
-  --color-dark-900: 11, 6, 20 !important;
-  --color-dark-850: 15, 8, 28 !important;
-  --color-dark-800: 19, 10, 36 !important;
-  --color-dark-700: 42, 24, 72 !important;
-  --color-dark-600: 66, 46, 104 !important;
-  --color-dark-500: 138, 121, 166 !important;
-  --color-dark-400: 168, 150, 196 !important;
-  --color-dark-300: 200, 188, 222 !important;
-  --color-dark-200: 224, 214, 240 !important;
-  --color-dark-100: 245, 238, 254 !important;
-  --color-dark-50: 245, 238, 254 !important;
-  --xsg-line: #2a1848;
-  --xsg-line-strong: #4a2a80;
-}
-
 html:not(.light) body {
-  /* Фон чуть светлее и с мягким фиолетовым свечением — чтобы не был «чёрной ямой» */
-  background-color: rgb(12 7 24);
-  background-image:
-    radial-gradient(1000px 560px at 72% -6%, rgba(125, 70, 230, 0.22), transparent 70%),
-    radial-gradient(800px 520px at 0% 105%, rgba(90, 45, 180, 0.16), transparent 70%);
-  background-attachment: fixed;
+  background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 /* Поверхности */
 html:not(.light) .card,
-html:not(.light) .bento-card {
-  background-color: rgb(var(--color-dark-800));
+html:not(.light) .bento-card,
+html:not(.light) .bento-card-hover,
+html:not(.light) .bento-card-glow {
+  background: var(--bg-surface);
   border-color: var(--xsg-line);
   box-shadow: none;
 }
 
 html:not(.light) .glass {
-  background-color: rgb(var(--color-dark-800));
+  background-color: var(--bg-navigation);
   border-color: var(--xsg-line);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -66,7 +44,7 @@ html:not(.light) .glass {
 html:not(.light) .bento-card-hover:hover,
 html:not(.light) .card-hover:hover {
   transform: none;
-  background-color: rgb(var(--color-dark-800));
+  background-color: var(--bg-elevated);
   border-color: var(--xsg-line-strong);
   box-shadow: none;
 }
@@ -97,21 +75,77 @@ html:not(.light) .btn-primary:hover {
   box-shadow: none;
 }
 
+html:not(.light) .btn-primary {
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
+}
+
+html:not(.light) .btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+html:not(.light) .btn-primary:active {
+  background: var(--accent-pressed);
+}
+
 html:not(.light) .btn-secondary {
-  background-color: rgb(var(--color-dark-900));
+  background-color: var(--bg-elevated);
   border-color: var(--xsg-line);
+  color: var(--text-primary);
 }
 
 html:not(.light) .btn-secondary:hover {
-  background-color: rgb(var(--color-dark-850));
+  background-color: var(--bg-hover);
   border-color: var(--xsg-line-strong);
 }
 
 /* Поля ввода */
-html:not(.light) .input {
-  background-color: rgb(var(--color-dark-900));
-  border-color: var(--xsg-line);
+html:not(.light) .input,
+html:not(.light) .input-error {
+  background-color: var(--bg-inset);
+  border-color: var(--border-control);
   border-radius: 12px;
+}
+
+html:not(.light) :is(input, textarea, select)::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+html:not(.light) :is(input, textarea, select):focus {
+  border-color: var(--accent-primary);
+}
+
+html:not(.light) :is(.input-error, [aria-invalid="true"]) {
+  border-color: var(--status-error);
+}
+
+html:not(.light) :is(.input-error, [aria-invalid="true"]):focus {
+  border-color: var(--status-error);
+}
+
+html:not(.light) :is(input[type="checkbox"], input[type="radio"], input[type="range"]) {
+  accent-color: var(--accent-primary);
+}
+
+html:not(.light)
+  :is(button, a, input, textarea, select, summary, [role="switch"], [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
+}
+
+/* Disabled controls use solid tokens: parent opacity made labels unreadable. */
+html:not(.light) :is(button, input, textarea, select):disabled {
+  opacity: 1;
+  color: var(--text-disabled);
+  background-image: none;
+  box-shadow: none;
+}
+
+html:not(.light) :is(input, textarea, select):disabled,
+html:not(.light)
+  button:disabled:is(.btn-primary, [class~="bg-accent-500"], [class~="bg-accent-400"]) {
+  background-color: var(--bg-elevated);
 }
 
 /* Подписи-разделы капсом, как на статус-странице */
@@ -145,8 +179,8 @@ html:not(.light) .input {
 }
 
 .xsg-side-link[data-active="true"] {
-  background-color: rgba(var(--color-accent-500), 0.14);
-  color: rgb(var(--color-dark-50));
+  background-color: var(--accent-subtle);
+  color: var(--accent-text);
   box-shadow: inset 3px 0 0 rgb(var(--color-accent-500));
 }
 
@@ -164,11 +198,8 @@ html:not(.light) .input {
   position: relative;
   overflow: hidden;
   border-radius: var(--bento-radius);
-  border: 1px solid rgba(var(--color-accent-500), 0.45);
-  background:
-    radial-gradient(260px 160px at 0% 50%, rgba(var(--color-accent-500), 0.3), transparent 70%),
-    radial-gradient(220px 140px at 100% 0%, rgba(236, 72, 153, 0.14), transparent 70%),
-    rgb(var(--color-dark-900));
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
   padding: 16px 16px 16px 14px;
   transition:
     border-color 0.15s,
@@ -176,8 +207,8 @@ html:not(.light) .input {
 }
 
 .xsg-wheel:hover {
-  border-color: rgba(var(--color-accent-300), 0.75);
-  box-shadow: 0 0 36px rgba(var(--color-accent-500), 0.22);
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
 }
 
 /* Мини-колесо: статичное (без вращения — на Android WebView вращающиеся слои дают чёрные тайлы) */
@@ -224,18 +255,17 @@ html:not(.light) .input {
   min-width: 38px;
   min-height: 38px;
   border-radius: 12px;
-  background: linear-gradient(90deg, rgb(var(--color-accent-500)), #d946ef);
+  background: var(--accent-primary);
   padding: 9px 14px;
   font-size: 13.5px;
   font-weight: 800;
-  color: #fff;
-  box-shadow: 0 8px 22px rgba(var(--color-accent-500), 0.4);
+  color: var(--text-on-accent);
 }
 
 /* Плитки-кнопки (было: бегущая градиентная рамка) — плоская плашка */
 html:not(.light) .hover-border-gradient {
-  border: 1px solid rgba(var(--color-accent-500), 0.35);
-  background: rgba(var(--color-accent-500), 0.1);
+  border: 1px solid var(--border-default);
+  background: var(--bg-elevated);
   animation: none;
   box-shadow: none;
   transition:
@@ -245,8 +275,8 @@ html:not(.light) .hover-border-gradient {
 
 html:not(.light) .hover-border-gradient:hover,
 html:not(.light) .hover-border-gradient:active {
-  border-color: rgba(var(--color-accent-400), 0.6);
-  background: rgba(var(--color-accent-500), 0.14);
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
   box-shadow: none;
 }
 
@@ -263,8 +293,23 @@ html:not(.light) .hover\:shadow-glow:hover {
 
 /* Окна и шторки — плотные, без размытия содержимого панели */
 html:not(.light) [role="dialog"] {
+  background-color: var(--bg-surface);
+  border-color: var(--border-default);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+}
+
+/* Override the upstream admin skin's purple wash without touching its layout. */
+html:not(.light)
+  [data-admin-page]
+  :is(.rounded-xl, .rounded-2xl, .rounded-3xl).border:is(
+    [class*="bg-dark-8"],
+    [class*="bg-dark-9"]
+  ):not(:hover),
+html:not(.light) [data-admin-page] .card:not(:hover) {
+  background-color: var(--bg-surface);
+  border-color: var(--border-default);
+  box-shadow: none;
 }
 
 /* Подписка: строки внутри одной карточки — без вложенных рамок, с разделителями */
@@ -395,7 +440,7 @@ html:not(.light) .xsg-linkrow > button {
   align-items: center;
   gap: 10px;
   border-color: rgba(var(--color-accent-400), 0.5);
-  background: linear-gradient(90deg, rgba(var(--color-accent-500), 0.22), rgba(217, 70, 239, 0.14));
+  background: var(--bg-elevated);
 }
 html:not(.light) .xsg-linkrow > button > .xsg-linkrow-icon {
   display: inline-flex;
@@ -413,4 +458,31 @@ html:not(.light) .xsg-linkrow > button > div {
   border-radius: 9px;
   background: rgba(var(--color-accent-500), 0.3);
   color: #fff;
+}
+
+/* Trial activation uses the same calm primary treatment as other actions. */
+html:not(.light) .trial-cta {
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
+  box-shadow: none;
+  animation: none;
+}
+html:not(.light) .trial-cta::after {
+  background: none;
+}
+html:not(.light) .trial-cta:hover:not(:disabled) {
+  background: var(--accent-hover);
+  filter: none;
+}
+html:not(.light) .trial-cta:active {
+  background: var(--accent-pressed);
+}
+html:not(.light) .trial-cta:disabled {
+  background: var(--bg-elevated);
+  color: var(--text-disabled);
+}
+html:not(.light)
+  [data-admin-page]
+  :is(button, a):is(.rounded-lg, .rounded-xl)[class~="bg-accent-500"] {
+  box-shadow: none;
 }

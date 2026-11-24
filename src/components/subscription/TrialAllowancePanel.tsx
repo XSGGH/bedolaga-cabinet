@@ -37,8 +37,7 @@ export function TrialAllowancePanel({ trafficLimitGb, compact = false }: TrialAl
       className={`grid rounded-[20px] border border-accent-400/25 px-2 ${compact ? 'py-3.5' : 'py-[18px]'}`}
       style={{
         gridTemplateColumns: cells.length > 1 ? '1fr 1px 1fr' : '1fr',
-        background:
-          'linear-gradient(135deg, rgba(var(--color-accent-500), 0.18), rgba(236,72,153,0.08))',
+        background: 'var(--bg-elevated)',
       }}
     >
       {cells.map((cell, i) => (

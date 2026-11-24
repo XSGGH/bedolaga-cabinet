@@ -94,7 +94,7 @@ export function AutopayToggle({
             Resting position pinned at left:3px; on toggles a 23px
             slide on the GPU. */}
         <span
-          className="absolute left-[3px] top-[11px] h-[22px] w-[22px] rounded-full bg-white transition-transform duration-200 motion-reduce:transition-none"
+          className={`absolute left-[3px] top-[11px] h-[22px] w-[22px] rounded-full transition-transform duration-200 motion-reduce:transition-none ${subscription.autopay_enabled ? 'bg-on-accent' : 'bg-white'}`}
           style={{
             transform: subscription.autopay_enabled ? 'translateX(23px)' : 'translateX(0)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.3)',

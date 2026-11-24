@@ -413,7 +413,7 @@ export default function Support() {
                   className={`w-full rounded-2xl border p-4 text-left transition-colors ${
                     selectedTicket?.id === ticket.id
                       ? 'border-accent-500 bg-accent-500/10'
-                      : 'border-dark-700 bg-dark-900 hover:border-accent-500/50'
+                      : 'border-line bg-elevated hover:border-line-strong hover:bg-surface-hover'
                   }`}
                 >
                   <div className="mb-2 flex items-start justify-between gap-2">
@@ -590,7 +590,7 @@ export default function Support() {
                       className={`rounded-2xl p-4 ${
                         msg.is_from_admin
                           ? 'ml-4 border border-accent-500/30 bg-accent-500/10'
-                          : 'mr-4 border border-dark-700 bg-dark-900'
+                          : 'mr-4 border border-line bg-elevated'
                       }`}
                     >
                       <div className="mb-2 flex items-center justify-between">

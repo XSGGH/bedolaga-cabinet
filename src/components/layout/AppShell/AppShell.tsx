@@ -137,7 +137,7 @@ export function AppShell({ children }: AppShellProps) {
       <PromptDialogHost />
 
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-accent-500/15 bg-dark-900 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-line bg-navigation lg:flex">
         <Link
           to="/"
           className="flex shrink-0 items-center gap-3 px-6 pb-6 pt-7"
@@ -178,7 +178,7 @@ export function AppShell({ children }: AppShellProps) {
           )}
         </nav>
 
-        <div className="flex shrink-0 items-stretch gap-2 border-t border-dark-800 px-4 py-4 [&>*]:flex-1 [&>button]:flex [&>button]:w-full [&>button]:items-center [&>button]:justify-center [&>div>button:first-child]:flex [&>div>button:first-child]:w-full [&>div>button:first-child]:items-center [&>div>button:first-child]:justify-center">
+        <div className="flex shrink-0 items-stretch gap-2 border-t border-divider px-4 py-4 [&>*]:flex-1 [&>button]:flex [&>button]:w-full [&>button]:items-center [&>button]:justify-center [&>div>button:first-child]:flex [&>div>button:first-child]:w-full [&>div>button:first-child]:items-center [&>div>button:first-child]:justify-center">
           <TicketNotificationBell
             isAdmin={location.pathname.startsWith('/admin')}
             placement="sidebar"

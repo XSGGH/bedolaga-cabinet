@@ -366,8 +366,7 @@ export default function Login() {
     <div
       className="min-h-[100dvh]"
       style={{
-        background:
-          'radial-gradient(900px 700px at 22% 55%, rgba(var(--color-accent-500), 0.22), transparent 70%), radial-gradient(600px 500px at 100% 0%, rgba(236, 72, 153, 0.11), transparent 70%)',
+        background: 'var(--bg-base)',
       }}
     >
       {/* Language switcher */}
@@ -403,9 +402,7 @@ export default function Login() {
             <div className="text-left">
               <h1 className="px-1 pt-3 text-[32px] font-extrabold leading-[1.08] tracking-[-0.03em] text-dark-50 [text-wrap:balance] lg:hidden">
                 {t('auth.hero.welcome')}{' '}
-                <span className="whitespace-nowrap bg-gradient-to-r from-accent-300 to-pink-500 bg-clip-text text-transparent">
-                  {appName}
-                </span>
+                <span className="whitespace-nowrap text-accent-400">{appName}</span>
               </h1>
               <p className="mt-3 max-w-[340px] px-1 text-[15px] leading-normal text-dark-300 lg:hidden">
                 {t('auth.hero.subtitle')}

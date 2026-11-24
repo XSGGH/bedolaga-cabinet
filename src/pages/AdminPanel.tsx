@@ -485,7 +485,7 @@ const StatsBar = memo(function StatsBar({ systemInfo, dashboardStats, loading }:
         <div
           key={i}
           className={cn(
-            'flex min-w-0 items-center gap-2 rounded-xl border border-accent-500/20 bg-accent-500/[0.05] px-2.5 py-2 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]',
+            'flex min-w-0 items-center gap-2 rounded-xl border border-line bg-surface px-2.5 py-2 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]',
             'light:border-champagne-300/50 light:bg-champagne-100/60',
             i === 4 && 'col-span-2 lg:col-span-1',
             loading && 'animate-pulse',
@@ -643,7 +643,7 @@ const GlassCard = memo(function GlassCard({ section, index, searchTerm, badges }
   const groupGradient = `linear-gradient(135deg, ${gs.c1}, ${gs.c2})`;
 
   return (
-    <section className="relative flex flex-col overflow-hidden rounded-2xl border border-accent-500/20 bg-accent-500/[0.05] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-colors duration-200 hover:border-dark-600/80 light:border-champagne-300/50 light:bg-champagne-100/40 light:hover:border-champagne-400/60">
+    <section className="relative flex flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-colors duration-200 hover:border-dark-600/80 light:border-champagne-300/50 light:bg-champagne-100/40 light:hover:border-champagne-400/60">
       <div
         aria-hidden="true"
         className="absolute inset-x-8 top-0 h-[3px] rounded-b-full opacity-90"
@@ -853,7 +853,7 @@ export default function AdminPanel() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('admin.panel.searchPlaceholder')}
               aria-label={t('admin.panel.searchPlaceholder')}
-              className="h-9 w-full rounded-xl border border-accent-500/20 bg-accent-500/[0.05] pl-9 pr-20 font-sans text-xs text-dark-100 outline-none transition-all placeholder:text-dark-500 focus:border-accent-500/50 focus:shadow-[0_0_0_3px_rgba(var(--color-accent-500),0.12)] light:border-champagne-300/50 light:bg-champagne-100/60 light:text-champagne-900 light:placeholder:text-champagne-500"
+              className="h-9 w-full rounded-xl border border-line bg-surface pl-9 pr-20 font-sans text-xs text-dark-100 outline-none transition-all placeholder:text-dark-500 focus:border-accent-500/50 focus:shadow-[0_0_0_3px_rgba(var(--color-accent-500),0.12)] light:border-champagne-300/50 light:bg-champagne-100/60 light:text-champagne-900 light:placeholder:text-champagne-500"
             />
             {search && (
               <button

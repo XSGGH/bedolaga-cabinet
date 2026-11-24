@@ -19,7 +19,7 @@ export default function ChannelPromo() {
   if (hidden) return null;
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-[#2AABEE]/30 bg-gradient-to-r from-[#2AABEE]/[0.16] via-accent-500/[0.08] to-transparent py-3 pl-3.5 pr-2">
+    <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface py-3 pl-3.5 pr-2">
       <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#2AABEE] to-[#1d8fd1] text-white shadow-[0_6px_16px_rgba(42,171,238,0.35)]">
         <PiTelegramLogo className="h-[22px] w-[22px]" />
       </span>
@@ -38,7 +38,7 @@ export default function ChannelPromo() {
       <button
         type="button"
         onClick={() => openLink(CHANNEL_URL)}
-        className="hidden flex-shrink-0 rounded-lg bg-[#2AABEE] px-3.5 py-1.5 text-xs font-bold text-white transition-colors hover:bg-[#3bb6f5] sm:block"
+        className="hidden flex-shrink-0 rounded-lg bg-elevated px-3.5 py-1.5 text-xs font-bold text-dark-100 transition-colors hover:bg-surface-hover sm:block"
       >
         {t('dashboard.channelPromo.button')}
       </button>

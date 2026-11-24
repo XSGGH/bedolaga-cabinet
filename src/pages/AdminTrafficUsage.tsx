@@ -436,7 +436,7 @@ export default function AdminTrafficUsage() {
           const item = row.original;
           return (
             <div className="flex items-center gap-1.5">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-500 to-accent-700 text-[10px] font-medium text-white">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-500 to-accent-700 text-[10px] font-medium text-on-accent">
                 {item.full_name?.[0] || '?'}
               </div>
               <div className="min-w-0">

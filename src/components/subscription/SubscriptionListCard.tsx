@@ -131,20 +131,20 @@ export default function SubscriptionListCard({
 
   const borderColor =
     isTrial || isLimitedStatus
-      ? 'rgba(251,191,36,0.2)'
+      ? 'rgba(var(--color-warning-400),0.2)'
       : isExpired
-        ? 'rgba(255,59,92,0.15)'
+        ? 'rgba(var(--color-error-400),0.15)'
         : g.cardBorder;
 
   const bgColor =
     isTrial || isLimitedStatus
       ? isDark
-        ? 'rgba(251,191,36,0.04)'
-        : 'rgba(251,191,36,0.03)'
+        ? 'rgba(var(--color-warning-400),0.04)'
+        : 'rgba(var(--color-warning-400),0.03)'
       : isExpired
         ? isDark
-          ? 'rgba(255,59,92,0.04)'
-          : 'rgba(255,59,92,0.03)'
+          ? 'rgba(var(--color-error-400),0.04)'
+          : 'rgba(var(--color-error-400),0.03)'
         : g.cardBg;
 
   const footer = connect

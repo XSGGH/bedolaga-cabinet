@@ -189,15 +189,15 @@ export default function SubscriptionPurchase() {
                 className="mb-6 rounded-[14px] p-4"
                 style={{
                   background:
-                    'linear-gradient(135deg, rgba(255,184,0,0.08), rgba(var(--color-accent-400),0.06))',
-                  border: '1px solid rgba(255,184,0,0.15)',
+                    'linear-gradient(135deg, rgba(var(--color-warning-400),0.08), rgba(var(--color-accent-400),0.06))',
+                  border: '1px solid rgba(var(--color-warning-400),0.15)',
                 }}
               >
                 <div className="flex items-start gap-3">
                   <div
                     className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px]"
                     style={{
-                      background: 'rgba(255,184,0,0.12)',
+                      background: 'rgba(var(--color-warning-400),0.12)',
                       color: 'rgb(var(--color-urgent-400))',
                     }}
                   >
@@ -226,15 +226,16 @@ export default function SubscriptionPurchase() {
               <div
                 className="mb-6 rounded-[14px] p-4"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255,59,92,0.08), rgba(255,184,0,0.06))',
-                  border: '1px solid rgba(255,59,92,0.15)',
+                  background:
+                    'linear-gradient(135deg, rgba(var(--color-error-400),0.08), rgba(var(--color-warning-400),0.06))',
+                  border: '1px solid rgba(var(--color-error-400),0.15)',
                 }}
               >
                 <div className="flex items-start gap-3">
                   <div
                     className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px]"
                     style={{
-                      background: 'rgba(255,59,92,0.12)',
+                      background: 'rgba(var(--color-error-400),0.12)',
                       color: 'rgb(var(--color-critical-500))',
                     }}
                   >

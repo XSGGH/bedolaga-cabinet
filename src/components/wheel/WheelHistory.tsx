@@ -16,10 +16,7 @@ export default function WheelHistory() {
     retry: false,
   });
   return (
-    <section
-      className="rounded-[22px] border border-dark-700 bg-dark-900/80"
-      aria-label="История вращений"
-    >
+    <section className="rounded-[22px] border border-line bg-surface" aria-label="История вращений">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}

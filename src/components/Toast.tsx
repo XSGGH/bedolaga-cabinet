@@ -5,7 +5,7 @@ import {
   useCallback,
   useRef,
   useEffect,
-  ReactNode,
+  type ReactNode,
 } from 'react';
 
 import { CheckIcon, XIcon, ExclamationIcon, InfoIcon } from '@/components/icons';
@@ -142,10 +142,10 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       progress: 'bg-warning-500',
     },
     info: {
-      border: 'border-accent-500/40',
-      icon: 'text-accent-400',
-      iconBg: 'bg-accent-500/15',
-      progress: 'bg-accent-500',
+      border: 'border-line-strong',
+      icon: 'text-info',
+      iconBg: 'bg-elevated',
+      progress: 'bg-info',
     },
   };
 
@@ -177,7 +177,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       tabIndex={0}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      className={`pointer-events-auto w-full cursor-pointer overflow-hidden rounded-2xl border bg-dark-900 shadow-xl shadow-black/30 backdrop-blur-xl ${style.border} animate-slide-in-right transition-transform duration-200 hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-950 active:scale-[0.99] sm:max-w-sm`}
+      className={`pointer-events-auto w-full cursor-pointer overflow-hidden rounded-2xl border bg-surface shadow-xl shadow-black/30 backdrop-blur-xl ${style.border} animate-slide-in-right transition-transform duration-200 hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-950 active:scale-[0.99] sm:max-w-sm`}
     >
       <div className="relative p-4">
         <div className="flex gap-3">

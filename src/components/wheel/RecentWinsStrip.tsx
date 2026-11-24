@@ -42,7 +42,7 @@ function WinCard({
   const color = prizeTypeColor(win.prize_type);
   return (
     <div
-      className={`min-w-0 items-center gap-3 rounded-2xl border border-dark-700 bg-dark-900/80 p-3 ${hiddenOnMobile ? 'hidden' : 'flex'}`}
+      className={`min-w-0 items-center gap-3 rounded-2xl border border-line bg-surface p-3 ${hiddenOnMobile ? 'hidden' : 'flex'}`}
       style={{ boxShadow: `inset 0 -2px 0 ${color}55` }}
     >
       <div
@@ -94,7 +94,7 @@ export default function RecentWinsStrip() {
           type="button"
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
-          className="mt-2.5 flex min-h-11 w-full items-center justify-center rounded-xl border border-dark-700 bg-dark-900/60 py-2.5 text-[13px] font-bold text-accent-300 transition-colors hover:border-accent-500/40"
+          className="mt-2.5 flex min-h-11 w-full items-center justify-center rounded-xl border border-line bg-elevated py-2.5 text-[13px] font-bold text-accent-300 transition-colors hover:border-accent-500/40"
         >
           {expanded
             ? t('wheel.showLess')

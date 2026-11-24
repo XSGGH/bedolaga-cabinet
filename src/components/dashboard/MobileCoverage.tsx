@@ -63,7 +63,7 @@ export default function MobileCoverage({
         <button
           type="button"
           aria-label={summary}
-          className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-accent-500/25 bg-accent-500/[0.06] px-3 py-3 text-left transition-colors hover:border-accent-400/50 hover:bg-accent-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+          className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-line bg-elevated px-3 py-3 text-left transition-colors hover:border-line-strong hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
         >
           <span className="min-w-0 space-y-1">
             <span className="block text-xs font-medium text-dark-200">Мобильные сети</span>

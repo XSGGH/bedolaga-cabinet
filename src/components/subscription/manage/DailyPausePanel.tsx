@@ -73,11 +73,11 @@ export function DailyPausePanel({ subscription, subscriptionId }: DailyPausePane
             background:
               subscription.is_daily_paused || subscription.status === 'disabled'
                 ? 'rgba(var(--color-accent-400), 0.12)'
-                : 'rgba(255,184,0,0.12)',
+                : 'rgba(var(--color-warning-400),0.12)',
             border:
               subscription.is_daily_paused || subscription.status === 'disabled'
                 ? '1px solid rgba(var(--color-accent-400), 0.2)'
-                : '1px solid rgba(255,184,0,0.2)',
+                : '1px solid rgba(var(--color-warning-400),0.2)',
             color:
               subscription.is_daily_paused || subscription.status === 'disabled'
                 ? 'rgb(var(--color-accent-400))'
@@ -116,8 +116,8 @@ export function DailyPausePanel({ subscription, subscriptionId }: DailyPausePane
             <div
               className="mt-4 rounded-[10px] p-3 text-center text-sm"
               style={{
-                background: 'rgba(255,59,92,0.08)',
-                border: '1px solid rgba(255,59,92,0.15)',
+                background: 'rgba(var(--color-error-400),0.08)',
+                border: '1px solid rgba(var(--color-error-400),0.15)',
                 color: 'rgb(var(--color-critical-500))',
               }}
             >
@@ -131,8 +131,8 @@ export function DailyPausePanel({ subscription, subscriptionId }: DailyPausePane
         <div
           className="mt-4 rounded-[12px] p-4"
           style={{
-            background: 'rgba(255,184,0,0.06)',
-            border: '1px solid rgba(255,184,0,0.12)',
+            background: 'rgba(var(--color-warning-400),0.06)',
+            border: '1px solid rgba(var(--color-warning-400),0.12)',
           }}
         >
           <div className="flex items-start gap-3">

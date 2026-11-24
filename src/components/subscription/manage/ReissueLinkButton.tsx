@@ -138,10 +138,10 @@ export function ReissueLinkButton({
         type="button"
         onClick={handleRevoke}
         disabled={revokeMutation.isPending || cooldown > 0}
-        className="w-full min-h-[72px] rounded-[20px] border border-[#7a5a12] bg-[#241a08] px-5 py-4 text-left transition-colors hover:border-warning-400 disabled:opacity-50"
+        className="w-full min-h-[72px] rounded-[20px] border border-warning-500/40 bg-warning-500/10 px-5 py-4 text-left transition-colors hover:border-warning-400 disabled:opacity-50"
       >
         <div className="flex items-center gap-3.5">
-          <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-[#3a2a0a] text-warning-400">
+          <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-warning-500/15 text-warning-400">
             {revokeMutation.isPending ? (
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-warning-400/30 border-t-warning-400" />
             ) : (
@@ -152,7 +152,7 @@ export function ReissueLinkButton({
             <div className="text-[15.5px] font-bold text-warning-400">
               {t('subscription.revoke.button')}
             </div>
-            <div className="mt-0.5 text-[12.5px] leading-snug text-[#d8c58a]">
+            <div className="mt-0.5 text-[12.5px] leading-snug text-warning-300">
               {cooldown > 0
                 ? t('subscription.revoke.cooldown', {
                     minutes: Math.floor(cooldown / 60),

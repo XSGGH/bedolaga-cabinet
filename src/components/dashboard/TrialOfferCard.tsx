@@ -40,21 +40,19 @@ export default function TrialOfferCard({
     <div
       className="relative overflow-hidden rounded-3xl text-left"
       style={{
-        background: isFree
-          ? `radial-gradient(120% 70% at 50% 0%, rgba(var(--color-accent-500), 0.22), transparent 62%), linear-gradient(180deg, rgba(var(--color-accent-500), 0.07), transparent 55%), ${g.cardBg}`
-          : g.cardBg,
+        background: g.cardBg,
         border: isDark
           ? isFree
             ? '1px solid rgba(var(--color-accent-400), 0.32)'
             : `1px solid ${g.cardBorder}`
           : isFree
             ? '1px solid rgba(var(--color-accent-400), 0.2)'
-            : '1px solid rgba(255,184,0,0.2)',
+            : '1px solid rgba(var(--color-warning-400),0.2)',
         boxShadow: isDark
           ? g.shadow
           : isFree
             ? '0 2px 16px rgba(var(--color-accent-400), 0.12), 0 0 0 1px rgba(var(--color-accent-400), 0.06)'
-            : '0 2px 16px rgba(255,184,0,0.12), 0 0 0 1px rgba(255,184,0,0.06)',
+            : '0 2px 16px rgba(var(--color-warning-400),0.12), 0 0 0 1px rgba(var(--color-warning-400),0.06)',
         padding: '22px 18px 18px',
       }}
     >
@@ -75,8 +73,8 @@ export default function TrialOfferCard({
         <div
           className="relative mb-4 flex h-12 w-12 items-center justify-center rounded-2xl"
           style={{
-            background: 'rgba(255,184,0,0.12)',
-            border: '1px solid rgba(255,184,0,0.25)',
+            background: 'rgba(var(--color-warning-400),0.12)',
+            border: '1px solid rgba(var(--color-warning-400),0.25)',
           }}
         >
           <span
@@ -102,8 +100,8 @@ export default function TrialOfferCard({
         <div
           className="mb-5 inline-flex items-baseline gap-1 rounded-xl px-5 py-2"
           style={{
-            background: 'rgba(255,184,0,0.08)',
-            border: '1px solid rgba(255,184,0,0.15)',
+            background: 'rgba(var(--color-warning-400),0.08)',
+            border: '1px solid rgba(var(--color-warning-400),0.15)',
           }}
         >
           <span

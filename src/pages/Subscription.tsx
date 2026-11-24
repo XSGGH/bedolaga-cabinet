@@ -527,22 +527,21 @@ export default function Subscription() {
                       })}
                     </div>
 
-                    <div aria-hidden="true" className="mb-3 h-px bg-accent-500/15" />
+                    <div aria-hidden="true" className="mb-3 h-px bg-divider" />
 
                     {/* ─── Traffic Limited Banner ─── */}
                     {subscription.is_limited && (
                       <div
                         className="mb-6 rounded-[14px] p-4"
                         style={{
-                          background:
-                            'linear-gradient(135deg, rgba(255,184,0,0.08), rgba(255,184,0,0.03))',
-                          border: '1px solid rgba(255,184,0,0.2)',
+                          background: 'rgba(var(--color-warning-500), 0.08)',
+                          border: '1px solid rgba(var(--color-warning-500), 0.3)',
                         }}
                       >
                         <div className="flex items-start gap-3">
                           <div
                             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px]"
-                            style={{ background: 'rgba(255,184,0,0.12)' }}
+                            style={{ background: 'rgba(var(--color-warning-500), 0.12)' }}
                           >
                             <WarningIcon className="h-4 w-4 text-urgent-400" />
                           </div>
@@ -566,8 +565,7 @@ export default function Subscription() {
                       <div
                         className="mb-6 rounded-[20px] border border-accent-400/25 p-4"
                         style={{
-                          background:
-                            'radial-gradient(120% 80% at 50% 0%, rgba(var(--color-accent-500), 0.2), transparent 65%), linear-gradient(180deg, rgba(var(--color-accent-500), 0.06), transparent 60%)',
+                          background: 'var(--bg-elevated)',
                         }}
                       >
                         <div className="mb-1.5 flex items-center justify-between gap-3">

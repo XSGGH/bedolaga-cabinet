@@ -107,33 +107,33 @@ export default function SuccessNotificationModal() {
   let title = data.title;
   const message = data.message;
   let icon = <CheckCircleIcon className="h-16 w-16" />;
-  let gradientClass = 'from-success-500 to-success-600';
+  let headerClass = 'bg-elevated text-success-400';
 
   if (!title) {
     if (isBalanceTopup) {
       title = t('successNotification.balanceTopup.title', 'Balance topped up!');
       icon = <WalletIcon className="h-8 w-8" />;
-      gradientClass = 'from-success-500 to-success-600';
+      headerClass = 'bg-elevated text-success-400';
     } else if (data.type === 'subscription_activated') {
       title = t('successNotification.subscriptionActivated.title', 'Subscription activated!');
       icon = <RocketIcon className="h-8 w-8" />;
-      gradientClass = 'from-accent-500 to-purple-600';
+      headerClass = 'bg-elevated text-accent-400';
     } else if (data.type === 'subscription_renewed') {
       title = t('successNotification.subscriptionRenewed.title', 'Subscription renewed!');
       icon = <RocketIcon className="h-8 w-8" />;
-      gradientClass = 'from-accent-500 to-purple-600';
+      headerClass = 'bg-elevated text-accent-400';
     } else if (data.type === 'subscription_purchased') {
       title = t('successNotification.subscriptionPurchased.title', 'Subscription purchased!');
       icon = <RocketIcon className="h-8 w-8" />;
-      gradientClass = 'from-accent-500 to-purple-600';
+      headerClass = 'bg-elevated text-accent-400';
     } else if (data.type === 'devices_purchased') {
       title = t('successNotification.devicesPurchased.title', 'Devices added!');
       icon = <DevicesIcon className="h-8 w-8" />;
-      gradientClass = 'from-blue-500 to-cyan-600';
+      headerClass = 'bg-elevated text-info';
     } else if (data.type === 'traffic_purchased') {
       title = t('successNotification.trafficPurchased.title', 'Traffic added!');
       icon = <TrafficIcon className="h-8 w-8" />;
-      gradientClass = 'from-success-500 to-success-600';
+      headerClass = 'bg-elevated text-success-400';
     }
   }
 
@@ -159,7 +159,7 @@ export default function SuccessNotificationModal() {
         aria-modal="true"
         aria-labelledby="success-modal-title"
         tabIndex={-1}
-        className="relative mx-4 w-full max-w-sm overflow-hidden rounded-3xl border border-dark-700/50 bg-dark-900 shadow-2xl"
+        className="relative mx-4 w-full max-w-sm overflow-hidden rounded-3xl border border-dark-700/50 bg-surface shadow-2xl"
         style={{
           marginBottom: safeBottom ? `${safeBottom}px` : undefined,
         }}
@@ -175,16 +175,14 @@ export default function SuccessNotificationModal() {
         </button>
 
         {/* Success header with animation */}
-        <div
-          className={`flex flex-col items-center bg-gradient-to-br ${gradientClass} px-6 pb-8 pt-10`}
-        >
+        <div className={`flex flex-col items-center ${headerClass} px-6 pb-8 pt-10`}>
           {/* Use animate-pulse for celebration; bounce easing reads dated and
               the lift is the moment, not the bounce. */}
-          <div className="mb-4 animate-pulse text-white">{icon}</div>
-          <h2 id="success-modal-title" className="text-center text-2xl font-bold text-white">
+          <div className="mb-4 animate-pulse">{icon}</div>
+          <h2 id="success-modal-title" className="text-center text-2xl font-bold text-dark-50">
             {title}
           </h2>
-          {message && <p className="mt-2 text-center text-white/80">{message}</p>}
+          {message && <p className="mt-2 text-center text-dark-300">{message}</p>}
         </div>
 
         {/* Details */}

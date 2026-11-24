@@ -81,7 +81,7 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
                   'fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
                   'max-h-[85vh] w-full max-w-lg',
                   'grid gap-4 overflow-auto',
-                  'rounded-linear-lg border border-dark-700/50 bg-dark-900/95 backdrop-blur-linear',
+                  'rounded-linear-lg border border-line bg-surface backdrop-blur-linear',
                   'p-6 shadow-linear-lg',
                   'focus:outline-none',
                   className,

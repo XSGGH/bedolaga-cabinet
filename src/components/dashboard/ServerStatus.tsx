@@ -223,7 +223,7 @@ export default function ServerStatus() {
           return (
             <div
               key={s.name}
-              className={`flex min-h-11 min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--xsg-line)] bg-dark-900/40 px-3 py-2 ${data.servers.length % 2 === 1 && index === data.servers.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}
+              className={`flex min-h-11 min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--xsg-line)] bg-elevated px-3 py-2 ${data.servers.length % 2 === 1 && index === data.servers.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}
             >
               <p className="break-words text-xs font-semibold leading-relaxed text-dark-100 [overflow-wrap:anywhere]">
                 {s.mobile ? s.name.replace(/^\[📡\]\s*/, '') : s.name}

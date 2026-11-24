@@ -30,7 +30,7 @@ export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>(
         sideOffset={sideOffset}
         className={cn(
           'z-50 w-72 overflow-hidden',
-          'rounded-linear-lg border border-dark-700/50 bg-dark-900/95 backdrop-blur-linear',
+          'rounded-linear-lg border border-line bg-surface backdrop-blur-linear',
           'p-4 text-dark-100 shadow-linear-lg outline-none',
           className,
         )}

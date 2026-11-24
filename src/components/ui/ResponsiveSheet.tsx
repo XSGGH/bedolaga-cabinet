@@ -82,7 +82,7 @@ export function ResponsiveSheet({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className={`relative flex max-h-[calc(100dvh-2rem)] w-full ${WIDTH[size]} flex-col overflow-hidden rounded-2xl border border-dark-700 bg-dark-900 shadow-2xl`}
+        className={`relative flex max-h-[calc(100dvh-2rem)] w-full ${WIDTH[size]} flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl`}
       >
         <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-5">
           <h3 className="text-lg font-semibold text-dark-50">{title}</h3>

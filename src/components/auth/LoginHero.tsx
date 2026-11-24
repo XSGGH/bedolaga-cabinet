@@ -65,9 +65,7 @@ export function LoginHero({ appName }: { appName: string }) {
         <h1 className="text-[52px] font-extrabold leading-[1.05] tracking-tight text-dark-50">
           {t('auth.hero.welcome')}
           <br />
-          <span className="bg-gradient-to-r from-accent-300 to-pink-500 bg-clip-text text-transparent">
-            {appName}
-          </span>
+          <span className="text-accent-400">{appName}</span>
         </h1>
         <p className="mt-5 max-w-[470px] text-lg leading-relaxed text-dark-300">
           {t('auth.hero.subtitle')}

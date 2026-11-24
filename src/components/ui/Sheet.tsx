@@ -350,7 +350,7 @@ export function Sheet({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`relative flex w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-dark-900 shadow-2xl ${
+        className={`relative flex w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-surface shadow-2xl ${
           isAnimating ? 'transition-transform duration-300 ease-out' : ''
         } ${isVisible ? 'translate-y-0' : 'translate-y-full'} ${className}`}
         style={{
@@ -374,7 +374,7 @@ export function Sheet({
 
         {/* Title + close: жест не единственный способ закрыть полноэкранный шит */}
         {title && (
-          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-dark-700/50 pb-3 pl-6 pr-3">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line pb-3 pl-6 pr-3">
             <h2 className="min-w-0 truncate text-lg font-semibold text-dark-100">{title}</h2>
             <button
               type="button"

@@ -126,18 +126,12 @@ export default function SubscriptionCardExpired({
   // Color scheme: amber for limited, red for expired/disabled
   const accent = isLimited
     ? {
-        r: 255,
-        g: 184,
-        b: 0,
+        raw: 'var(--color-warning-400)',
         hex: 'rgb(var(--color-urgent-400))',
-        gradient: 'linear-gradient(135deg, #FFB800, #FF8C00)',
       }
     : {
-        r: 255,
-        g: 59,
-        b: 92,
+        raw: 'var(--color-error-400)',
         hex: 'rgb(var(--color-critical-500))',
-        gradient: 'linear-gradient(135deg, #FF3B5C, #FF6B35)',
       };
 
   return (
@@ -145,12 +139,10 @@ export default function SubscriptionCardExpired({
       className={`relative overflow-hidden rounded-3xl ${className ?? ''}`}
       style={{
         background: g.cardBg,
-        border: isDark
-          ? `1px solid rgba(${accent.r},${accent.g},${accent.b},0.12)`
-          : `1px solid rgba(${accent.r},${accent.g},${accent.b},0.2)`,
+        border: isDark ? `1px solid rgba(${accent.raw},0.12)` : `1px solid rgba(${accent.raw},0.2)`,
         boxShadow: isDark
           ? g.shadow
-          : `0 2px 16px rgba(${accent.r},${accent.g},${accent.b},0.1), 0 0 0 1px rgba(${accent.r},${accent.g},${accent.b},0.06)`,
+          : `0 2px 16px rgba(${accent.raw},0.1), 0 0 0 1px rgba(${accent.raw},0.06)`,
         padding: '28px 28px 24px',
       }}
     >
@@ -159,8 +151,8 @@ export default function SubscriptionCardExpired({
         <div
           className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[14px]"
           style={{
-            background: `rgba(${accent.r},${accent.g},${accent.b},0.1)`,
-            border: `1px solid rgba(${accent.r},${accent.g},${accent.b},0.15)`,
+            background: `rgba(${accent.raw},0.1)`,
+            border: `1px solid rgba(${accent.raw},0.15)`,
             color: accent.hex,
           }}
         >
@@ -194,8 +186,8 @@ export default function SubscriptionCardExpired({
         // ниже. Было «01.09.2026БАЛАНС», а крупная сумма вылезала за плашку.
         className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-[14px]"
         style={{
-          background: `rgba(${accent.r},${accent.g},${accent.b},0.04)`,
-          border: `1px solid rgba(${accent.r},${accent.g},${accent.b},0.08)`,
+          background: `rgba(${accent.raw},0.04)`,
+          border: `1px solid rgba(${accent.raw},0.08)`,
           padding: '14px 18px',
         }}
       >

@@ -82,7 +82,7 @@ export function DeleteSubscriptionSheet({
   return (
     <div
       className="rounded-2xl border border-error-400/20 p-4"
-      style={{ background: 'rgba(255,59,92,0.04)' }}
+      style={{ background: 'rgba(var(--color-error-400),0.04)' }}
     >
       <div className="mb-3 text-sm font-semibold text-error-400">
         {t('subscription.deleteTitle', 'Удалить подписку?')}

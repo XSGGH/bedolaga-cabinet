@@ -23,9 +23,9 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
         ref={ref}
         className={cn(
           'flex h-10 w-full items-center justify-between gap-2 rounded-linear px-3',
-          'border border-dark-700/50 bg-dark-800/80',
+          'border border-control-line bg-inset',
           'text-sm text-dark-100 placeholder:text-dark-400',
-          'hover:border-dark-600/50 hover:bg-dark-700/80',
+          'hover:border-control-line hover:bg-dark-700/80',
           'focus:outline-none focus:ring-2 focus:ring-accent-500/50 focus:ring-offset-2 focus:ring-offset-dark-950',
           'disabled:cursor-not-allowed disabled:opacity-50',
           'transition-all duration-200',
@@ -56,7 +56,7 @@ export const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
         ref={ref}
         className={cn(
           'relative z-50 max-h-80 min-w-[8rem] overflow-hidden',
-          'rounded-linear-lg border border-dark-700/50 bg-dark-900/95 backdrop-blur-linear',
+          'rounded-linear-lg border border-line bg-surface backdrop-blur-linear',
           'text-dark-100 shadow-linear-lg',
           position === 'popper' &&
             'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
@@ -102,8 +102,8 @@ export const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
       className={cn(
         'relative flex w-full cursor-pointer select-none items-center rounded-linear py-2 pl-3 pr-8',
         'text-sm text-dark-200 outline-none',
-        'hover:bg-dark-800/80 hover:text-dark-100',
-        'focus:bg-dark-800/80 focus:text-dark-100',
+        'hover:bg-surface-hover hover:text-dark-100',
+        'focus:bg-surface-hover focus:text-dark-100',
         'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         'data-[state=checked]:text-accent-400',
         'transition-colors duration-150',

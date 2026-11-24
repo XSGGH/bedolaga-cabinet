@@ -108,8 +108,8 @@ export const DropdownMenuSubTrigger = forwardRef<HTMLDivElement, DropdownMenuSub
       className={cn(
         'flex cursor-pointer select-none items-center gap-2 rounded-linear px-2 py-2',
         'text-sm text-dark-200 outline-none',
-        'focus:bg-dark-800/80 focus:text-dark-100',
-        'data-[state=open]:bg-dark-800/80',
+        'focus:bg-surface-hover focus:text-dark-100',
+        'data-[state=open]:bg-selected',
         inset && 'pl-8',
         className,
       )}
@@ -134,7 +134,7 @@ export const DropdownMenuSubContent = forwardRef<HTMLDivElement, DropdownMenuSub
       ref={ref}
       className={cn(
         'z-50 min-w-[8rem] overflow-hidden',
-        'rounded-xl border border-dark-700 bg-dark-900',
+        'rounded-xl border border-line bg-dark-900',
         'p-1 text-dark-100 shadow-2xl shadow-black/40',
         className,
       )}
@@ -176,7 +176,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
             'z-50 min-w-[8rem] overflow-hidden',
             // Непрозрачный фон: полупрозрачный пропускал текст страницы сквозь пункты
             // (backdrop-blur есть не во всех WebView).
-            'rounded-xl border border-dark-700 bg-dark-900',
+            'rounded-xl border border-line bg-dark-900',
             'p-1 text-dark-100 shadow-2xl shadow-black/40',
             className,
           )}
@@ -220,7 +220,7 @@ export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps
           'text-sm outline-none transition-colors duration-150',
           destructive
             ? 'text-error-400 focus:bg-error-500/10 focus:text-error-300'
-            : 'text-dark-200 focus:bg-dark-800/80 focus:text-dark-100',
+            : 'text-dark-200 focus:bg-surface-hover focus:text-dark-100',
           'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
           inset && 'pl-8',
           className,
@@ -246,7 +246,7 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuC
       className={cn(
         'relative flex cursor-pointer select-none items-center rounded-linear py-2 pl-8 pr-2',
         'text-sm text-dark-200 outline-none transition-colors duration-150',
-        'focus:bg-dark-800/80 focus:text-dark-100',
+        'focus:bg-surface-hover focus:text-dark-100',
         'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className,
       )}
@@ -277,7 +277,7 @@ export const DropdownMenuRadioItem = forwardRef<HTMLDivElement, DropdownMenuRadi
       className={cn(
         'relative flex cursor-pointer select-none items-center rounded-linear py-2 pl-8 pr-2',
         'text-sm text-dark-200 outline-none transition-colors duration-150',
-        'focus:bg-dark-800/80 focus:text-dark-100',
+        'focus:bg-surface-hover focus:text-dark-100',
         'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className,
       )}

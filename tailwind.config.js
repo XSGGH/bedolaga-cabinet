@@ -15,7 +15,31 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      // Border opacity used to make neutral outlines disappear. Keep legacy
+      // class names, but give boundaries their own solid semantic colors.
+      borderColor: {
+        dark: {
+          400: () => 'var(--border-control)',
+          600: () => 'var(--border-strong)',
+          700: () => 'var(--border-default)',
+          800: () => 'var(--border-divider)',
+          900: () => 'var(--border-divider)',
+        },
+      },
       colors: {
+        // Semantic roles; legacy dark/accent utilities remain compatible.
+        canvas: 'var(--bg-base)',
+        surface: 'var(--bg-surface)',
+        elevated: 'var(--bg-elevated)',
+        inset: 'var(--bg-inset)',
+        navigation: 'var(--bg-navigation)',
+        'surface-hover': 'var(--bg-hover)',
+        line: 'var(--border-default)',
+        divider: 'var(--border-divider)',
+        'line-strong': 'var(--border-strong)',
+        'control-line': 'var(--border-control)',
+        selected: 'var(--accent-subtle)',
+        info: 'var(--status-info)',
         // Modern neutral palette
         dark: {
           50: withOpacity('--color-dark-50'),

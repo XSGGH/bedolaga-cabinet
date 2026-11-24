@@ -558,7 +558,7 @@ function SummaryCard({
               // Ярлык iOS: под кнопкой ещё индикатор «Домой» (safe-area снизу).
               paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
               background:
-                'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 70%, transparent 100%)',
+                'linear-gradient(to top, rgba(var(--color-dark-950),0.95) 0%, rgba(var(--color-dark-950),0.65) 70%, transparent 100%)',
             }}
           >
             <button

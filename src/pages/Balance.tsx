@@ -217,7 +217,11 @@ export default function Balance() {
                         <Card
                           key={method.id}
                           interactive={method.is_available}
-                          className={!method.is_available ? 'cursor-not-allowed opacity-50' : ''}
+                          className={
+                            !method.is_available
+                              ? 'cursor-not-allowed bg-elevated [&_*]:text-dark-500'
+                              : 'bg-elevated'
+                          }
                           onClick={() =>
                             method.is_available && navigate(`/balance/top-up/${method.id}`)
                           }

@@ -11,7 +11,7 @@ export const Command = forwardRef<HTMLDivElement, CommandProps>(({ className, ..
     ref={ref}
     className={cn(
       'flex h-full w-full flex-col overflow-hidden rounded-linear-lg',
-      'bg-dark-900/95 text-dark-100 backdrop-blur-linear',
+      'bg-surface text-dark-100 backdrop-blur-linear',
       className,
     )}
     {...props}
@@ -25,7 +25,7 @@ export type CommandInputProps = ComponentPropsWithoutRef<typeof CommandPrimitive
 
 export const CommandInput = forwardRef<HTMLInputElement, CommandInputProps>(
   ({ className, ...props }, ref) => (
-    <div className="flex items-center border-b border-dark-700/50 px-3" cmdk-input-wrapper="">
+    <div className="flex items-center border-b border-line px-3" cmdk-input-wrapper="">
       <SearchIcon />
       <CommandPrimitive.Input
         ref={ref}
@@ -123,7 +123,7 @@ export const CommandItem = forwardRef<HTMLDivElement, CommandItemProps>(
       className={cn(
         'relative flex cursor-pointer select-none items-center gap-2 rounded-linear px-2 py-2',
         'text-sm text-dark-200 outline-none',
-        'aria-selected:bg-dark-800/80 aria-selected:text-dark-100',
+        'aria-selected:bg-selected aria-selected:text-dark-100',
         'data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50',
         'transition-colors duration-150',
         className,

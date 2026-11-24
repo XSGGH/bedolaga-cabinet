@@ -1,0 +1,86 @@
+/* Graphite Violet: the XSG dark preset. RGB channels remain compatible with
+ * Tailwind opacity utilities and the existing runtime theme API. Like the
+ * original XSG neutral preset, these values override inline operator colors.
+ * The light theme and independently colored brand/game artwork are untouched. */
+:root {
+  --bg-base: rgb(var(--color-dark-950));
+  --bg-surface: rgb(var(--color-dark-800));
+  --bg-elevated: rgb(var(--color-dark-700));
+  --bg-inset: rgb(var(--color-dark-900));
+  --bg-hover: rgb(var(--color-dark-600));
+  --bg-navigation: rgb(var(--color-dark-850));
+  --text-primary: rgb(var(--color-dark-50));
+  --text-secondary: rgb(var(--color-dark-400));
+  --text-muted: rgb(var(--color-dark-500));
+  --text-disabled: var(--text-muted);
+  --text-on-accent: rgb(var(--color-on-accent));
+  --accent-primary: rgb(var(--color-accent-500));
+  --accent-hover: rgb(var(--color-accent-600));
+  --accent-pressed: rgb(var(--color-accent-700));
+  --accent-subtle: rgb(var(--color-accent-900));
+  --accent-soft: rgb(var(--color-accent-950));
+  --accent-border: rgb(var(--color-accent-800));
+  --accent-text: rgb(var(--color-accent-400));
+  --border-default: rgb(var(--color-border-default, var(--color-dark-700)));
+  --border-strong: rgb(var(--color-border-strong, var(--color-dark-600)));
+  --border-divider: rgb(var(--color-border-divider, var(--color-dark-700)));
+  --border-accent: var(--accent-border);
+  --border-control: rgb(var(--color-border-control, var(--color-dark-500)));
+  --status-success: rgb(var(--color-success-400));
+  --status-warning: rgb(var(--color-warning-400));
+  --status-error: rgb(var(--color-error-400));
+  --status-info: rgb(var(--color-info, var(--color-accent-400)));
+  --xsg-line: var(--border-default);
+  --xsg-line-strong: var(--border-strong);
+}
+
+html:not(.light) {
+  --color-dark-950: 21, 23, 29 !important; /* base #15171D */
+  --color-dark-900: 25, 28, 35 !important; /* inset #191C23 */
+  --color-dark-850: 27, 29, 37 !important; /* navigation #1B1D25 */
+  --color-dark-800: 29, 32, 40 !important; /* surface #1D2028 */
+  --color-dark-700: 37, 41, 51 !important; /* elevated #252933 */
+  --color-dark-600: 44, 48, 59 !important; /* hover #2C303B */
+  --color-dark-500: 146, 151, 168 !important;
+  --color-dark-400: 176, 179, 192 !important;
+  --color-dark-300: 194, 196, 207 !important;
+  --color-dark-200: 214, 214, 225 !important;
+  --color-dark-100: 240, 238, 245 !important;
+  --color-dark-50: var(--color-dark-100) !important;
+  --color-border-default: 56, 61, 73;
+  --color-border-strong: 80, 86, 102;
+  --color-border-divider: 52, 56, 68;
+  /* Form boundaries need 3:1 against both inset and elevated surfaces. */
+  --color-border-control: 111, 118, 137;
+  --color-accent-50: 243, 237, 251 !important;
+  --color-accent-100: 232, 221, 246 !important;
+  --color-accent-200: 216, 198, 240 !important;
+  --color-accent-300: 205, 182, 238 !important;
+  --color-accent-400: 195, 168, 234 !important;
+  --color-accent-500: 173, 137, 226 !important;
+  --color-accent-600: 192, 160, 237 !important;
+  --color-accent-700: 150, 113, 207 !important;
+  --color-accent-800: 112, 84, 143 !important;
+  --color-accent-900: 51, 42, 66 !important;
+  --color-accent-950: 41, 36, 53 !important;
+  --color-on-accent: 25, 21, 31 !important;
+  --color-on-success: var(--color-on-accent) !important;
+  --color-on-warning: var(--color-on-accent) !important;
+  --color-on-error: var(--color-on-accent) !important;
+  --color-success-300: 143, 222, 194 !important;
+  --color-success-400: 105, 210, 173 !important;
+  --color-success-500: var(--color-success-400) !important;
+  --color-success-600: var(--color-success-300) !important;
+  --color-warning-300: 232, 203, 155 !important;
+  --color-warning-400: 222, 183, 117 !important;
+  --color-warning-500: var(--color-warning-400) !important;
+  --color-warning-600: var(--color-warning-300) !important;
+  --color-error-300: 234, 168, 176 !important;
+  --color-error-400: 223, 132, 144 !important;
+  --color-error-500: var(--color-error-400) !important;
+  --color-error-600: var(--color-error-300) !important;
+  --color-urgent-400: var(--color-warning-400) !important;
+  --color-critical-500: var(--color-error-400) !important;
+  --color-info: 140, 174, 229;
+  color-scheme: dark;
+}

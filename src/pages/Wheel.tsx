@@ -647,7 +647,7 @@ export default function Wheel() {
       return groups;
     }, []);
 
-  const panel = 'rounded-[22px] border border-dark-700 bg-dark-900/80 p-4 sm:p-5';
+  const panel = 'rounded-[22px] border border-line bg-surface p-4 sm:p-5';
   const panelTitle = 'text-xs font-bold uppercase tracking-[0.14em] text-dark-500';
 
   return (
@@ -976,7 +976,7 @@ export default function Wheel() {
                   return (
                     <div
                       key={prize.id}
-                      className="rounded-2xl border border-accent-500/50 bg-gradient-to-br from-accent-500/25 to-pink-500/10 px-2 py-4 text-center shadow-[0_0_26px_rgba(163,92,255,0.16)]"
+                      className="rounded-2xl border border-line bg-elevated px-2 py-4 text-center"
                     >
                       <div className="text-2xl font-extrabold tracking-tight text-white sm:text-[26px]">
                         {label.main}

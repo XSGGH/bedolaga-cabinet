@@ -404,7 +404,7 @@ export default function AdminReminderEdit() {
               key={code}
               type="button"
               onClick={() => setLang(code)}
-              className={`rounded-lg px-3 py-1 text-sm ${lang === code ? 'bg-accent-500 text-white' : 'bg-dark-800 text-dark-300'}`}
+              className={`rounded-lg px-3 py-1 text-sm ${lang === code ? 'bg-accent-500 text-on-accent' : 'bg-dark-800 text-dark-300'}`}
             >
               {code.toUpperCase()}
               {code === 'ru' ? ' *' : ''}
@@ -494,7 +494,7 @@ export default function AdminReminderEdit() {
           type="button"
           onClick={submit}
           disabled={save.isPending}
-          className="rounded-xl bg-accent-500 px-4 py-2 text-sm font-medium text-white"
+          className="rounded-xl bg-accent-500 px-4 py-2 text-sm font-medium text-on-accent"
         >
           {t('admin.reminders.form.save')}
         </button>

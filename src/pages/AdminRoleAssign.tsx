@@ -60,7 +60,7 @@ function UserSearchDropdown({
   if (selectedUser) {
     return (
       <div className="flex items-center gap-2 rounded-lg border border-dark-600 bg-dark-900 px-3 py-2">
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-500 to-accent-700 text-xs font-medium text-white">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-500 to-accent-700 text-xs font-medium text-on-accent">
           {selectedUser.first_name?.[0] || selectedUser.username?.[0] || '?'}
         </div>
         <div className="min-w-0 flex-1">
@@ -123,7 +123,7 @@ function UserSearchDropdown({
                   onClick={() => handleSelect(user)}
                   className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-dark-700"
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-500 to-accent-700 text-xs font-medium text-white">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-500 to-accent-700 text-xs font-medium text-on-accent">
                     {user.first_name?.[0] || user.username?.[0] || '?'}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -506,7 +506,7 @@ export default function AdminRoleAssign() {
                   >
                     {/* User */}
                     <div className="col-span-3 mb-2 flex items-center gap-2.5 sm:mb-0">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-500 to-accent-700 text-xs font-medium text-white">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-500 to-accent-700 text-xs font-medium text-on-accent">
                         {assignment.user_first_name?.[0] || '?'}
                       </div>
                       <div className="min-w-0">

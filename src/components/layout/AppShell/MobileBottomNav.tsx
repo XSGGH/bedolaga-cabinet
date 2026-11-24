@@ -45,8 +45,8 @@ export function MobileBottomNav({ items, isMenuOpen = false }: MobileBottomNavPr
     <nav
       className={cn(
         'fixed z-50 transition-all duration-200 lg:hidden',
-        'bg-dark-800',
-        'border border-accent-500/20',
+        'bg-navigation',
+        'border border-line',
         isKeyboardOpen || isMenuOpen ? HIDDEN_UNDER_KEYBOARD : 'opacity-100',
       )}
       style={{
@@ -83,7 +83,7 @@ export function MobileBottomNav({ items, isMenuOpen = false }: MobileBottomNavPr
               {isActive(item.path) && (
                 <motion.div
                   layoutId="bottom-nav-active"
-                  className="absolute inset-0 rounded-2xl bg-accent-500/15"
+                  className="absolute inset-0 rounded-2xl bg-selected"
                   transition={
                     reducedMotion
                       ? { duration: 0 }

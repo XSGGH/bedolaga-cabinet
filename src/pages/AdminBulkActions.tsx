@@ -662,7 +662,7 @@ export default function AdminBulkActions() {
                   <ChevronExpandIcon expanded={isExpanded} />
                 </button>
               ) : (
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-500 to-accent-700 text-[10px] font-medium text-white">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-500 to-accent-700 text-[10px] font-medium text-on-accent">
                   {user.first_name?.[0] || user.username?.[0] || '?'}
                 </div>
               )}

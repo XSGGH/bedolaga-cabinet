@@ -9,7 +9,7 @@ import { buttonTap, buttonHover, springTransition } from '@/components/motion/tr
 const cardVariants = cva(
   [
     'relative overflow-hidden',
-    'border border-dark-700 bg-dark-800',
+    'border border-line bg-surface',
     'rounded-[20px]',
     'transition-[border-color,background-color,box-shadow,transform,opacity] duration-200',
   ],
@@ -28,7 +28,7 @@ const cardVariants = cva(
         outline: 'bg-transparent',
       },
       interactive: {
-        true: ['cursor-pointer', 'hover:border-accent-500/50'],
+        true: ['cursor-pointer', 'hover:border-line-strong hover:bg-surface-hover'],
         false: '',
       },
       glow: {

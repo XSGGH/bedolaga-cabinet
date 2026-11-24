@@ -335,7 +335,7 @@ export default function InstallationGuide({
             }
           >
             {app.featured && (
-              <span className="absolute -top-2 left-3 rounded-full bg-gradient-to-r from-accent-300 to-accent-600 px-2 py-px text-[9px] font-extrabold uppercase tracking-wider text-white">
+              <span className="absolute -top-2 left-3 rounded-full bg-gradient-to-r from-accent-300 to-accent-600 px-2 py-px text-[9px] font-extrabold uppercase tracking-wider text-on-accent">
                 {t('subscription.connection.recommended')}
               </span>
             )}
@@ -343,7 +343,7 @@ export default function InstallationGuide({
               {app.name}
             </span>
             {isSelected ? (
-              <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-300 to-accent-600 text-white">
+              <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-300 to-accent-600 text-on-accent">
                 <CheckIcon className="h-3 w-3" />
               </span>
             ) : (
