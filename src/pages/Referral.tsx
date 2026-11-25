@@ -662,7 +662,7 @@ export default function Referral() {
       <h1 className="text-2xl font-bold text-dark-50 sm:text-3xl">{t('referral.title')}</h1>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-1 rounded-2xl border border-line bg-surface p-2 md:grid-cols-3 [&_.rounded-2xl]:border-0 [&_.rounded-2xl]:bg-transparent [&_.rounded-2xl]:p-2">
+      <div className="xsg-referral-stats grid grid-cols-2 gap-1 rounded-2xl border border-line bg-surface p-2 md:grid-cols-3 [&_.rounded-2xl]:border-0 [&_.rounded-2xl]:bg-transparent [&_.rounded-2xl]:p-2">
         <div className="col-span-2 md:col-span-1">
           <StatCard
             label={t('referral.stats.totalReferrals')}
@@ -896,14 +896,14 @@ export default function Referral() {
                 </div>
               )}
           </div>
-          <div className="order-8 empty:hidden">
+          <div className="xsg-referral-finance contents">
             {/* ==================== Withdrawal Section ==================== */}
 
             {withdrawalSectionVisible && (
-              <div id="withdrawal-section" className="space-y-6">
+              <div id="withdrawal-section" className="order-8 space-y-6">
                 {/* Withdrawal Balance Card */}
                 {withdrawalEnabled && withdrawalBalance && (
-                  <div className="bento-card">
+                  <div className="xsg-withdrawal-balance bento-card">
                     <div className="mb-4 flex items-center gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-500/10 text-accent-400">
                         <WalletIcon className="h-8 w-8" />
@@ -956,7 +956,7 @@ export default function Referral() {
                 )}
 
                 {/* Withdrawal History */}
-                <div className="bento-card">
+                <div className="xsg-withdrawal-history bento-card">
                   <h2 className="mb-4 text-lg font-semibold text-dark-100">
                     {t('referral.withdrawal.history')}
                   </h2>
@@ -1017,35 +1017,6 @@ export default function Referral() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-        <div className="xsg-referral-flow contents lg:flex lg:flex-col lg:gap-5">
-          <div className="order-3 empty:hidden">
-            {/* Program Terms */}
-            {programTerms}
-          </div>
-          <div className="order-4 empty:hidden">
-            {/* Reward Settings */}
-            {terms && (
-              <div>
-                <RewardSettings
-                  terms={terms}
-                  pending={rewardChoiceMutation.isPending}
-                  onChange={(payload) => {
-                    setRewardChoiceError(null);
-                    rewardChoiceMutation.mutate(payload);
-                  }}
-                />
-                {/* Ошибка сохранения обязана быть видна: без неё нажатие выглядит
-              принятым, а выбор остаётся прежним. */}
-                {rewardChoiceError && (
-                  <p className="mt-2 rounded-xl border border-error-500/30 bg-error-500/10 p-3 text-sm text-error-400">
-                    {rewardChoiceError}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
           <div className="order-5 empty:hidden">
             {/* ==================== Partner Application Section ==================== */}
 
@@ -1165,6 +1136,36 @@ export default function Referral() {
               </div>
             )}
           </div>
+          </div>
+        </div>
+        <div className="xsg-referral-flow contents lg:flex lg:flex-col lg:gap-5">
+          <div className="order-3 empty:hidden">
+            {/* Program Terms */}
+            {programTerms}
+          </div>
+          <div className="order-4 empty:hidden">
+            {/* Reward Settings */}
+            {terms && (
+              <div>
+                <RewardSettings
+                  terms={terms}
+                  pending={rewardChoiceMutation.isPending}
+                  onChange={(payload) => {
+                    setRewardChoiceError(null);
+                    rewardChoiceMutation.mutate(payload);
+                  }}
+                />
+                {/* Ошибка сохранения обязана быть видна: без неё нажатие выглядит
+              принятым, а выбор остаётся прежним. */}
+                {rewardChoiceError && (
+                  <p className="mt-2 rounded-xl border border-error-500/30 bg-error-500/10 p-3 text-sm text-error-400">
+                    {rewardChoiceError}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
     </div>

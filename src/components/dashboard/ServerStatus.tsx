@@ -3,49 +3,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import MobileCoverage from './MobileCoverage';
 import { ChevronDownIcon } from '@/components/icons';
-import type { MobileProgress, MobileStatus } from './mobileCoverageModel';
+import { fetchStatus, fetchStatusEvents, fetchStatusSummary } from '@/api/serverStatus';
+import { normalizeStatus, statePresentation, statusTimeline } from './serverStatusModel';
+export { fetchStatus } from '@/api/serverStatus';
 
 // Same-origin server proxy. The Uptime API key must never be sent by the browser.
-const STATUS_URL = '/status-api/public';
 const STATUS_PAGE = 'https://uptime.xsgvpn.ru/';
-
-interface PublicServer {
-  name: string;
-  cc?: string;
-  online?: boolean | null;
-  maintenance?: boolean;
-  uptime30: number | null;
-  load: number[];
-  loadNow?: number;
-  /** Итог проверки мобильного сервера из сетей операторов РФ (дополняет обычную доступность). */
-  mobile?: MobileStatus;
-}
-
-interface PublicStatus {
-  ok: boolean;
-  status: 'ok' | 'degraded' | 'down';
-  online: number;
-  total: number;
-  uptime30: number | null;
-  load: { now: number; series: number[] };
-  servers: PublicServer[];
-  mobile?: MobileStatus;
-  mobileNodes?: MobileProgress;
-}
-
-export async function fetchStatus(signal?: AbortSignal): Promise<PublicStatus> {
-  const res = await fetch(STATUS_URL, {
-    headers: { Accept: 'application/json' },
-    credentials: 'omit',
-    signal,
-  });
-  if (!res.ok) throw new Error(`status ${res.status}`);
-  const data = await res.json();
-  if (!data?.ok || !Array.isArray(data.servers) || !Array.isArray(data.load?.series)) {
-    throw new Error('Invalid status response');
-  }
-  return data;
-}
 
 /**
  * Точки ряда → координаты в viewBox (w×h). Масштаб — по диапазону самого ряда
@@ -118,10 +81,6 @@ function Spark({
   );
 }
 
-const GREEN = 'rgb(var(--color-success-400))';
-const RED = 'rgb(var(--color-critical-500))';
-const AMBER = 'rgb(var(--color-warning-400))';
-
 /** Часовая подпись «HH:00» для момента `hoursAgo` часов назад. */
 function hourLabel(hoursAgo: number): string {
   const d = new Date(Date.now() - hoursAgo * 3600_000);
@@ -141,6 +100,21 @@ export default function ServerStatus() {
     queryKey: ['server-status'],
     queryFn: ({ signal }) => fetchStatus(signal),
     refetchInterval: 60_000,
+    staleTime: 30_000,
+    retry: false,
+  });
+
+  const { data: summary, isError: summaryError } = useQuery({
+    queryKey: ['server-status-summary'],
+    queryFn: ({ signal }) => fetchStatusSummary(signal),
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+    retry: false,
+  });
+  const { data: events, isError: eventsError } = useQuery({
+    queryKey: ['server-status-events'],
+    queryFn: ({ signal }) => fetchStatusEvents(signal),
+    enabled: detailsOpen,
     staleTime: 30_000,
     retry: false,
   });
@@ -177,32 +151,18 @@ export default function ServerStatus() {
       </section>
     );
   const mobile = data.mobile ?? data.servers.find((server) => server.mobile)?.mobile;
-  const onlineCount = data.servers.filter(
-    (server) => server.online === true && !server.maintenance,
-  ).length;
+  const model = normalizeStatus(data, summaryError ? undefined : summary, summaryError);
   const visibleServers = detailsOpen
-    ? data.servers
-    : data.servers.filter((server) => server.maintenance || server.online !== true);
-
-  const unavailable = data.servers.filter((s) => s.online === false && !s.maintenance).length;
-  const unknown = data.servers.some((s) => typeof s.online !== 'boolean');
-  const maintenance = data.servers.some((s) => s.maintenance);
-  const chip =
-    unavailable === data.servers.length || data.status === 'down'
-      ? { color: RED, text: 'Серверы недоступны' }
-      : unavailable > 0
-        ? { color: AMBER, text: 'Некоторые серверы недоступны' }
-        : unknown
-          ? { color: 'rgb(var(--color-dark-400))', text: 'Проверяем состояние серверов' }
-          : maintenance || data.status === 'degraded'
-            ? { color: AMBER, text: 'Есть временные проблемы' }
-            : { color: GREEN, text: 'Все серверы работают' };
+    ? model.servers
+    : model.servers.filter((s) => s.state !== 'up');
+  const timeline = eventsError || !events ? [] : statusTimeline(events);
+  const chip = { color: model.color, text: model.headline };
   return (
     <section
       aria-label={t('dashboard.serverStatus.title', 'Статус серверов')}
-      className="space-y-3 rounded-[20px] border border-[var(--xsg-line)] bg-dark-800 p-4 sm:p-5"
+      className="xsg-server-status space-y-3 rounded-[20px] border border-[var(--xsg-line)] bg-dark-800 p-4 sm:p-5"
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="xsg-server-status-heading flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-dark-100">
           {t('dashboard.serverStatus.title', 'Статус серверов')}
         </h2>
@@ -221,42 +181,43 @@ export default function ServerStatus() {
           />
         </button>
       </div>
-      <p className="flex items-center gap-2 text-sm font-medium" style={{ color: chip.color }}>
+      <p
+        className="xsg-server-status-summary flex items-center gap-2 text-sm font-medium"
+        style={{ color: chip.color }}
+      >
         <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
         {chip.text}
       </p>
-      <p className="text-xs text-dark-400">
-        {onlineCount} из {data.servers.length} доступны
-      </p>
+      <p className="xsg-server-status-count text-xs text-dark-400">{model.description}</p>
       <div
         id="server-status-details"
         hidden={visibleServers.length === 0}
         className="divide-y divide-divider"
       >
         {visibleServers.map((s) => {
-          const state = s.maintenance
-            ? { color: AMBER, text: 'Идут работы' }
-            : s.online === true
-              ? { color: GREEN, text: 'Работает' }
-              : s.online === false
-                ? { color: RED, text: 'Недоступен' }
-                : { color: 'rgb(var(--color-dark-400))', text: 'Нет данных' };
+          const state = statePresentation[s.state];
           return (
             <div
               key={s.name}
+              data-server-state={s.state}
               className="flex min-h-10 min-w-0 items-center justify-between gap-3 py-2"
             >
               <p className="break-words text-xs font-semibold leading-relaxed text-dark-100 [overflow-wrap:anywhere]">
                 {s.mobile ? s.name.replace(/^\[📡\]\s*/, '') : s.name}
+                {detailsOpen && s.state === 'maintenance' && !!s.maintTo && s.maintTo > 0 && (
+                  <span className="mt-1 block font-normal text-dark-400">
+                    Плановое завершение: {new Date(s.maintTo * 1000).toLocaleString('ru-RU')}
+                  </span>
+                )}
               </p>
-              <span className="shrink-0 text-xs" style={{ color: state.color }} title={state.text}>
-                {s.online === true && !s.maintenance ? (
+              <span className="shrink-0 text-xs" style={{ color: state.color }} title={state.label}>
+                {s.state === 'up' ? (
                   <>
                     <span aria-hidden="true">✓</span>
-                    <span className="sr-only">{state.text}</span>
+                    <span className="sr-only">{state.label}</span>
                   </>
                 ) : (
-                  state.text
+                  state.label
                 )}
               </span>
             </div>
@@ -288,6 +249,48 @@ export default function ServerStatus() {
           </div>
         </div>
       </details>
+      {detailsOpen && (
+        <div className="xsg-status-history space-y-2 border-t border-divider pt-3">
+          <h3 className="text-sm font-semibold text-dark-100">Что происходило</h3>
+          {eventsError ? (
+            <p className="text-xs text-dark-400">Не удалось загрузить события мониторинга.</p>
+          ) : !events ? (
+            <p className="text-xs text-dark-400">Загружаем события…</p>
+          ) : timeline.length === 0 ? (
+            <p className="text-xs text-dark-400">В доступной истории нет событий.</p>
+          ) : (
+            <ol className="space-y-3">
+              {timeline.map((event) => (
+                <li key={event.at + event.label + event.title} className="text-xs">
+                  <div className="flex flex-wrap justify-between gap-2">
+                    <strong style={{ color: statePresentation[event.state].color }}>
+                      {event.label}
+                    </strong>
+                    <time
+                      className="text-dark-400"
+                      dateTime={new Date(event.at * 1000).toISOString()}
+                    >
+                      {new Date(event.at * 1000).toLocaleString('ru-RU', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </time>
+                  </div>
+                  <p className="mt-1 text-dark-200">{event.title}</p>
+                  {event.detail && <p className="mt-1 text-dark-400">{event.detail}</p>}
+                </li>
+              ))}
+            </ol>
+          )}
+          {!!data.updated && (
+            <p className="text-xs text-dark-400">
+              Последний замер: {new Date(data.updated * 1000).toLocaleString('ru-RU')}
+            </p>
+          )}
+        </div>
+      )}
       {detailsOpen && (
         <a
           href={STATUS_PAGE}

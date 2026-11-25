@@ -712,6 +712,7 @@ function BuyTabContent({
             >
               <p className="text-sm text-warning-400">
                 {t('gift.insufficientBalance')}{' '}
+                <span className="xsg-gift-missing hidden">{t('balance.missing')} {formatPrice(Math.max(0, currentPrice - config.balance_kopeks))}. </span>
                 <Link
                   to="/balance"
                   className="font-medium text-accent-400 underline underline-offset-2"
@@ -774,16 +775,16 @@ function BuyTabContent({
                   <dd className="text-success-400">−{selectedPeriod.discount_percent}%</dd>
                 </div>
               )}
+              <div className="flex justify-between gap-4">
+                <dt className="text-dark-300">{t('gift.paymentMethod')}</dt>
+                <dd className="min-w-0 text-right text-dark-100">{paymentMode === 'balance' ? t('gift.fromBalance') :
+                  config.payment_methods.find((method) => method.method_id === selectedMethod)?.display_name ?? t('gift.viaGateway')}</dd>
+              </div>
               <div className="flex items-baseline justify-between gap-4 border-t border-divider pt-3">
                 <dt className="font-semibold text-dark-100">{t('gift.total')}</dt>
                 <dd className="text-2xl font-bold tabular-nums text-accent-300">{formatPrice(currentPrice)}</dd>
               </div>
-              {insufficientBalance && (
-                <div className="flex justify-between gap-4 text-warning-300">
-                  <dt>{t('gift.insufficientBalance')}</dt>
-                  <dd className="shrink-0 font-semibold">{formatPrice(Math.max(0, currentPrice - config.balance_kopeks))}</dd>
-                </div>
-              )}
+
             </dl>
           </div>
         )}

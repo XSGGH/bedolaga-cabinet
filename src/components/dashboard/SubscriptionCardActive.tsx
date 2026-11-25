@@ -147,6 +147,9 @@ export default function SubscriptionCardActive({
 
         {subscription.subscription_url && !subscription.hide_subscription_link && (
           <div className="xsg-overview-link hidden items-center gap-3 border-t border-[var(--xsg-line)] pt-4 lg:col-span-2 lg:flex">
+            <span className="xsg-overview-link-label text-xs font-medium text-dark-300">
+              {t('subscriptionCommand.connectionLink')}
+            </span>
             <span
               className="min-w-0 flex-1 truncate font-mono text-xs text-dark-400"
               title={subscription.subscription_url}

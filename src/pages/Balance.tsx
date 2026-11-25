@@ -13,7 +13,7 @@ import type { PaginatedResponse, Transaction } from '../types';
 
 import { Card } from '@/components/data-display/Card';
 import { Button } from '@/components/primitives/Button';
-import { ChevronDownIcon, ChevronRightIcon, CreditCardIcon, WalletIcon } from '@/components/icons';
+import { ChevronDownIcon, ChevronRightIcon, CreditCardIcon, WalletIcon, StarIcon } from '@/components/icons';
 import { staggerContainer, staggerItem } from '@/components/motion/transitions';
 import { isPaidStatus, isFailedStatus } from '../utils/paymentStatus';
 import { transactionPresentation } from '../utils/transactionPresentation';
@@ -206,6 +206,8 @@ export default function Balance() {
                   <div className="xsg-payment-methods grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {paymentMethods.map((method) => {
                       const methodKey = method.id.toLowerCase().replace(/-/g, '_');
+                      const MethodIcon = methodKey === 'telegram_stars' ? StarIcon :
+                        ['cryptobot', 'crypto'].includes(methodKey) ? WalletIcon : CreditCardIcon;
                       const translatedName = t(`balance.paymentMethods.${methodKey}.name`, {
                         defaultValue: '',
                       });
@@ -223,6 +225,7 @@ export default function Balance() {
                             method.is_available && navigate(`/balance/top-up/${method.id}`)
                           }
                         >
+                          <MethodIcon aria-hidden="true" className="xsg-payment-icon hidden h-5 w-5 shrink-0 text-accent-300" />
                           <div className="min-w-0 flex-1">
                           <div className="font-semibold text-dark-100">
                             {method.name || translatedName}
@@ -257,6 +260,7 @@ export default function Balance() {
               <Card className="overflow-hidden">
                 <button
                   onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                  aria-expanded={isHistoryOpen}
                   className="flex w-full items-center justify-between text-left"
                 >
                   <h2 className="text-lg font-semibold text-dark-100">
@@ -411,7 +415,7 @@ export default function Balance() {
         <div className="order-4">
           {/* Promo Code Section */}
           <motion.div variants={staggerItem}>
-            <Card>
+            <Card className="xsg-promo-panel">
               <h2 className="mb-4 text-lg font-semibold text-dark-100">
                 {t('balance.promocode.title')}
               </h2>

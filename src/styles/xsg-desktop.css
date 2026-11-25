@@ -57,6 +57,11 @@
 
   main[data-desktop-page="dashboard"] .xsg-overview-grid::after {
     grid-column: 2;
+    grid-row: 1 / 3;
+  }
+
+  main[data-desktop-page="dashboard"] .xsg-overview-grid:has(.xsg-device-buy)::after {
+    grid-row: 1 / 4;
   }
 
   main[data-desktop-page="dashboard"] .xsg-overview-actions,
@@ -81,36 +86,36 @@
   }
 
   main[data-desktop-page="dashboard"] .xsg-device-slots .tabular-nums {
-    font-size: 24px;
+    font-size: 28px;
     line-height: 1.2;
   }
 
   main[data-desktop-page="dashboard"] .xsg-overview-manage {
     grid-column: 1;
-    grid-row: 2;
-    width: auto;
-    margin: 0 20px;
-    border-color: transparent;
-    background: var(--accent-primary);
-    color: var(--text-on-accent);
-  }
-
-  main[data-desktop-page="dashboard"] .xsg-overview-manage:hover {
-    background: var(--accent-hover);
-  }
-
-  main[data-desktop-page="dashboard"] .xsg-connect-primary {
-    grid-column: 1;
     grid-row: 3;
     width: auto;
-    margin: 0 20px 20px;
-    border: 1px solid var(--border-default);
+    margin: 0 20px 20px !important;
+    border-color: var(--border-default);
     background: var(--bg-inset);
     color: var(--text-primary);
   }
 
-  main[data-desktop-page="dashboard"] .xsg-connect-primary:hover {
+  main[data-desktop-page="dashboard"] .xsg-overview-manage:hover {
     background: var(--bg-elevated);
+  }
+
+  main[data-desktop-page="dashboard"] .xsg-connect-primary {
+    grid-column: 1;
+    grid-row: 2;
+    width: auto;
+    margin: 0 20px !important;
+    border: 1px solid transparent;
+    background: var(--accent-primary);
+    color: var(--text-on-accent);
+  }
+
+  main[data-desktop-page="dashboard"] .xsg-connect-primary:hover {
+    background: var(--accent-hover);
   }
 
   main[data-desktop-page="dashboard"] .xsg-device-buy {
@@ -118,7 +123,7 @@
     grid-row: 2;
     width: auto;
     min-height: 48px;
-    margin: 0 20px;
+    margin: 0 20px !important;
   }
 
   main[data-desktop-page="dashboard"] .xsg-overview-device-link {
@@ -129,7 +134,7 @@
     justify-content: space-between;
     gap: 12px;
     min-height: 48px;
-    margin: 0 20px 20px;
+    margin: 0 20px 20px !important;
     padding: 10px 12px;
     border-radius: 12px;
     background: var(--bg-elevated);
@@ -166,13 +171,20 @@
   main[data-desktop-page="dashboard"] .xsg-overview-link {
     grid-column: 1 / -1;
     grid-row: 5;
-    justify-self: end;
-    width: min(100%, 640px);
+    justify-self: stretch;
+    width: 100%;
     margin: 0;
-    padding: 8px 12px;
+    flex-wrap: nowrap;
+    gap: 4px 12px;
+    padding: 12px 16px;
     border: 1px solid var(--border-default);
     border-radius: 12px;
     background: var(--bg-inset);
+  }
+
+  .xsg-overview-link-label {
+    flex-basis: auto;
+    flex-shrink: 0;
   }
 
   /* Subscription command centre: paired independent panels, not one tall form. */
@@ -224,10 +236,49 @@
     grid-row: 2;
   }
 
-  main[data-desktop-page="subscription"] .xsg-subscription-layout > button,
-  main[data-desktop-page="subscription"] .xsg-subscription-layout > p {
+  main[data-desktop-page="subscription"] .xsg-system-actions {
+    display: flex;
     grid-column: 1 / -1;
-    justify-self: end;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border: 1px solid var(--border-default);
+    border-radius: 16px;
+    background: var(--bg-inset);
+  }
+
+  .xsg-system-actions > button {
+    margin: 0;
+    border: 1px solid var(--border-default);
+    padding: 10px 16px;
+    color: var(--text-secondary);
+  }
+
+  .xsg-system-actions-label {
+    display: block;
+  }
+
+  .xsg-system-actions > :is(button, p) {
+    margin-top: 0;
+  }
+
+  .xsg-device-reduce {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    height: auto;
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .xsg-device-reduce-label {
+    display: inline;
+    font-size: 13px;
+  }
+
+  .xsg-device-limit-actions > [data-full="true"] {
+    background: var(--accent-primary);
+    color: var(--text-on-accent);
   }
 
   main[data-desktop-page="subscription"] .xsg-plan-actions {
@@ -243,7 +294,8 @@
 
   /* Balance: use both columns for payment methods and transaction history. */
   .xsg-balance-layout {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+    align-items: start;
     gap: 20px;
   }
 
@@ -271,8 +323,39 @@
   }
 
   .xsg-payment-methods > button {
-    min-height: 112px;
+    min-height: 104px;
     height: 100%;
+  }
+
+  .xsg-payment-icon {
+    display: block;
+  }
+
+  .xsg-balance-layout .xsg-promo-panel {
+    padding: 16px 20px;
+  }
+
+  .xsg-promo-panel > h2 {
+    margin-bottom: 12px;
+    font-size: 15px;
+  }
+
+  .xsg-referral-stats {
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  main[data-desktop-page="referral"] .xsg-referral-stats > div {
+    padding: 16px;
+    border: 1px solid var(--border-default);
+    border-radius: 16px;
+    background: var(--bg-surface);
+  }
+
+  main[data-desktop-page="referral"] .xsg-referral-stats > div:first-child > .rounded-2xl {
+    padding: 0;
   }
 
   /* Referrals: align links/terms, list/rewards and earnings/application by row. */
@@ -306,17 +389,26 @@
     grid-column: 1;
     grid-row: 3;
   }
-  .xsg-referral-flow > .order-5 {
-    grid-column: 2;
-    grid-row: 3;
-  }
   .xsg-referral-flow > .order-7 {
     grid-column: 1 / -1;
-    grid-row: 4;
-  }
-  .xsg-referral-flow > .order-8 {
-    grid-column: 1 / -1;
     grid-row: 5;
+  }
+  .xsg-referral-finance {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 4;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 20px;
+  }
+
+  .xsg-referral-finance > .order-5 {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .xsg-referral-finance > .order-5 > .bento-card {
+    padding: 20px;
   }
 
   .xsg-referral-flow > .order-2 .py-5 {
@@ -334,13 +426,44 @@
 
   main[data-desktop-page="referral"] #withdrawal-section {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
+    grid-column: 1;
+    grid-row: 1;
     align-items: start;
     gap: 20px;
   }
 
   main[data-desktop-page="referral"] #withdrawal-section > * {
     margin: 0;
+  }
+
+  @supports (grid-template-rows: subgrid) {
+    main[data-desktop-page="referral"] #withdrawal-section {
+      grid-column: 1 / -1;
+      grid-row: 1 / 3;
+      grid-template-columns: subgrid;
+      grid-template-rows: subgrid;
+      align-self: stretch;
+    }
+
+    .xsg-withdrawal-balance {
+      grid-column: 1;
+      grid-row: 1 / 3;
+    }
+
+    .xsg-withdrawal-history {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .xsg-referral-finance:not(:has(.order-5 > *)) .xsg-withdrawal-history {
+      grid-row: 1 / 3;
+    }
+
+    .xsg-referral-finance:not(:has(.xsg-withdrawal-balance)) .xsg-withdrawal-history {
+      grid-column: 1;
+      grid-row: 1 / 3;
+    }
   }
 
   /* Gift checkout: tabs belong to the form, the summary keeps a sensible width. */
@@ -389,6 +512,10 @@
     max-height: calc(100dvh - 48px);
     overflow-y: auto;
     overscroll-behavior: contain;
+    padding: 20px;
+    border: 1px solid var(--border-default);
+    border-radius: 20px;
+    background: var(--bg-surface);
   }
 
   .xsg-gift-summary > * {
@@ -398,6 +525,64 @@
   .xsg-gift-order {
     display: block;
     order: -1;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .xsg-gift-missing {
+    display: inline;
+  }
+
+  .xsg-gift-summary > div.rounded-2xl:not(.xsg-gift-order) {
+    padding: 12px 0;
+    border: 0;
+    border-top: 1px solid var(--border-default);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  /* A collapsed overview occupies only its content; details grow in normal flow. */
+  .xsg-server-status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 360px);
+    align-items: center;
+    gap: 6px 24px;
+  }
+
+  .xsg-server-status > * {
+    grid-column: 1 / -1;
+    margin: 0 !important;
+  }
+
+  .xsg-server-status-heading {
+    display: contents;
+  }
+
+  .xsg-server-status-heading > h2 {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .xsg-server-status-heading > button {
+    grid-column: 2;
+    grid-row: 1;
+    padding-inline: 12px;
+    justify-self: end;
+  }
+
+  .xsg-server-status-summary,
+  .xsg-server-status-count {
+    grid-column: 1;
+  }
+
+  .xsg-server-status > button {
+    grid-column: 2;
+    grid-row: 2 / 4;
+  }
+
+  .xsg-server-status > :is(#server-status-details, .xsg-status-history) {
+    margin-top: 8px;
   }
 
   /* Support stays a two-pane workspace even before selecting a conversation. */
@@ -570,12 +755,12 @@
 
   main[data-desktop-page="dashboard"] .xsg-overview-traffic {
     grid-column: 3;
-    grid-row: 1 / 3;
+    grid-row: 1 / 4;
   }
 
   main[data-desktop-page="dashboard"] .xsg-overview-link {
-    grid-column: 3;
-    grid-row: 3;
+    grid-column: 1 / -1;
+    grid-row: 4;
     width: 100%;
   }
 

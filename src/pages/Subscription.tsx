@@ -617,7 +617,7 @@ export default function Subscription() {
                 )}
                 {showsAddonOptions(subscription) && (
                   <div className="mt-2">
-                    <div className="flex gap-2">
+                    <div className="xsg-device-limit-actions flex gap-2">
                       <button
                         type="button"
                         aria-label={t('subscriptionCommand.reduceDevices')}
@@ -636,13 +636,15 @@ export default function Subscription() {
                           setShowTrafficTopup(false);
                           setDeviceAction('reduce');
                         }}
-                        className={`${addonActionClass} h-11 w-11 shrink-0 px-0 text-xl`}
+                        className={`xsg-device-reduce ${addonActionClass} h-11 w-11 shrink-0 px-0 text-xl`}
                       >
                         <span aria-hidden="true">−</span>
+                        <span className="xsg-device-reduce-label hidden">{t('subscriptionCommand.reduceDevices')}</span>
                       </button>
                       {canAddDevices && (
                         <AddonPurchaseButton
                           className="flex-1"
+                          data-full={deviceLimit > 0 && connectedDevices >= deviceLimit}
                           onClick={() => openAddon('devices')}
                         >
                           {t('addonsUi.increaseDevices')}
@@ -825,12 +827,15 @@ export default function Subscription() {
               )}
             </div>
             {canReissueLink(subscription) && (
+              <div className="xsg-system-actions contents [&>button]:mt-4 [&>p]:mt-4">
+                <span className="xsg-system-actions-label hidden text-sm font-medium text-dark-300">{t('subscriptionCommand.systemActions')}</span>
               <ReissueLinkButton
                 subscription={subscription}
                 subscriptionId={subscriptionId}
                 inline
                 quiet
               />
+              </div>
             )}
           </div>
 

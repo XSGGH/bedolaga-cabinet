@@ -8648,6 +8648,8 @@
     "buyTraffic": "Докупить трафик"
   },
   "subscriptionCommand": {
+    "systemActions": "Системные действия",
+    "connectionLink": "Ссылка для подключения",
     "devices": "Устройства",
     "deviceList": "Мои устройства",
     "specialTraffic": "Для спецсерверов",

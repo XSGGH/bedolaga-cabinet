@@ -66,10 +66,10 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       host: true,
       proxy: {
-        '^/status-api/public$': {
+        '^/status-api/(public|summary|events)$': {
           target: 'https://uptime.xsgvpn.ru',
           changeOrigin: true,
-          rewrite: () => '/api/public',
+          rewrite: (path) => path.replace(/^\/status-api\//, '/api/'),
           configure(proxy) {
             proxy.on('proxyReq', (proxyReq) => {
               proxyReq.removeHeader('cookie');

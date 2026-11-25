@@ -8029,6 +8029,8 @@
     "buyTraffic": "Buy extra data"
   },
   "subscriptionCommand": {
+    "systemActions": "System actions",
+    "connectionLink": "Connection link",
     "devices": "Devices",
     "deviceList": "My devices",
     "specialTraffic": "For special servers",

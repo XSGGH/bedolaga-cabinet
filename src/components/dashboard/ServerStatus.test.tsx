@@ -37,8 +37,8 @@ afterEach(() => {
 
 describe('ServerStatus integration', () => {
   it.each([
-    [false, 'Некоторые серверы недоступны', 'Недоступен'],
-    [null, 'Проверяем состояние серверов', 'Нет данных'],
+    [false, 'Обнаружены проблемы', 'Недоступен'],
+    [null, 'Не удалось обновить статус серверов', 'Нет данных'],
   ])(
     'does not claim all servers are healthy when availability is %s',
     async (online, headline, state) => {
@@ -55,7 +55,7 @@ describe('ServerStatus integration', () => {
       );
       expect(await screen.findByText(headline)).toBeTruthy();
       expect(screen.getByText(state)).toBeTruthy();
-      expect(screen.queryByText('Все серверы работают')).toBeNull();
+      expect(screen.queryByText('Все серверы работают штатно')).toBeNull();
       client.clear();
     },
   );
@@ -98,7 +98,7 @@ describe('ServerStatus integration', () => {
       </QueryClientProvider>,
     );
     const coverage = await screen.findByRole('button', { name: /Мобильные сети: 1 из 1/ });
-    expect(screen.getByText('2 округа · 1 оператор')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /2 округа · 1 оператор/ })).toBeTruthy();
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.queryByRole('table')).toBeNull();
     fireEvent.click(coverage);
@@ -115,7 +115,7 @@ describe('ServerStatus integration', () => {
     await act(async () => {
       await client.invalidateQueries({ queryKey: ['server-status'] });
     });
-    await waitFor(() => expect(screen.queryByText('Все серверы работают')).toBeNull());
+    await waitFor(() => expect(screen.queryByText('Все серверы работают штатно')).toBeNull());
     expect(screen.getByText(/Не удалось обновить мониторинг/)).toBeTruthy();
     client.clear();
   });
