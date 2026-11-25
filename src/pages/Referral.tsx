@@ -708,8 +708,8 @@ export default function Referral() {
         />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
-        <div className="contents lg:flex lg:flex-col lg:gap-5">
+      <div className="xsg-referral-layout grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+        <div className="xsg-referral-flow contents lg:flex lg:flex-col lg:gap-5">
           <div className="order-1 empty:hidden">
             {/* Referral Links */}
             <div className="bento-card">
@@ -1019,7 +1019,7 @@ export default function Referral() {
             )}
           </div>
         </div>
-        <div className="contents lg:flex lg:flex-col lg:gap-5">
+        <div className="xsg-referral-flow contents lg:flex lg:flex-col lg:gap-5">
           <div className="order-3 empty:hidden">
             {/* Program Terms */}
             {programTerms}

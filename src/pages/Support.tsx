@@ -390,9 +390,9 @@ export default function Support() {
           </motion.div>
         )}
 
-      <motion.div variants={staggerItem} className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+      <motion.div variants={staggerItem} className="xsg-support-layout grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
         {/* Tickets List */}
-        <Card className="lg:col-span-1">
+        <Card className="xsg-support-list lg:col-span-1">
           <h2 className="mb-4 text-lg font-semibold text-dark-100">{t('support.yourTickets')}</h2>
 
           {isLoading ? (
@@ -439,7 +439,7 @@ export default function Support() {
         </Card>
 
         {/* Ticket Detail / Create Form */}
-        <Card className="lg:col-span-2">
+        <Card className="xsg-support-detail lg:col-span-2">
           {showCreateForm ? (
             <div>
               <h2 className="mb-6 text-lg font-semibold text-dark-100">
@@ -713,7 +713,7 @@ export default function Support() {
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-3 py-5">
+            <div className="xsg-support-empty flex items-center gap-3 py-5">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-elevated">
                 <ChatIcon className="h-8 w-8 text-dark-500" />
               </div>

@@ -268,8 +268,8 @@ export default function Profile() {
         <h1 className="text-2xl font-bold text-dark-50 sm:text-3xl">{t('profile.title')}</h1>
       </motion.div>
 
-      <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
-        <div className="contents lg:flex lg:flex-col lg:gap-5">
+      <div className="xsg-profile-layout grid gap-5 lg:grid-cols-2 lg:items-start">
+        <div className="xsg-profile-flow contents lg:flex lg:flex-col lg:gap-5">
           <div className="order-1 empty:hidden">
             {/* User Info Card */}
             <motion.div variants={staggerItem}>

@@ -656,7 +656,7 @@ export default function Wheel() {
         {t('wheel.title')}
       </h1>
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start lg:gap-8">
+      <div className="xsg-wheel-layout grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start lg:gap-8">
         {/* Колесо */}
         <div className="mx-auto w-full max-w-[380px] px-1 sm:max-w-[480px] lg:sticky lg:top-6 lg:max-w-[560px] lg:px-0">
           <FortuneWheel
@@ -668,8 +668,8 @@ export default function Wheel() {
         </div>
 
         {/* Управление и призы */}
-        <div className="space-y-4">
-          <div className={panel}>
+        <div className="xsg-wheel-controls space-y-4">
+          <div className={cn(panel, 'xsg-wheel-control-panel')}>
             <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-sm font-medium text-dark-200">Доступно вращений</h2>
               <strong className="text-lg font-bold tabular-nums text-dark-50">
@@ -967,7 +967,7 @@ export default function Wheel() {
           </div>
 
           {mainPrizes.length > 0 && (
-            <div className={panel}>
+            <div className={cn(panel, 'xsg-wheel-jackpots')}>
               <div className={cn(panelTitle, 'mb-3')}>{t('wheel.mainPrizes')}</div>
               <div
                 className="grid gap-2.5"
@@ -997,7 +997,7 @@ export default function Wheel() {
 
           <RecentWinsStrip />
 
-          <div className={cn(panel, 'space-y-4')}>
+          <div className={cn(panel, 'xsg-wheel-rewards space-y-4')}>
             <div className={panelTitle}>{t('wheel.allPrizes')}</div>
             {prizeGroups.map((group) => {
               const color = group.type === 'subscription_days'
@@ -1037,9 +1037,9 @@ export default function Wheel() {
             </p>
           </div>
 
-          <WheelHistory />
         </div>
       </div>
+      <WheelHistory />
     </div>
   );
 }

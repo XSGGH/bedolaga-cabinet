@@ -176,8 +176,8 @@ export default function Balance() {
         <h1 className="text-2xl font-bold text-dark-50 sm:text-3xl">{t('balance.title')}</h1>
       </motion.div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
-        <div className="contents lg:flex lg:flex-col lg:gap-5">
+      <div className="xsg-balance-layout grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+        <div className="xsg-balance-flow contents lg:flex lg:flex-col lg:gap-5">
           <div className="order-1">
             {/* Balance Card — flat surface; the giant numeric carries the
           weight. The previous accent gradient + glow leaked accent into
@@ -203,7 +203,7 @@ export default function Balance() {
                   <h2 className="mb-4 text-lg font-semibold text-dark-100">
                     {t('balance.topUpBalance')}
                   </h2>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="xsg-payment-methods grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {paymentMethods.map((method) => {
                       const methodKey = method.id.toLowerCase().replace(/-/g, '_');
                       const translatedName = t(`balance.paymentMethods.${methodKey}.name`, {

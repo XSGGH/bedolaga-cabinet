@@ -10,6 +10,7 @@
  */
 
 @import "./xsg-palette.css";
+@import "./xsg-desktop.css";
 
 :root {
   --bento-radius: 20px;

@@ -42,6 +42,17 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+const desktopPages: Record<string, string> = {
+  '/': 'dashboard',
+  '/balance': 'balance',
+  '/referral': 'referral',
+  '/gift': 'gift',
+  '/support': 'support',
+  '/info': 'info',
+  '/profile': 'profile',
+  '/wheel': 'wheel',
+};
+
 export function AppShell({ children }: AppShellProps) {
   const { t } = useTranslation();
   const location = useLocation();
@@ -220,9 +231,14 @@ export function AppShell({ children }: AppShellProps) {
           и низ контента уходил под неё. */}
       <main
         data-admin-page={location.pathname.startsWith('/admin') ? 'true' : undefined}
+        data-desktop-page={
+          /^\/subscriptions\/\d+$/.test(location.pathname)
+            ? 'subscription'
+            : desktopPages[location.pathname]
+        }
         className="mx-auto max-w-6xl py-6 pb-[calc(var(--mobile-nav-clearance)+0.5rem)] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] lg:ml-60 lg:max-w-none lg:px-10 lg:py-10 lg:pb-12"
       >
-        <div className="mx-auto max-w-[1360px]">{children}</div>
+        <div className="xsg-desktop-content mx-auto max-w-[1360px]">{children}</div>
       </main>
 
       {/* Mobile Bottom Navigation — только на экранах её кнопок */}

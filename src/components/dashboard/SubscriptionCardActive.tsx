@@ -56,23 +56,24 @@ export default function SubscriptionCardActive({
   return (
     <section
       aria-label={t('dashboard.ui.subscription', 'Ваша подписка')}
-      className="xsg-subscription-hero overflow-hidden rounded-3xl border border-[var(--xsg-line)] bg-dark-800"
+      className="xsg-overview xsg-subscription-hero overflow-hidden rounded-3xl border border-[var(--xsg-line)] bg-dark-800"
       data-onboarding="welcome"
     >
-      <div className="space-y-3 p-4 sm:p-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-8 lg:gap-y-4 lg:space-y-0">
-        <div className="lg:col-span-2">
+      <div className="xsg-overview-grid space-y-3 p-4 sm:p-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-8 lg:gap-y-4 lg:space-y-0">
+        <div className="xsg-overview-plan lg:col-span-2">
           <SubscriptionPlanHeader subscription={subscription} />
         </div>
 
-        <div className="space-y-1.5">
+        <div className="xsg-overview-actions space-y-1.5">
           <ConnectDeviceTile
             subscription={subscription}
             connectedDevices={connectedDevices}
             canIncreaseLimit={canAddDevices}
           />
+          <Link to={`/subscriptions/${subscription.id}`} className="xsg-overview-device-link hidden">{t('subscriptionCommand.deviceList')} <span aria-hidden="true">›</span></Link>
           <Link
             to={`/subscriptions/${subscription.id}`}
-            className={`${subscriptionActionClass} ${secondaryActionClass}`}
+            className={`xsg-overview-manage ${subscriptionActionClass} ${secondaryActionClass}`}
           >
             <CogIcon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
             {t('dashboard.viewSubscription')}
@@ -80,7 +81,7 @@ export default function SubscriptionCardActive({
         </div>
 
         {!isUnlimited && (
-          <div className="border-t border-[var(--xsg-line)] pt-3 lg:col-span-2">
+          <div className="xsg-overview-traffic border-t border-[var(--xsg-line)] pt-3 lg:col-span-2">
             <div className="flex items-center justify-between gap-3">
               <h2 className="min-w-0 text-sm font-semibold text-dark-100">
                 {t('dashboard.trafficUsageTitle')}
@@ -145,7 +146,7 @@ export default function SubscriptionCardActive({
         )}
 
         {subscription.subscription_url && !subscription.hide_subscription_link && (
-          <div className="hidden items-center gap-3 border-t border-[var(--xsg-line)] pt-4 lg:col-span-2 lg:flex">
+          <div className="xsg-overview-link hidden items-center gap-3 border-t border-[var(--xsg-line)] pt-4 lg:col-span-2 lg:flex">
             <span
               className="min-w-0 flex-1 truncate font-mono text-xs text-dark-400"
               title={subscription.subscription_url}

@@ -23,7 +23,7 @@ export default function DeviceSlotsIndicator({
   const progress = finiteLimit ? Math.min(1, used / deviceLimit) : 0;
 
   return (
-    <div className="mt-2 rounded-xl bg-inset px-3 py-2.5" data-testid="device-slots">
+    <div className="xsg-device-slots mt-2 rounded-xl bg-inset px-3 py-2.5" data-testid="device-slots">
       <div className="flex items-center justify-between gap-3 text-xs">
         <span className="flex items-center gap-1.5 font-medium text-dark-300">
           <DevicesIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-dark-400" />

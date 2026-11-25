@@ -753,7 +753,7 @@ export default function Info() {
       </div>
 
       {/* Tabs */}
-      <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-x-visible">
+      <div className="xsg-info-tabs scrollbar-hide flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-x-visible">
         {tabs.map((tab) => (
           <button
             key={tab.id}

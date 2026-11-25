@@ -563,7 +563,7 @@ function BuyTabContent({
   }, [selectedTariff]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+    <div className="xsg-gift-checkout grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
       <div className="contents lg:block">
         <div className="order-1 space-y-6">
           {/* Tariff selection */}
@@ -597,7 +597,7 @@ function BuyTabContent({
               <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-dark-400">
                 {t('gift.selectPeriod')}
               </h2>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="xsg-gift-periods grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {periodsForDisplay.map((period) => (
                   <PeriodCard
                     key={period.days}
@@ -659,7 +659,7 @@ function BuyTabContent({
           </AnimatePresence>
         </div>
       </div>
-      <div className="order-4 space-y-4 lg:sticky lg:top-6">
+      <div className="xsg-gift-summary order-4 space-y-4 lg:sticky lg:top-6">
         {/* Promo group banner */}
         {config.promo_group_name && (
           <div className="flex items-center gap-3 rounded-xl border border-success-500/30 bg-success-500/10 p-3">
@@ -757,6 +757,36 @@ function BuyTabContent({
             </>
           )}
         </button>
+        {selectedTariff && selectedPeriod && (
+          <div className="xsg-gift-order hidden rounded-2xl border border-line bg-surface p-5">
+            <dl className="space-y-3 text-sm">
+              <div className="flex justify-between gap-4">
+                <dt className="text-dark-300">{t('gift.tariff')}</dt>
+                <dd className="min-w-0 text-right font-semibold text-dark-100">{selectedTariff.name}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-dark-300">{t('gift.period')}</dt>
+                <dd className="text-right text-dark-100">{formatPeriodLabel(selectedPeriod.days, t)}</dd>
+              </div>
+              {selectedPeriod.discount_percent != null && selectedPeriod.discount_percent > 0 && (
+                <div className="flex justify-between gap-4">
+                  <dt className="text-dark-300">{t('promo.discountApplied')}</dt>
+                  <dd className="text-success-400">−{selectedPeriod.discount_percent}%</dd>
+                </div>
+              )}
+              <div className="flex items-baseline justify-between gap-4 border-t border-divider pt-3">
+                <dt className="font-semibold text-dark-100">{t('gift.total')}</dt>
+                <dd className="text-2xl font-bold tabular-nums text-accent-300">{formatPrice(currentPrice)}</dd>
+              </div>
+              {insufficientBalance && (
+                <div className="flex justify-between gap-4 text-warning-300">
+                  <dt>{t('gift.insufficientBalance')}</dt>
+                  <dd className="shrink-0 font-semibold">{formatPrice(Math.max(0, currentPrice - config.balance_kopeks))}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1359,7 +1389,7 @@ export default function GiftSubscription() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.05 }}
-          className="mb-6 rounded-2xl border border-dark-700 bg-dark-900 p-1 lg:max-w-md"
+          className="xsg-gift-tabs mb-6 rounded-2xl border border-dark-700 bg-dark-900 p-1 lg:max-w-md"
         >
           <div className="flex" role="tablist" aria-label={t('gift.pageTitle')}>
             {tabs.map((tab) => (

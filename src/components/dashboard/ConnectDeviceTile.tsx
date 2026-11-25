@@ -33,10 +33,11 @@ export default function ConnectDeviceTile({
     connectedDevices >= subscription.device_limit;
   if (!subscription.subscription_url) return null;
   return (
-    <div>
+    <div className="xsg-connect-tile">
       <button
         type="button"
         data-onboarding="connect-devices"
+        data-full={full ? true : undefined}
         onClick={() => {
           if (full && onManage) onManage();
           else
@@ -46,7 +47,7 @@ export default function ConnectDeviceTile({
                 : (connectionPath ?? `/connection?sub=${subscription.id}`),
             );
         }}
-        className={`${subscriptionActionClass} bg-accent-500 text-on-accent hover:bg-accent-600 active:bg-accent-700 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-800`}
+        className={`xsg-connect-primary ${subscriptionActionClass} bg-accent-500 text-on-accent hover:bg-accent-600 active:bg-accent-700 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-800`}
       >
         <MonitorIcon className="h-[18px] w-[18px] shrink-0" />
         {full ? t('subscription.myDevices') : t('dashboard.connectDevice')}
@@ -64,7 +65,7 @@ export default function ConnectDeviceTile({
               ? onIncreaseLimit()
               : navigate(`/subscriptions/${subscription.id}?addon=devices`)
           }
-          className="mt-2 w-full"
+          className="xsg-device-buy mt-2 w-full"
         >
           {t('addonsUi.increaseDevices')}
         </AddonPurchaseButton>

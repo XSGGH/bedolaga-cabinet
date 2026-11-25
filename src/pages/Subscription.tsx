@@ -480,9 +480,9 @@ export default function Subscription() {
       </div>
       {subscription ? (
         <>
-          <div className="min-w-0 space-y-4 pb-4">
-            <div className="min-w-0 space-y-4">
-              <section className="xsg-subscription-hero space-y-4 overflow-hidden rounded-3xl border border-line bg-surface p-4 sm:p-6">
+          <div className="xsg-subscription-layout min-w-0 space-y-4 pb-4">
+            <div className="xsg-subscription-sections min-w-0 space-y-4">
+              <section className="xsg-plan-panel xsg-subscription-hero space-y-4 overflow-hidden rounded-3xl border border-line bg-surface p-4 sm:p-6">
                 <SubscriptionPlanHeader
                   subscription={subscription}
                   remaining={
@@ -548,7 +548,7 @@ export default function Subscription() {
                   </div>
                 )}
 
-                <div className="space-y-2 border-t border-divider pt-4">
+                <div className="xsg-plan-actions space-y-2 border-t border-divider pt-4">
                   <PurchaseCTAButton
                     subscription={subscription}
                     isMultiTariff={isMultiTariff}
@@ -816,7 +816,7 @@ export default function Subscription() {
               )}
 
               {connectInner && (
-                <section className="min-w-0 space-y-3 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+                <section className="xsg-connection-panel min-w-0 space-y-3 rounded-2xl border border-line bg-surface p-4 sm:p-6">
                   <h2 className="text-base font-semibold text-dark-100">
                     {t('subscriptionCommand.connection')}
                   </h2>
