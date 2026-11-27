@@ -36,6 +36,10 @@ RUN apk add --no-cache ca-certificates && update-ca-certificates
 
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
+# Git checkouts made by the private backup/deploy shell can have umask 077.
+# Vite preserves public-file modes; nginx workers must still read public assets.
+RUN find /usr/share/nginx/html -type d -exec chmod 755 {} + && \
+    find /usr/share/nginx/html -type f -exec chmod 644 {} +
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY docker/19-uptime-env.sh /docker-entrypoint.d/19-uptime-env.sh
 RUN chmod +x /docker-entrypoint.d/19-uptime-env.sh

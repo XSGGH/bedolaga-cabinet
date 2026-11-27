@@ -135,14 +135,20 @@ g "$cabinet" merge-base --is-ancestor HEAD "$target"
 g "$cabinet" cat-file -e "$target:src/pages/SnowEvent.tsx"
 g "$cabinet" show "$target:scripts/xsg-expand-status-routes.py" > "$backup/prepare-nginx.py"
 python3 "$backup/prepare-nginx.py" "$backup/nginx.conf" "$backup/nginx.resolved.conf"
+chmod --reference="$backup/nginx.conf" "$backup/nginx.resolved.conf"
+chown --reference="$backup/nginx.conf" "$backup/nginx.resolved.conf"
 g "$cabinet" restore --source=HEAD --staged --worktree -- nginx.conf
 if ! g "$cabinet" merge --ff-only "$target"; then
     cp -p "$backup/nginx.conf" "$cabinet/nginx.conf"
     echo 'Обновление кабинета остановлено. Контейнеры не заменены.'; exit 1
 fi
 cp -p "$backup/nginx.resolved.conf" "$cabinet/nginx.conf"
+if test -d "$cabinet/public/snow-event"; then
+    rmdir "$cabinet/public/snow-event" || { echo 'В public/snow-event остались посторонние файлы. Они сохранены; деплой остановлен.'; exit 1; }
+fi
 (cd "$cabinet" && docker compose build cabinet-frontend </dev/null)
 (cd "$cabinet" && docker compose run --rm --no-deps --interactive=false -T cabinet-frontend nginx -t </dev/null)
+(cd "$cabinet" && bash scripts/xsg-probe-frontend.sh </dev/null)
 
 # Compatibility and both builds passed. Only now add our four tables and swap.
 "${bot_compose[@]}" run --rm --no-deps --interactive=false -T -e PYTHONPATH=/app --entrypoint python bot \
@@ -181,9 +187,9 @@ test "$status" = 401 || test "$status" = 403
 (cd "$cabinet" && docker compose up -d --force-recreate --no-deps --no-build --pull never cabinet-frontend </dev/null)
 echo 'Ожидаем готовность кабинета: временный сброс соединения при запуске nginx допустим.'
 curl -fsS --retry 30 --retry-all-errors --retry-delay 2 --retry-max-time 90 --connect-timeout 2 --max-time 5 \
-    http://127.0.0.1:3020/snow-event >/dev/null
+    -H "Host: xsgvpn.ru" http://127.0.0.1:3020/snow-event >/dev/null
 curl -fsS --retry 10 --retry-all-errors --retry-delay 2 --retry-max-time 45 --connect-timeout 2 --max-time 5 \
-    http://127.0.0.1:3020/snow-event/winter-hero.webp >/dev/null
+    -H "Host: xsgvpn.ru" http://127.0.0.1:3020/xsg-snow-assets/winter-hero.webp >/dev/null
 container=$(cd "$cabinet" && docker compose ps -q cabinet-frontend)
 (cd "$cabinet" && python3 scripts/xsg-verify-deployment.py --container "$container" --site https://xsgvpn.ru) | tee "$backup/served-assets.json"
 trap - ERR

@@ -104,7 +104,7 @@ export default function SnowEvent() {
       </div>
       <section className={`snow-hero snow-scene-${scene}`}>
         <img
-          src="/snow-event/winter-base.webp"
+          src="/xsg-snow-assets/winter-base.webp"
           alt="Белый кот-космонавт XSG в фиолетовом шлеме собирает снежинки у праздничного дата-центра"
           width="1536"
           height="1024"
@@ -113,7 +113,7 @@ export default function SnowEvent() {
         {scene >= 1 && (
           <img
             className="snow-decoration snow-decoration-lights"
-            src="/snow-event/winter-hero.webp"
+            src="/xsg-snow-assets/winter-hero.webp"
             alt=""
             aria-hidden="true"
           />
@@ -121,7 +121,7 @@ export default function SnowEvent() {
         {scene >= 2 && (
           <img
             className="snow-decoration snow-decoration-tree"
-            src="/snow-event/winter-hero.webp"
+            src="/xsg-snow-assets/winter-hero.webp"
             alt=""
             aria-hidden="true"
           />
@@ -129,7 +129,7 @@ export default function SnowEvent() {
         {scene >= 3 && (
           <img
             className="snow-decoration snow-decoration-gifts"
-            src="/snow-event/winter-hero.webp"
+            src="/xsg-snow-assets/winter-hero.webp"
             alt=""
             aria-hidden="true"
           />
@@ -137,7 +137,7 @@ export default function SnowEvent() {
         {scene >= 4 && (
           <img
             className="snow-decoration snow-decoration-finale"
-            src="/snow-event/winter-hero.webp"
+            src="/xsg-snow-assets/winter-hero.webp"
             alt=""
             aria-hidden="true"
           />

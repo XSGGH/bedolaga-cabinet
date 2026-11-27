@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Resume a rolled-back winter release using its already-built images and backup.
+# Reuse the backed-up API image and rebuild only the corrected frontend.
 set -Eeuo pipefail
 umask 077
 test "$(id -u)" = 0 || { echo 'Запустите через sudo bash.'; exit 1; }
@@ -42,10 +42,32 @@ done < "$backup/manifest"
 bot_compose=(docker compose -p "$(cat "$backup/bot/project")" -f "$backup/bot/compose.yml" -f "$backup/bot/build.json")
 "${bot_compose[@]}" run --rm --no-deps --interactive=false -T -e PYTHONPATH=/app --entrypoint python bot \
     scripts/xsg-snow-schema.py --check-only </dev/null
+
+# Preserve the working nginx config, then obtain the corrected asset layout
+# and public-file permissions. No API rebuild or production replacement yet.
+stamp=$(date +%Y%m%d-%H%M%S)
+cp -p "$cabinet/nginx.conf" "$backup/nginx-before-resume-$stamp.conf"
+g fetch https://github.com/XSGGH/bedolaga-cabinet.git xsg-theme
+target=$(g rev-parse FETCH_HEAD)
+g merge-base --is-ancestor HEAD "$target"
+g restore --source=HEAD --staged --worktree -- nginx.conf
+if ! g merge --ff-only "$target"; then
+    cp -p "$backup/nginx-before-resume-$stamp.conf" "$cabinet/nginx.conf"
+    echo 'Обновление кабинета остановлено. Работающие контейнеры не заменены.'; exit 1
+fi
+python3 "$cabinet/scripts/xsg-expand-status-routes.py" "$backup/nginx-before-resume-$stamp.conf" "$backup/nginx-resume-$stamp.conf"
+chmod --reference="$backup/nginx-before-resume-$stamp.conf" "$backup/nginx-resume-$stamp.conf"
+chown --reference="$backup/nginx-before-resume-$stamp.conf" "$backup/nginx-resume-$stamp.conf"
+cp -p "$backup/nginx-resume-$stamp.conf" "$cabinet/nginx.conf"
+if test -d "$cabinet/public/snow-event"; then
+    rmdir "$cabinet/public/snow-event" || { echo 'В public/snow-event остались посторонние файлы. Они сохранены; продолжение остановлено.'; exit 1; }
+fi
+echo 'Пересобираем только кабинет с исправленными маршрутами и правами файлов…'
+(cd "$cabinet" && docker compose build cabinet-frontend </dev/null)
 (cd "$cabinet" && docker compose run --rm --no-deps --interactive=false -T cabinet-frontend nginx -t </dev/null)
+(cd "$cabinet" && bash scripts/xsg-probe-frontend.sh </dev/null)
 
 # Refresh the database backup without overwriting the original snapshot.
-stamp=$(date +%Y%m%d-%H%M%S)
 db_container=$(cd "$bot" && docker compose ps -q postgres)
 test -n "$db_container"
 docker exec "$db_container" sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$backup/database-resume-$stamp.dump"
@@ -79,9 +101,9 @@ test "$status" = 401 || test "$status" = 403
 (cd "$cabinet" && docker compose up -d --force-recreate --no-deps --no-build --pull never cabinet-frontend </dev/null)
 echo 'Ожидаем готовность кабинета…'
 curl -fsS --retry 30 --retry-all-errors --retry-delay 2 --retry-max-time 90 --connect-timeout 2 --max-time 5 \
-    http://127.0.0.1:3020/snow-event >/dev/null
+    -H "Host: xsgvpn.ru" http://127.0.0.1:3020/snow-event >/dev/null
 curl -fsS --retry 10 --retry-all-errors --retry-delay 2 --retry-max-time 45 --connect-timeout 2 --max-time 5 \
-    http://127.0.0.1:3020/snow-event/winter-hero.webp >/dev/null
+    -H "Host: xsgvpn.ru" http://127.0.0.1:3020/xsg-snow-assets/winter-hero.webp >/dev/null
 container=$(cd "$cabinet" && docker compose ps -q cabinet-frontend)
 (cd "$cabinet" && python3 scripts/xsg-verify-deployment.py --container "$container" --site https://xsgvpn.ru) | tee "$backup/served-assets.json"
 trap - ERR

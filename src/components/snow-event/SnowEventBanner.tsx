@@ -10,7 +10,7 @@ export default function SnowEventBanner() {
   const timer = timeUntil(state.starts_at, now);
   return (
     <Link to="/snow-event" className="snow-banner">
-      <img src="/snow-event/winter-hero.webp" alt="" width="96" height="80" />
+      <img src="/xsg-snow-assets/winter-hero.webp" alt="" width="96" height="80" />
       <span>
         <strong>Снежный переполох</strong>
         <small>
