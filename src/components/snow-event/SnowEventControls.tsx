@@ -1,10 +1,9 @@
 import { useRef, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
   snowApi,
-  snowDates,
   snowError,
   subscriptionLabels,
   type SnowReward,
@@ -132,15 +131,25 @@ export function PurchaseDialog({
 export function PreviewBar({ state, onChange }: { state: SnowState; onChange: () => void }) {
   const dialog = useNativeDialog();
   const client = useQueryClient();
+  const [search] = useSearchParams();
+  const storageKey = `snow-preview-hidden:${state.preview_id}`;
+  const [hidden, setHidden] = useState(
+    () => search.get('settings') !== '1' && sessionStorage.getItem(storageKey) === 'yes',
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [tariff, setTariff] = useState(state.preview_tariff || 'hyperdrive');
   const date = state.today;
-  const update = async (subscription: SubscriptionScenario, newDate: string, extra = {}) => {
-    if (!state.preview_id) return;
+  const update = async (
+    subscription: SubscriptionScenario,
+    newDate: string,
+    extra: Record<string, unknown> = {},
+  ) => {
+    if (!state.preview_id || busy) return;
     setBusy(true);
     setError('');
     try {
-      await snowApi.scenario(state.preview_id, subscription, newDate, extra);
+      await snowApi.scenario(state.preview_id, subscription, newDate, { tariff, ...extra });
       await client.invalidateQueries({ queryKey: ['snow-event', state.preview_id] });
       onChange();
     } catch (e) {
@@ -149,104 +158,157 @@ export function PreviewBar({ state, onChange }: { state: SnowState; onChange: ()
       setBusy(false);
     }
   };
+  const visibility = (value: boolean) => {
+    setHidden(value);
+    sessionStorage.setItem(storageKey, value ? 'yes' : 'no');
+  };
   return (
-    <section className="snow-preview-bar" aria-label="Управление тестовым предпросмотром">
-      <div>
-        <strong>🧪 Тестовый предпросмотр</strong>
-        <p>
-          Сценарий: {subscriptionLabels[state.subscription].toLocaleLowerCase('ru')} ·{' '}
-          {new Intl.DateTimeFormat('ru-RU', {
-            day: 'numeric',
-            month: 'long',
-            timeZone: 'Europe/Moscow',
-          }).format(new Date(state.server_now))}
-        </p>
+    <div className="sw-preview-container">
+      <div className="sw-preview-indicator">
+        <span>
+          🧪 Тестовый предпросмотр · {subscriptionLabels[state.subscription]} · {state.today}
+        </span>
+        <button type="button" onClick={() => visibility(!hidden)}>
+          {hidden ? 'Открыть настройки' : 'Скрыть настройки'}
+        </button>
       </div>
-      <details className="snow-preview-settings">
-        <summary>Изменить сценарий / тестовый прогресс</summary>
-        <div className="snow-preview-controls">
-          <label>
-            Подписка
-            <select
-              disabled={busy}
-              value={state.subscription}
-              onChange={(e) => update(e.target.value as SubscriptionScenario, date)}
-            >
-              {Object.entries(subscriptionLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Тестовая дата
-            <input
-              type="date"
-              disabled={busy}
-              value={date}
-              min="2026-11-01"
-              max="2027-01-31"
-              onChange={(e) => {
-                if (e.target.value) void update(state.subscription, e.target.value);
-              }}
-              list="snow-preview-dates"
-            />
-            <datalist id="snow-preview-dates">
-              {snowDates.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </datalist>
-          </label>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={async () => {
-              if (await dialog.confirm('Сбросить только ваш тестовый прогресс?'))
-                void update(state.subscription, date, { reset: true });
-            }}
-          >
-            Сбросить прогресс
-          </button>
-          <Link to="/admin/snow-event">В админку ↗</Link>
-        </div>
-        <details>
-          <summary>Тестовый баланс и общая цель</summary>
-          <div className="snow-preview-extras">
+      {!hidden && (
+        <section className="sw-preview-controls" aria-label="Управление тестовым предпросмотром">
+          <div className="se-section-heading">
+            <div>
+              <strong>Предпросмотр глазами пользователя</strong>
+              <p>
+                {subscriptionLabels[state.subscription]} ·{' '}
+                {tariff === 'orbita' ? 'Орбита' : 'Гипердрайв'}
+              </p>
+            </div>
             <button
               type="button"
-              disabled={busy}
-              onClick={() => update(state.subscription, date, { balance_delta: 545 })}
+              className="sw-close"
+              aria-label="Полностью скрыть настройки предпросмотра"
+              onClick={() => visibility(true)}
             >
-              +545 ❄
+              ×
             </button>
-            <button
-              type="button"
-              disabled={busy || state.progress.balance < 30}
-              onClick={() => update(state.subscription, date, { balance_delta: -30 })}
-            >
-              −30 ❄
-            </button>
-            {[0, 25, 50, 75, 100].map((percent) => (
-              <button
-                type="button"
+          </div>
+          <p className="sw-fine-print">
+            Подписка, снежинки, станция и подарки изолированы. Тестовый личный вклад не входит в
+            настоящий общий счётчик.
+          </p>
+          <div className="sw-preview-fields">
+            <label>
+              Состояние подписки
+              <select
                 disabled={busy}
-                key={percent}
-                onClick={() =>
-                  update(state.subscription, date, {
-                    global_earned: Math.ceil((state.goal * percent) / 100),
-                  })
+                value={state.subscription}
+                onChange={(e) => void update(e.target.value as SubscriptionScenario, date)}
+              >
+                {Object.entries(subscriptionLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Тариф
+              <select
+                value={tariff}
+                disabled={busy}
+                onChange={(e) => {
+                  setTariff(e.target.value);
+                  void update(state.subscription, date, { tariff: e.target.value });
+                }}
+              >
+                <option value="hyperdrive">Гипердрайв</option>
+                <option value="orbita">Орбита — безлимитные серверы</option>
+              </select>
+            </label>
+            <label>
+              Тестовая дата
+              <input
+                type="date"
+                disabled={busy}
+                value={date}
+                min="2026-11-01"
+                max="2027-01-31"
+                onChange={(e) => {
+                  if (e.target.value) void update(state.subscription, e.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Готовых игровых дней
+              <select
+                value={state.completed_days || 0}
+                disabled={busy}
+                onChange={(e) => {
+                  const count = Number(e.target.value);
+                  void update(state.subscription, count > 0 ? '2026-12-31' : date, {
+                    completed_days: count,
+                  });
+                }}
+              >
+                {Array.from({ length: 32 }, (_, i) => (
+                  <option value={i} key={i}>
+                    {i} / 31
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Этап общей станции
+              <select
+                value={state.world?.total || 0}
+                disabled={busy}
+                onChange={(e) =>
+                  void update(state.subscription, date, { global_earned: Number(e.target.value) })
                 }
               >
-                Цель {percent}%
-              </button>
-            ))}
+                <option value="0">0 · начало</option>
+                {state.world?.stages.map((stage) => (
+                  <option key={stage.id} value={stage.threshold}>
+                    {stage.threshold} · {stage.name}
+                  </option>
+                ))}
+                {!state.world?.stages.some((s) => s.threshold === state.world?.total) &&
+                  !!state.world?.total && (
+                    <option value={state.world.total}>
+                      {state.world.total} · текущий прогресс
+                    </option>
+                  )}
+              </select>
+            </label>
           </div>
-        </details>
-      </details>
-      {error && <p role="alert">{error}</p>}
-    </section>
+          <div className="sw-preview-actions">
+            <button
+              type="button"
+              className="se-secondary"
+              disabled={busy}
+              onClick={() => void update(state.subscription, date, { balance_delta: 800 })}
+            >
+              Добавить 800 тестовых ❄
+            </button>
+            <button
+              type="button"
+              className="sw-small-button"
+              disabled={busy}
+              onClick={async () => {
+                if (await dialog.confirm('Сбросить только ваш тестовый мир, игры и подарки?'))
+                  void update(state.subscription, date, { reset: true });
+              }}
+            >
+              Сбросить тестовый прогресс
+            </button>
+            <Link to="/admin/snow-event">Вернуться в админку ↗</Link>
+          </div>
+        </section>
+      )}
+      {error && (
+        <p role="alert" className="se-error">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

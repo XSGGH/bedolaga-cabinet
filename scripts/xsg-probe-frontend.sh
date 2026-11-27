@@ -16,8 +16,10 @@ if ! docker exec "$container" sh -c '
         sleep 1
     done
     test ! -d /usr/share/nginx/html/snow-event || exit 1
-    wget -q --header="Host: xsgvpn.ru" -O /tmp/xsg-art-check.webp http://127.0.0.1/xsg-snow-assets/winter-hero.webp &&
-    cmp -s /tmp/xsg-art-check.webp /usr/share/nginx/html/xsg-snow-assets/winter-hero.webp
+    for art in winter-hero.webp station-v2.webp station-sprites-v2.webp; do
+        wget -q --header="Host: xsgvpn.ru" -O /tmp/xsg-art-check.webp "http://127.0.0.1/xsg-snow-assets/$art" &&
+        cmp -s /tmp/xsg-art-check.webp "/usr/share/nginx/html/xsg-snow-assets/$art" || exit 1
+    done
 '; then
     docker logs --tail 40 "$container" >&2 || true
     echo 'Новый образ не прошёл HTTP-проверку страницы или картинки. Работающие контейнеры не заменены.' >&2

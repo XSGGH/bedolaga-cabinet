@@ -5,7 +5,7 @@ umask 077
 
 bot=${XSG_BOT_DIR:-/home/user1/remnawave-bedolaga-telegram-bot}
 cabinet=${XSG_CABINET_DIR:-/home/user1/bedolaga-cabinet}
-bot_ref=189dd2325b6d317351bba42a88487378252ae729
+bot_ref=c898b94b83143c3f58b6482c270f2f64b629193e
 backup_root=/root/xsg-snow-backups
 
 restore_bot_source() {
@@ -15,7 +15,7 @@ restore_bot_source() {
         else
             # Only the eight fixed, event-owned paths from our manifest.
             case "$relative" in
-                app/database/snow_event_models.py|app/services/snow_event.py|app/services/snow_event_rewards.py|app/cabinet/routes/snow_event.py|scripts/xsg-snow-schema.py)
+                app/database/snow_event_models.py|app/services/snow_event.py|app/services/snow_event_rewards.py|app/services/snow_world.py|app/services/snow_world_actions.py|app/services/snow_games.py|app/services/snow_quazar.py|app/cabinet/routes/snow_event.py|scripts/xsg-snow-schema.py)
                     rm -f -- "$bot/$relative" || return 1 ;;
                 *) echo "Refusing to remove unknown path: $relative"; return 1 ;;
             esac
@@ -30,13 +30,26 @@ rollback() {
     for service in bot cabinet; do
         gzip -dc "$backup/$service/image.tar.gz" | docker load >/dev/null || return 1
     done
+    if test -f "$backup/config-migrated" && test -f "$backup/event-config.json"; then
+        db_container=$(cd "$bot" && docker compose ps -q postgres) || return 1
+        test -n "$db_container" || return 1
+        python3 - "$backup/event-config.json" <<'PYCONFIG' | docker exec -i "$db_container" sh -c 'exec psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' >/dev/null || return 1
+import json,sys
+rows=json.load(open(sys.argv[1]))
+print('BEGIN; DELETE FROM snow_event_config WHERE id=1;')
+for row in rows:
+    data=json.dumps(row['data'],ensure_ascii=False).replace("'", "''")
+    print("INSERT INTO snow_event_config(id,version,data) VALUES (1,%d,'%s');" % (int(row['version'])+1,data))
+print('COMMIT;')
+PYCONFIG
+    fi
     cp -p "$backup/nginx.conf" "$cabinet/nginx.conf" || return 1
     restore_bot_source || return 1
     docker compose -p "$(cat "$backup/bot/project")" -f "$backup/bot/compose.yml" -f "$backup/bot/rollback.json" \
         up -d --force-recreate --no-deps --no-build --pull never bot </dev/null || return 1
     docker compose -p "$(cat "$backup/cabinet/project")" -f "$backup/cabinet/compose.yml" -f "$backup/cabinet/rollback.json" \
         up -d --force-recreate --no-deps --no-build --pull never cabinet-frontend </dev/null || return 1
-    echo "Откат образов и добавленных файлов выполнен. База сохранена без отката: $backup"
+    echo "Откат образов и добавленных файлов выполнен. Прогресс БД сохранён; восстановлена только конфигурация мероприятия: $backup"
 }
 
 if test "${1:-}" = --rollback; then
@@ -101,6 +114,18 @@ test -n "$db_container" || { echo 'PostgreSQL не найден. Бэкапы о
 docker exec "$db_container" sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$backup/database.dump"
 test -s "$backup/database.dump"
 docker exec -i "$db_container" pg_restore --list < "$backup/database.dump" > "$backup/database-list.txt"
+has_config=$(docker exec -i "$db_container" sh -c 'exec psql -X -qAt -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' <<'SQLCONFIG'
+SELECT to_regclass('public.snow_event_config');
+SQLCONFIG
+)
+if test "$has_config" = snow_event_config; then
+    docker exec -i "$db_container" sh -c 'exec psql -X -qAt -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' > "$backup/event-config.json" <<'SQLCONFIG'
+SELECT coalesce(json_agg(t),'[]'::json) FROM snow_event_config t;
+SQLCONFIG
+else
+    printf '[]\n' > "$backup/event-config.json"
+fi
+python3 -c 'import json,sys; assert isinstance(json.load(open(sys.argv[1])),list)' "$backup/event-config.json"
 echo "Резервная копия образов, исходников и БД готова: $backup"
 
 # Fetch only the additive feature payload. Never replace the customised bot
@@ -109,7 +134,8 @@ g "$bot" fetch https://github.com/XSGGH/remnawave-bedolaga-telegram-bot.git xsg-
 g "$bot" cat-file -e "$bot_ref^{commit}"
 printf '%s\n' "$bot_ref" > "$backup/bot-target"
 for relative in app/database/snow_event_models.py app/services/snow_event.py app/services/snow_event_rewards.py \
-    app/cabinet/routes/snow_event.py scripts/xsg-snow-overlay.py scripts/xsg-snow-schema.py; do
+    app/services/snow_world.py app/services/snow_world_actions.py app/services/snow_games.py app/services/snow_quazar.py \
+    app/cabinet/routes/snow_event.py scripts/xsg-snow-overlay.py scripts/xsg-snow-schema.py scripts/xsg-snow-integration.json; do
     mkdir -p "$backup/payload/$(dirname "$relative")"
     g "$bot" show "$bot_ref:$relative" > "$backup/payload/$relative"
 done
@@ -150,9 +176,8 @@ fi
 (cd "$cabinet" && docker compose run --rm --no-deps --interactive=false -T cabinet-frontend nginx -t </dev/null)
 (cd "$cabinet" && bash scripts/xsg-probe-frontend.sh </dev/null)
 
-# Compatibility and both builds passed. Only now add our four tables and swap.
-"${bot_compose[@]}" run --rm --no-deps --interactive=false -T -e PYTHONPATH=/app --entrypoint python bot \
-    scripts/xsg-snow-schema.py </dev/null
+# Compatibility and both builds passed. Only now add the isolated tables and swap.
+
 source_installed=0
 recover() {
     local code=$?
@@ -174,6 +199,9 @@ while IFS= read -r relative; do
 done < "$backup/manifest"
 trap recover ERR
 source_installed=1
+touch "$backup/config-migrated"
+"${bot_compose[@]}" run --rm --no-deps --interactive=false -T -e PYTHONPATH=/app --entrypoint python bot \
+    scripts/xsg-snow-schema.py </dev/null
 while IFS= read -r relative; do
     mkdir -p "$bot/$(dirname "$relative")"
     cp "$backup/stage/bot/$relative" "$bot/$relative"
@@ -184,6 +212,8 @@ curl -fsS --retry 20 --retry-all-errors --retry-delay 3 --max-time 4 http://127.
 status=$(curl -sS --retry 20 --retry-all-errors --retry-delay 2 --retry-max-time 90 --connect-timeout 2 --max-time 5 \
     -o "$backup/api-auth-check.json" -w '%{http_code}' http://127.0.0.1:8080/cabinet/snow-event)
 test "$status" = 401 || test "$status" = 403
+curl -fsS --retry 10 --retry-all-errors --retry-delay 2 --max-time 5 http://127.0.0.1:8080/cabinet/snow-event/version > "$backup/api-version.json"
+python3 -c 'import json,sys; assert json.load(open(sys.argv[1]))["version"]==2' "$backup/api-version.json"
 (cd "$cabinet" && docker compose up -d --force-recreate --no-deps --no-build --pull never cabinet-frontend </dev/null)
 echo 'Ожидаем готовность кабинета: временный сброс соединения при запуске nginx допустим.'
 curl -fsS --retry 30 --retry-all-errors --retry-delay 2 --retry-max-time 90 --connect-timeout 2 --max-time 5 \

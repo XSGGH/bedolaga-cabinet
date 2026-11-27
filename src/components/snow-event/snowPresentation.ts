@@ -2,8 +2,8 @@ import type { SnowReward, SnowState } from '@/api/snowEvent';
 
 // Event protocol: a daily visit, the daily game, and four seven-day bonus windows.
 export const DAILY_VISIT = 5;
-export const DAILY_GAME = 10;
-export const WEEKLY_BONUS = 20;
+export const DAILY_GAME = 15;
+export const WEEKLY_BONUS = 25;
 export const number = (value: number) => value.toLocaleString('ru-RU');
 export const hasSubscription = (state: SnowState) =>
   state.subscription === 'active' || state.subscription === 'renewed';
