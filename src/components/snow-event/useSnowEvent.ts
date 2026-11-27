@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { snowApi } from '@/api/snowEvent';
+import { useAuthStore } from '@/store/auth';
 
 export function useSnowEvent(preview?: string) {
+  const userId = useAuthStore((state) => state.user?.id);
   return useQuery({
-    queryKey: ['snow-event', preview || 'real'],
+    queryKey: ['snow-event', preview || 'real', userId],
+    enabled: !!userId,
     queryFn: () => snowApi.state(preview),
     staleTime: 5000,
     refetchInterval: 15000,
