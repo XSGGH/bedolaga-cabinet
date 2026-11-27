@@ -99,7 +99,18 @@ export function coverageModel(mobile: MobileStatus, progress?: MobileProgress) {
   const operators = [...new Set(directions.map((r) => r.operator))];
   const down = Math.max(0, total - up);
   const tone: 'neutral' | 'success' | 'critical' | 'warning' =
-    total === 0 ? 'neutral' : down === 0 ? 'success' : up === 0 ? 'critical' : 'warning';
+    down > 0
+      ? up === 0
+        ? 'critical'
+        : 'warning'
+      : total === 0 ||
+          noResult > 0 ||
+          stale > 0 ||
+          progress?.checking ||
+          progress?.pending ||
+          progress?.running
+        ? 'neutral'
+        : 'success';
 
   return {
     directions,
@@ -116,6 +127,39 @@ export function coverageModel(mobile: MobileStatus, progress?: MobileProgress) {
     at: mobile.last_completed || progress?.last_completed || mobile.at || 0,
     checking: Boolean(progress?.checking),
     pending: Boolean(progress?.pending || (progress?.running && !progress.checking)),
+  };
+}
+
+/** Missing measurements never imply an active check. Only API progress flags do. */
+export function coveragePresentation(model: ReturnType<typeof coverageModel>) {
+  const counts = [
+    model.total > 0
+      ? `Завершено: ${model.total} · Успешно: ${model.up}`
+      : 'Завершённых проверок нет',
+    model.down > 0 ? `С ошибкой: ${model.down}` : '',
+    model.noResult > 0 ? `Без результата: ${model.noResult}` : '',
+    model.stale > 0 ? `Устарели: ${model.stale}` : '',
+    model.notRequired > 0 ? `Не требуются: ${model.notRequired}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  if (model.down > 0) return { headline: 'Обнаружены проблемы с доступностью', caption: counts };
+  if (model.checking || model.pending)
+    return {
+      headline: model.checking
+        ? 'Проверка мобильных сетей продолжается'
+        : 'Ожидаются результаты проверки',
+      caption: counts,
+    };
+  if (model.noResult > 0 || model.stale > 0)
+    return {
+      headline: model.total > 0 ? 'Доступность подтверждена частично' : 'Нет свежих данных',
+      caption: counts,
+    };
+  if (model.total > 0) return { headline: 'Мобильные сети работают штатно', caption: counts };
+  return {
+    headline: model.notRequired > 0 ? 'Проверка не требуется' : 'Нет свежих данных',
+    caption: counts,
   };
 }
 

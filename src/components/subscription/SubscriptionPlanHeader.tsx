@@ -34,7 +34,7 @@ export default function SubscriptionPlanHeader({
         ? 'bg-error-500/10 text-error-400'
         : 'bg-elevated text-dark-300';
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2">
+    <div className="xsg-plan-header grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2">
       <h2 className="min-w-0 break-words text-xl font-bold leading-tight tracking-tight text-dark-50 [overflow-wrap:anywhere] sm:text-2xl">
         {planTitle(subscription, t)}
       </h2>

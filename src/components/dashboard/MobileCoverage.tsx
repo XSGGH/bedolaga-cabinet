@@ -3,6 +3,7 @@ import { ChevronRightIcon, CloseIcon } from '@/components/icons';
 import {
   checkTime,
   coverageModel,
+  coveragePresentation,
   districtCount,
   DIRECTION_STATES,
   DISTRICTS,
@@ -40,23 +41,7 @@ export default function MobileCoverage({
     .join(' · ');
 
   const summary = `Мобильные сети: ${model.up} из ${model.total} проверок успешны. ${footprint}. Не требуются: ${model.notRequired}. Без результата: ${model.noResult}. Устарели: ${model.stale}. Открыть подробности`;
-  const healthy = model.total > 0 && model.up === model.total && model.down === 0 && model.noResult === 0 && model.stale === 0 && !model.checking && !model.pending;
-  const headline = healthy ? 'Работают нормально' :
-    model.total === 0
-      ? model.notRequired > 0 && model.noResult === 0 && model.stale === 0
-        ? 'Проверка не требуется'
-        : 'Нет свежих данных'
-      : model.down > 0
-        ? 'Есть проблемы с подключением'
-        : 'Все завершённые проверки успешны';
-  const caption = [
-    model.total > 0 ? `${model.up} из ${model.total} успешно` : '',
-    model.notRequired > 0 ? `${model.notRequired} не требуются` : '',
-    model.noResult > 0 ? `${model.noResult} без результата` : '',
-    model.stale > 0 ? `Устарели: ${model.stale}` : '',
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  const { headline, caption } = coveragePresentation(model);
 
   return (
     <Dialog.Root>
@@ -71,9 +56,7 @@ export default function MobileCoverage({
             <span className={`block text-sm font-semibold leading-snug ${TONES[model.tone]}`}>
               {headline}
             </span>
-            <span className="block text-xs leading-relaxed text-dark-300">
-              {healthy ? 'Все необходимые проверки пройдены' : model.down > 0 ? 'Есть подтверждённые проблемы — подробнее' : model.checking ? 'Идёт проверка' : model.pending ? 'Ждём результат' : model.noResult > 0 || model.stale > 0 ? 'Часть результатов ещё уточняется' : 'Статусы по операторам и округам — подробнее'}
-            </span>
+            <span className="block text-xs leading-relaxed text-dark-300">{caption}</span>
           </span>
           <ChevronRightIcon className="h-4 w-4 shrink-0 text-accent-300" />
         </button>

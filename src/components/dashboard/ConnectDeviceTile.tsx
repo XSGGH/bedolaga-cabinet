@@ -16,42 +16,59 @@ interface ConnectDeviceTileProps {
   onIncreaseLimit?: () => void;
 }
 
-export default function ConnectDeviceTile({
+function deviceLimitReached({ subscription, connectedDevices }: ConnectDeviceTileProps) {
+  return (
+    subscription.device_limit > 0 &&
+    connectedDevices !== undefined &&
+    connectedDevices >= subscription.device_limit
+  );
+}
+
+export function ConnectDeviceAction({
   subscription,
   connectedDevices,
   onManage,
   connectionPath,
+}: ConnectDeviceTileProps) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const full = deviceLimitReached({ subscription, connectedDevices });
+  if (!subscription.subscription_url) return null;
+  return (
+    <button
+      type="button"
+      data-onboarding="connect-devices"
+      data-full={full ? true : undefined}
+      onClick={() => {
+        if (full && onManage) onManage();
+        else
+          navigate(
+            full
+              ? `/subscriptions/${subscription.id}`
+              : (connectionPath ?? `/connection?sub=${subscription.id}`),
+          );
+      }}
+      className={`xsg-connect-primary ${subscriptionActionClass} bg-accent-500 text-on-accent hover:bg-accent-600 active:bg-accent-700 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-800`}
+    >
+      <MonitorIcon className="h-[18px] w-[18px] shrink-0" />
+      {full ? t('subscription.myDevices') : t('dashboard.connectDevice')}
+    </button>
+  );
+}
+
+export function DeviceConnectionSummary({
+  subscription,
+  connectedDevices,
   canIncreaseLimit = false,
   showSummary = true,
   onIncreaseLimit,
 }: ConnectDeviceTileProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const full =
-    subscription.device_limit > 0 &&
-    connectedDevices !== undefined &&
-    connectedDevices >= subscription.device_limit;
+  const full = deviceLimitReached({ subscription, connectedDevices });
   if (!subscription.subscription_url) return null;
   return (
-    <div className="xsg-connect-tile">
-      <button
-        type="button"
-        data-onboarding="connect-devices"
-        data-full={full ? true : undefined}
-        onClick={() => {
-          if (full && onManage) onManage();
-          else
-            navigate(
-              full
-                ? `/subscriptions/${subscription.id}`
-                : (connectionPath ?? `/connection?sub=${subscription.id}`),
-            );
-        }}
-        className={`xsg-connect-primary ${subscriptionActionClass} bg-accent-500 text-on-accent hover:bg-accent-600 active:bg-accent-700 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-800`}
-      >
-        <MonitorIcon className="h-[18px] w-[18px] shrink-0" />
-        {full ? t('subscription.myDevices') : t('dashboard.connectDevice')}
-      </button>
+    <>
       {showSummary && (
         <DeviceSlotsIndicator
           connectedDevices={connectedDevices}
@@ -70,6 +87,16 @@ export default function ConnectDeviceTile({
           {t('addonsUi.increaseDevices')}
         </AddonPurchaseButton>
       )}
+    </>
+  );
+}
+
+export default function ConnectDeviceTile(props: ConnectDeviceTileProps) {
+  if (!props.subscription.subscription_url) return null;
+  return (
+    <div className="xsg-connect-tile">
+      <ConnectDeviceAction {...props} />
+      <DeviceConnectionSummary {...props} />
     </div>
   );
 }

@@ -7755,6 +7755,7 @@
     }
   },
   "gift": {
+    "orderSummary": "Your gift",
     "title": "Gift Subscription",
     "subtitle": "Send a VPN subscription as a gift",
     "choosePeriod": "Choose period",

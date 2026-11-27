@@ -181,14 +181,16 @@ export default function ServerStatus() {
           />
         </button>
       </div>
-      <p
-        className="xsg-server-status-summary flex items-center gap-2 text-sm font-medium"
-        style={{ color: chip.color }}
-      >
-        <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
-        {chip.text}
-      </p>
-      <p className="xsg-server-status-count text-xs text-dark-400">{model.description}</p>
+      <div className="xsg-server-status-result contents [&>p]:mt-3 lg:[&>p]:mt-0">
+        <p
+          className="xsg-server-status-summary flex items-center gap-2 text-sm font-medium"
+          style={{ color: chip.color }}
+        >
+          <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
+          {chip.text}
+        </p>
+        <p className="xsg-server-status-count text-xs text-dark-400">{model.description}</p>
+      </div>
       <div
         id="server-status-details"
         hidden={visibleServers.length === 0}

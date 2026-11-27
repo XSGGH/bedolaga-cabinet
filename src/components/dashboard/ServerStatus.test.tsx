@@ -104,7 +104,7 @@ describe('ServerStatus integration', () => {
     fireEvent.click(coverage);
     const dialog = screen.getByRole('dialog', { name: 'Мобильные сети' });
     expect(dialog).toBeTruthy();
-    expect(within(dialog).getByText(/1 без результата/)).toBeTruthy();
+    expect(within(dialog).getByText(/Без результата: 1/)).toBeTruthy();
     expect(screen.getByRole('cell', { name: /СФО, МТС: Нет результата/ })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Закрыть' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());

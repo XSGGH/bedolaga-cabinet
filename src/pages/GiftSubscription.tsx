@@ -711,7 +711,7 @@ function BuyTabContent({
               className="rounded-xl border border-warning-500/20 bg-warning-500/5 p-3"
             >
               <p className="text-sm text-warning-400">
-                {t('gift.insufficientBalance')}{' '}
+                <span className="lg:hidden">{t('gift.insufficientBalance')}{' '}</span>
                 <span className="xsg-gift-missing hidden">{t('balance.missing')} {formatPrice(Math.max(0, currentPrice - config.balance_kopeks))}. </span>
                 <Link
                   to="/balance"
@@ -760,6 +760,7 @@ function BuyTabContent({
         </button>
         {selectedTariff && selectedPeriod && (
           <div className="xsg-gift-order hidden rounded-2xl border border-line bg-surface p-5">
+            <h2 className="mb-5 text-base font-semibold text-dark-100">{t('gift.orderSummary')}</h2>
             <dl className="space-y-3 text-sm">
               <div className="flex justify-between gap-4">
                 <dt className="text-dark-300">{t('gift.tariff')}</dt>
