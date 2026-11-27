@@ -41,6 +41,9 @@ def probe_arguments(script, port):
     line = next(line.strip() for line in source.splitlines()
                 if line.strip().startswith('curl ') and 'http://127.0.0.1:3020/snow-event >' in line)
     args = shlex.split(line)
+    # Strip shell output redirection before executing curl directly.
+    if '>' in args:
+        args = args[:args.index('>')]
     args = [arg for arg in args if arg != '>/dev/null']
     args[0] = shutil.which('curl.exe') or shutil.which('curl')
     if not args[0]:
@@ -80,6 +83,16 @@ class DeploymentReadinessTests(unittest.TestCase):
         result, requests = self.run_probe('xsg-resume-snow.sh', reset_count=2)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(requests, 3)
+
+    def test_frontend_only_waits_through_connection_resets(self):
+        result, requests = self.run_probe('xsg-deploy-cabinet.sh', reset_count=2)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(requests, 3)
+
+    def test_frontend_only_rejects_persistent_http_error(self):
+        result, requests = self.run_probe('xsg-deploy-cabinet.sh', status=503)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertGreater(requests, 1)
 
     def test_original_policy_fails_on_first_reset(self):
         result, requests = self.run_probe('xsg-deploy-snow.sh', reset_count=2, original_policy=True)
