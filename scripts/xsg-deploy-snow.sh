@@ -152,6 +152,8 @@ recover() {
     local code=$?
     trap - ERR
     if test "$source_installed" = 1; then
+        (cd "$bot" && docker compose logs --no-color --tail 100 bot) > "$backup/bot/failure.log" 2>&1 || true
+        (cd "$cabinet" && docker compose logs --no-color --tail 100 cabinet-frontend) > "$backup/cabinet/failure.log" 2>&1 || true
         echo "Деплой не прошёл проверку. Возвращаем сохранённые образы: $backup"
         rollback || echo "Автооткат требует проверки. Команда: bash '$backup/deploy-script.sh' --rollback '$backup'"
     fi
@@ -173,11 +175,15 @@ while IFS= read -r relative; do
 done < "$backup/manifest"
 "${bot_compose[@]}" up -d --force-recreate --no-deps --no-build --pull never bot </dev/null
 curl -fsS --retry 20 --retry-all-errors --retry-delay 3 --max-time 4 http://127.0.0.1:8080/health >/dev/null
-status=$(curl -sS -o "$backup/api-auth-check.json" -w '%{http_code}' http://127.0.0.1:8080/cabinet/snow-event)
+status=$(curl -sS --retry 20 --retry-all-errors --retry-delay 2 --retry-max-time 90 --connect-timeout 2 --max-time 5 \
+    -o "$backup/api-auth-check.json" -w '%{http_code}' http://127.0.0.1:8080/cabinet/snow-event)
 test "$status" = 401 || test "$status" = 403
 (cd "$cabinet" && docker compose up -d --force-recreate --no-deps --no-build --pull never cabinet-frontend </dev/null)
-curl -fsS --retry 10 --retry-connrefused --retry-delay 2 http://127.0.0.1:3020/snow-event >/dev/null
-curl -fsS http://127.0.0.1:3020/snow-event/winter-hero.webp >/dev/null
+echo 'Ожидаем готовность кабинета: временный сброс соединения при запуске nginx допустим.'
+curl -fsS --retry 30 --retry-all-errors --retry-delay 2 --retry-max-time 90 --connect-timeout 2 --max-time 5 \
+    http://127.0.0.1:3020/snow-event >/dev/null
+curl -fsS --retry 10 --retry-all-errors --retry-delay 2 --retry-max-time 45 --connect-timeout 2 --max-time 5 \
+    http://127.0.0.1:3020/snow-event/winter-hero.webp >/dev/null
 container=$(cd "$cabinet" && docker compose ps -q cabinet-frontend)
 (cd "$cabinet" && python3 scripts/xsg-verify-deployment.py --container "$container" --site https://xsgvpn.ru) | tee "$backup/served-assets.json"
 trap - ERR

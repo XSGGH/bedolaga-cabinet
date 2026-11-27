@@ -43,6 +43,32 @@ bash /root/xsg-deploy-snow.sh
 `/home/user1/remnawave-bedolaga-telegram-bot`. Предполагаются существующие
 Compose services `bot`, `postgres`, `cabinet-frontend` и порты 8080/3020.
 
+### Продолжение после автоматического отката
+
+Если оба образа собраны, таблицы созданы, но проверка получила `curl (56)`
+сразу после запуска кабинета, повторная сборка не требуется. Исправленная
+проверка повторяет запросы после сброса соединения и ждёт готовности nginx
+до 90 секунд. Постоянная ошибка по-прежнему приводит к откату; её логи
+сохраняются в приватном каталоге бэкапа.
+
+Скрипт `scripts/xsg-resume-snow.sh BACKUP` использует готовые образы и staging
+исходники. Сначала он проверяет, что контейнеры всё ещё соответствуют образам
+отката, а исходники бота не менялись. Затем сохраняет свежий PostgreSQL dump,
+восстанавливает модули события и повторяет переключение с ожиданием API/nginx.
+При несовпадении состояния он останавливается до замены контейнеров.
+
+Например, для неудачной попытки 27 ноября:
+
+```bash
+sudo bash -c '
+set -euo pipefail
+repo=/home/user1/bedolaga-cabinet
+git -c safe.directory="$repo" -C "$repo" fetch https://github.com/XSGGH/bedolaga-cabinet.git xsg-theme
+git -c safe.directory="$repo" -C "$repo" show FETCH_HEAD:scripts/xsg-resume-snow.sh > /root/xsg-resume-snow.sh
+bash /root/xsg-resume-snow.sh /root/xsg-snow-backups/20261127-201244
+'
+```
+
 Скрипт сохраняет образы (в том числе через `docker commit`, если исходный
 образ удалён), код, изменения Git, Compose, nginx и PostgreSQL dump в
 `/root/xsg-snow-backups/TIMESTAMP`. Затем собирает оба образа и проверяет
