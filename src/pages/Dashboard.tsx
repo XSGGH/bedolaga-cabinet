@@ -1,3 +1,4 @@
+import SnowEventBanner from '@/components/snow-event/SnowEventBanner';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useQueries, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router';
@@ -293,6 +294,7 @@ export default function Dashboard() {
       {/* Предупреждение выше подарков и предложений: человек должен увидеть его
           раньше, чем всё остальное, иначе объяснение теряется в ленте. */}
       <AbuseNoticeCard />
+      <SnowEventBanner />
 
       {pendingGifts && pendingGifts.length > 0 && <PendingGiftCard gifts={pendingGifts} />}
 

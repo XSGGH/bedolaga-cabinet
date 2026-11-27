@@ -1,3 +1,4 @@
+import SnowCosmetics from '@/components/snow-event/SnowCosmetics';
 import { uiLocale } from '@/utils/uiLocale';
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -267,6 +268,8 @@ export default function Profile() {
       <motion.div variants={staggerItem}>
         <h1 className="text-2xl font-bold text-dark-50 sm:text-3xl">{t('profile.title')}</h1>
       </motion.div>
+
+      <SnowCosmetics />
 
       <div className="xsg-profile-layout grid gap-5 lg:grid-cols-2 lg:items-start">
         <div className="xsg-profile-flow contents lg:flex lg:flex-col lg:gap-5">

@@ -94,6 +94,8 @@ const AdminTicketSettings = lazyWithRetry(() => import('./pages/AdminTicketSetti
 const AdminSettings = lazyWithRetry(() => import('./pages/AdminSettings'));
 const AdminGraceAccess = lazyWithRetry(() => import('./pages/AdminGraceAccess'));
 const AdminApps = lazyWithRetry(() => import('./pages/AdminApps'));
+const SnowEvent = lazyWithRetry(() => import('./pages/SnowEvent'));
+const AdminSnowEvent = lazyWithRetry(() => import('./pages/AdminSnowEvent'));
 const AdminWheel = lazyWithRetry(() => import('./pages/AdminWheel'));
 const AdminTariffs = lazyWithRetry(() => import('./pages/AdminTariffs'));
 const AdminTariffCreate = lazyWithRetry(() => import('./pages/AdminTariffCreate'));
@@ -398,6 +400,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/snow-event" element={<ProtectedRoute><LazyPage><SnowEvent /></LazyPage></ProtectedRoute>} />
+        <Route path="/admin/snow-event" element={<AdminRoute><LazyPage><AdminSnowEvent /></LazyPage></AdminRoute>} />
+        <Route path="/admin/snow-event/preview/:previewId" element={<AdminRoute><LazyPage><SnowEvent /></LazyPage></AdminRoute>} />
         {/* Legacy redirects for backward compatibility */}
         <Route path="/subscription/:subscriptionId" element={<LegacySubscriptionRedirect />} />
         <Route

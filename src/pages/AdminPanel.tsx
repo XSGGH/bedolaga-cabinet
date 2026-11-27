@@ -829,6 +829,12 @@ export default function AdminPanel() {
           paddingBottom: safeBottom > 0 ? `${safeBottom}px` : 'env(safe-area-inset-bottom, 0px)',
         }}
       >
+        <Link
+          to="/admin/snow-event"
+          className="rounded-xl border border-accent-400/30 bg-accent-400/10 px-4 py-3 text-sm text-accent-300"
+        >
+          ❄ Снежный переполох · управление и предпросмотр ↗
+        </Link>
         {/* Hero + Search */}
         <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3">
           <h1 className="text-lg font-bold tracking-tight text-dark-50 light:text-champagne-900 sm:text-xl">

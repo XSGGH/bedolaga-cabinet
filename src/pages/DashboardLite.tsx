@@ -1,3 +1,4 @@
+import SnowEventBanner from '@/components/snow-event/SnowEventBanner';
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -162,6 +163,7 @@ export default function DashboardLite() {
   if (isLoading) {
     return (
       <div className="mx-auto w-full max-w-lg">
+      <SnowEventBanner />
         <SkeletonGroup className="pb-7 pt-8">
           <Skeleton className="h-8 w-56" />
           <Skeleton className="mt-3 h-8 w-40" />
