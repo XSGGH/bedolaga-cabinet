@@ -12,6 +12,7 @@ import { withdrawalApi } from '../api/withdrawals';
 import { CampaignCard } from '../components/partner/CampaignCard';
 import { useCurrency } from '../hooks/useCurrency';
 import { StatCard } from '@/components/stats';
+import ReferralFinance from '@/components/referral/ReferralFinance';
 import { PageSkeleton, Skeleton } from '@/components/ui/skeleton';
 import {
   BanknotesIcon,
@@ -657,6 +658,248 @@ export default function Referral() {
   const showApprovedSection = partnerStatusValue === 'approved';
   const showRejectedSection = partnerStatusValue === 'rejected';
 
+  const withdrawalPanel = withdrawalEnabled && withdrawalBalance && (
+    <div className="xsg-withdrawal-balance bento-card">
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-500/10 text-accent-400">
+          <WalletIcon className="h-8 w-8" />
+        </div>
+        <h2 className="text-lg font-semibold text-dark-100">{t('referral.withdrawal.title')}</h2>
+      </div>
+
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+        {[
+          ['available', withdrawalBalance.available_total],
+          ['totalEarned', withdrawalBalance.total_earned],
+          ['withdrawn', withdrawalBalance.withdrawn],
+          ['spent', withdrawalBalance.referral_spent],
+          ['pending', withdrawalBalance.pending],
+        ].map(([key, value], index) => (
+          <div
+            key={String(key)}
+            className={index === 0 ? 'col-span-2 border-b border-divider pb-3' : ''}
+          >
+            <dt className="text-xs text-dark-400">{t(`referral.withdrawal.${key}`)}</dt>
+            <dd
+              className={
+                index === 0
+                  ? 'mt-1 text-xl font-semibold text-dark-50'
+                  : 'mt-1 text-sm font-medium text-dark-200'
+              }
+            >
+              {formatWithCurrency(Number(value) / 100)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-4">
+        <button
+          onClick={() => navigate('/referral/withdrawal/request')}
+          disabled={!withdrawalBalance.can_request}
+          className={`btn-primary w-full px-6 sm:w-auto ${
+            !withdrawalBalance.can_request ? 'cursor-not-allowed opacity-50' : ''
+          }`}
+        >
+          {t('referral.withdrawal.requestButton')}
+        </button>
+        {!withdrawalBalance.can_request && withdrawalBalance.cannot_request_reason ? (
+          <p className="mt-2 text-xs text-dark-500">{withdrawalBalance.cannot_request_reason}</p>
+        ) : (
+          withdrawalBalance.min_amount_kopeks > 0 && (
+            <p className="mt-2 text-xs text-dark-500">
+              {t('referral.withdrawal.minAmount', {
+                amount: formatWithCurrency(withdrawalBalance.min_amount_kopeks / 100),
+              })}
+            </p>
+          )
+        )}
+      </div>
+    </div>
+  );
+  const withdrawalHistoryPanel = (
+    <div className="xsg-withdrawal-history bento-card">
+      <h2 className="mb-4 text-lg font-semibold text-dark-100">
+        {t('referral.withdrawal.history')}
+      </h2>
+      {withdrawalHistory?.items && withdrawalHistory.items.length > 0 ? (
+        <div className="space-y-3">
+          {withdrawalHistory.items.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between gap-3 rounded-xl border border-dark-700/30 bg-dark-800/30 p-3"
+            >
+              <div className="min-w-0 flex-1">
+                {/* Сумма и статус не рвутся внутри себя: не влезли рядом —
+                          статус уходит строкой ниже, а не «₽» и полбейджа. */}
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="whitespace-nowrap font-medium text-dark-100">
+                    {formatWithCurrency(item.amount_rubles)}
+                  </span>
+                  <span className={`whitespace-nowrap ${getWithdrawalStatusBadge(item.status)}`}>
+                    {t(`referral.withdrawal.status.${item.status}`, item.status)}
+                  </span>
+                </div>
+                <div className="mt-0.5 text-xs text-dark-500">
+                  {new Date(item.created_at).toLocaleDateString(i18n.language)}
+                  {item.payment_details && (
+                    <span className="ml-1">
+                      &bull;{' '}
+                      {item.payment_details.length > 40
+                        ? `${item.payment_details.slice(0, 40)}...`
+                        : item.payment_details}
+                    </span>
+                  )}
+                </div>
+                {item.admin_comment && (
+                  <div className="mt-1 text-xs text-dark-400 [overflow-wrap:anywhere]">
+                    {item.status === 'rejected' && (
+                      <span className="font-medium">{t('referral.rejectionReason')} </span>
+                    )}
+                    {item.admin_comment}
+                  </div>
+                )}
+              </div>
+              {item.status === 'pending' && (
+                <button
+                  onClick={() => cancelWithdrawalMutation.mutate(item.id)}
+                  disabled={cancelWithdrawalMutation.isPending}
+                  className="btn-secondary shrink-0 px-3 py-1.5 text-sm text-error-400 hover:text-error-300"
+                >
+                  {t('common.cancel')}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="py-3 text-center text-sm">
+          <div className="text-dark-400">{t('referral.withdrawal.noHistory')}</div>
+        </div>
+      )}
+    </div>
+  );
+  const partnerApplicationPanel = (
+    <div className="order-5 empty:hidden">
+      {/* ==================== Partner Application Section ==================== */}
+
+      {/* Status: none — Become a Partner CTA */}
+      {terms?.partner_section_visible !== false && showApplySection && (
+        <div className="bento-card">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent-500/10 text-accent-400">
+              <PartnerIcon className="h-8 w-8" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-dark-100">
+                {t('referral.partner.becomePartner')}
+              </h2>
+              <p className="mt-1 text-sm text-dark-400">
+                {/* Обещать вывод заработка, когда вывод выключен, нельзя: заявку
+                    подадут ради того, чего не будет. */}
+                {t(
+                  withdrawalTurnedOff
+                    ? 'referral.partner.becomePartnerDescNoWithdrawal'
+                    : 'referral.partner.becomePartnerDesc',
+                )}
+              </p>
+              <button
+                onClick={() => navigate('/referral/partner/apply')}
+                className="btn-primary mt-4 px-6"
+              >
+                {t('referral.partner.applyButton')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status: pending — Application Under Review */}
+      {terms?.partner_section_visible !== false && showPendingSection && (
+        <div className="bento-card border-warning-500/20">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-warning-500/10 text-warning-400">
+              <ClockIcon />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-dark-100">
+                {t('referral.partner.underReview')}
+              </h2>
+              <p className="mt-1 text-sm text-dark-400">{t('referral.partner.underReviewDesc')}</p>
+              {partnerStatus?.latest_application?.created_at && (
+                <p className="mt-2 text-xs text-dark-500">
+                  {t('referral.partner.submittedAt', {
+                    date: new Date(partnerStatus.latest_application.created_at).toLocaleDateString(
+                      i18n.language,
+                    ),
+                  })}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status: approved — Partner Badge */}
+      {terms?.partner_section_visible !== false && showApprovedSection && (
+        <div className="bento-card border-success-500/20">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-success-500/10 text-success-400">
+              <PartnerIcon className="h-8 w-8" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-dark-100">
+                  {t('referral.partner.partnerStatus')}
+                </h2>
+                <span className="badge-success">{t('referral.partner.active')}</span>
+              </div>
+              <p className="mt-1 text-sm text-dark-400">
+                {t('referral.partner.commissionInfo', {
+                  percent: partnerStatus?.commission_percent ?? 0,
+                })}
+              </p>
+            </div>
+            {withdrawalSectionVisible && (
+              <a href="#withdrawal-section" className="btn-secondary hidden px-4 sm:flex">
+                {t('referral.withdrawal.goToWithdrawal')}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Status: rejected — Rejection Notice */}
+      {terms?.partner_section_visible !== false && showRejectedSection && (
+        <div className="bento-card border-error-500/20">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-error-500/10 text-error-400">
+              <ExclamationIcon className="h-8 w-8" />
+            </div>
+            {/* Ссылка в комментарии администратора распирала колонку — обрезался заголовок. */}
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-semibold text-dark-100">
+                {t('referral.partner.rejected')}
+              </h2>
+              {partnerStatus?.latest_application?.admin_comment && (
+                <p className="mt-1 text-sm text-dark-300 [overflow-wrap:anywhere]">
+                  <span className="font-medium">{t('referral.rejectionReason')} </span>
+                  {partnerStatus.latest_application.admin_comment}
+                </p>
+              )}
+              <button
+                onClick={() => navigate('/referral/partner/apply')}
+                className="btn-primary mt-4 px-6"
+              >
+                {t('referral.partner.reapplyButton')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-bold text-dark-50 sm:text-3xl">{t('referral.title')}</h1>
@@ -799,7 +1042,12 @@ export default function Referral() {
                 {t('referral.yourReferrals')}
               </h2>
               {referralList?.items && referralList.items.length > 0 ? (
-                <div className="space-y-3">
+                <div
+                  className="xsg-referral-users space-y-3"
+                  role="region"
+                  aria-label={t('referral.yourReferrals')}
+                  tabIndex={0}
+                >
                   {referralList.items.map((ref) => (
                     <div
                       key={ref.id}
@@ -896,254 +1144,20 @@ export default function Referral() {
                 </div>
               )}
           </div>
-          <div className="xsg-referral-finance contents">
-            {/* ==================== Withdrawal Section ==================== */}
-
-            {withdrawalSectionVisible && (
-              <div id="withdrawal-section" className="order-8 space-y-6">
-                {/* Withdrawal Balance Card */}
-                {withdrawalEnabled && withdrawalBalance && (
-                  <div className="xsg-withdrawal-balance bento-card">
-                    <div className="mb-4 flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-500/10 text-accent-400">
-                        <WalletIcon className="h-8 w-8" />
-                      </div>
-                      <h2 className="text-lg font-semibold text-dark-100">
-                        {t('referral.withdrawal.title')}
-                      </h2>
-                    </div>
-
-                    <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
-                      {[
-                        ['available', withdrawalBalance.available_total],
-                        ['totalEarned', withdrawalBalance.total_earned],
-                        ['withdrawn', withdrawalBalance.withdrawn],
-                        ['spent', withdrawalBalance.referral_spent],
-                        ['pending', withdrawalBalance.pending],
-                      ].map(([key, value], index) => (
-                        <div key={String(key)} className={index === 0 ? 'col-span-2 border-b border-divider pb-3' : ''}>
-                          <dt className="text-xs text-dark-400">{t('referral.withdrawal.' + key)}</dt>
-                          <dd className={index === 0 ? 'mt-1 text-xl font-semibold text-dark-50' : 'mt-1 text-sm font-medium text-dark-200'}>{formatWithCurrency(Number(value) / 100)}</dd>
-                        </div>
-                      ))}
-                    </dl>
-
-                    <div className="mt-4">
-                      <button
-                        onClick={() => navigate('/referral/withdrawal/request')}
-                        disabled={!withdrawalBalance.can_request}
-                        className={`btn-primary w-full px-6 sm:w-auto ${
-                          !withdrawalBalance.can_request ? 'cursor-not-allowed opacity-50' : ''
-                        }`}
-                      >
-                        {t('referral.withdrawal.requestButton')}
-                      </button>
-                      {!withdrawalBalance.can_request && withdrawalBalance.cannot_request_reason ? (
-                        <p className="mt-2 text-xs text-dark-500">
-                          {withdrawalBalance.cannot_request_reason}
-                        </p>
-                      ) : (
-                        withdrawalBalance.min_amount_kopeks > 0 && (
-                          <p className="mt-2 text-xs text-dark-500">
-                            {t('referral.withdrawal.minAmount', {
-                              amount: formatWithCurrency(withdrawalBalance.min_amount_kopeks / 100),
-                            })}
-                          </p>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Withdrawal History */}
-                <div className="xsg-withdrawal-history bento-card">
-                  <h2 className="mb-4 text-lg font-semibold text-dark-100">
-                    {t('referral.withdrawal.history')}
-                  </h2>
-                  {withdrawalHistory?.items && withdrawalHistory.items.length > 0 ? (
-                    <div className="space-y-3">
-                      {withdrawalHistory.items.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center justify-between gap-3 rounded-xl border border-dark-700/30 bg-dark-800/30 p-3"
-                        >
-                          <div className="min-w-0 flex-1">
-                            {/* Сумма и статус не рвутся внутри себя: не влезли рядом —
-                          статус уходит строкой ниже, а не «₽» и полбейджа. */}
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                              <span className="whitespace-nowrap font-medium text-dark-100">
-                                {formatWithCurrency(item.amount_rubles)}
-                              </span>
-                              <span
-                                className={`whitespace-nowrap ${getWithdrawalStatusBadge(item.status)}`}
-                              >
-                                {t(`referral.withdrawal.status.${item.status}`, item.status)}
-                              </span>
-                            </div>
-                            <div className="mt-0.5 text-xs text-dark-500">
-                              {new Date(item.created_at).toLocaleDateString(i18n.language)}
-                              {item.payment_details && (
-                                <span className="ml-1">
-                                  &bull;{' '}
-                                  {item.payment_details.length > 40
-                                    ? `${item.payment_details.slice(0, 40)}...`
-                                    : item.payment_details}
-                                </span>
-                              )}
-                            </div>
-                            {item.admin_comment && (
-                              <div className="mt-1 text-xs text-dark-400 [overflow-wrap:anywhere]">
-                                {item.status === 'rejected' && <span className="font-medium">{t('referral.rejectionReason')} </span>}{item.admin_comment}
-                              </div>
-                            )}
-                          </div>
-                          {item.status === 'pending' && (
-                            <button
-                              onClick={() => cancelWithdrawalMutation.mutate(item.id)}
-                              disabled={cancelWithdrawalMutation.isPending}
-                              className="btn-secondary shrink-0 px-3 py-1.5 text-sm text-error-400 hover:text-error-300"
-                            >
-                              {t('common.cancel')}
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-3 text-center text-sm">
-                      <div className="text-dark-400">{t('referral.withdrawal.noHistory')}</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          <div className="order-5 empty:hidden">
-            {/* ==================== Partner Application Section ==================== */}
-
-            {/* Status: none — Become a Partner CTA */}
-            {terms?.partner_section_visible !== false && showApplySection && (
-              <div className="bento-card">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent-500/10 text-accent-400">
-                    <PartnerIcon className="h-8 w-8" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-dark-100">
-                      {t('referral.partner.becomePartner')}
-                    </h2>
-                    <p className="mt-1 text-sm text-dark-400">
-                      {/* Обещать вывод заработка, когда вывод выключен, нельзя: заявку
-                    подадут ради того, чего не будет. */}
-                      {t(
-                        withdrawalTurnedOff
-                          ? 'referral.partner.becomePartnerDescNoWithdrawal'
-                          : 'referral.partner.becomePartnerDesc',
-                      )}
-                    </p>
-                    <button
-                      onClick={() => navigate('/referral/partner/apply')}
-                      className="btn-primary mt-4 px-6"
-                    >
-                      {t('referral.partner.applyButton')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Status: pending — Application Under Review */}
-            {terms?.partner_section_visible !== false && showPendingSection && (
-              <div className="bento-card border-warning-500/20">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-warning-500/10 text-warning-400">
-                    <ClockIcon />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-dark-100">
-                      {t('referral.partner.underReview')}
-                    </h2>
-                    <p className="mt-1 text-sm text-dark-400">
-                      {t('referral.partner.underReviewDesc')}
-                    </p>
-                    {partnerStatus?.latest_application?.created_at && (
-                      <p className="mt-2 text-xs text-dark-500">
-                        {t('referral.partner.submittedAt', {
-                          date: new Date(
-                            partnerStatus.latest_application.created_at,
-                          ).toLocaleDateString(i18n.language),
-                        })}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Status: approved — Partner Badge */}
-            {terms?.partner_section_visible !== false && showApprovedSection && (
-              <div className="bento-card border-success-500/20">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-success-500/10 text-success-400">
-                    <PartnerIcon className="h-8 w-8" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-semibold text-dark-100">
-                        {t('referral.partner.partnerStatus')}
-                      </h2>
-                      <span className="badge-success">{t('referral.partner.active')}</span>
-                    </div>
-                    <p className="mt-1 text-sm text-dark-400">
-                      {t('referral.partner.commissionInfo', {
-                        percent: partnerStatus?.commission_percent ?? 0,
-                      })}
-                    </p>
-                  </div>
-                  {withdrawalSectionVisible && (
-                    <a href="#withdrawal-section" className="btn-secondary hidden px-4 sm:flex">
-                      {t('referral.withdrawal.goToWithdrawal')}
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Status: rejected — Rejection Notice */}
-            {terms?.partner_section_visible !== false && showRejectedSection && (
-              <div className="bento-card border-error-500/20">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-error-500/10 text-error-400">
-                    <ExclamationIcon className="h-8 w-8" />
-                  </div>
-                  {/* Ссылка в комментарии администратора распирала колонку — обрезался заголовок. */}
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-lg font-semibold text-dark-100">
-                      {t('referral.partner.rejected')}
-                    </h2>
-                    {partnerStatus?.latest_application?.admin_comment && (
-                      <p className="mt-1 text-sm text-dark-300 [overflow-wrap:anywhere]">
-                        <span className="font-medium">{t('referral.rejectionReason')} </span>{partnerStatus.latest_application.admin_comment}
-                      </p>
-                    )}
-                    <button
-                      onClick={() => navigate('/referral/partner/apply')}
-                      className="btn-primary mt-4 px-6"
-                    >
-                      {t('referral.partner.reapplyButton')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          </div>
+          <ReferralFinance
+            withdrawalVisible={withdrawalSectionVisible}
+            partnerVisible={terms?.partner_section_visible !== false}
+            balance={withdrawalPanel}
+            history={withdrawalHistoryPanel}
+            application={partnerApplicationPanel}
+          />
         </div>
         <div className="xsg-referral-flow contents lg:flex lg:flex-col lg:gap-5">
           <div className="order-3 empty:hidden">
             {/* Program Terms */}
             {programTerms}
           </div>
-          <div className="order-4 empty:hidden">
+          <div className="xsg-referral-rewards order-4 empty:hidden">
             {/* Reward Settings */}
             {terms && (
               <div>
@@ -1165,7 +1179,6 @@ export default function Referral() {
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>

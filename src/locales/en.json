@@ -1123,6 +1123,8 @@
     "scanQrToPay": "Scan the QR code in your banking app or open the payment page"
   },
   "referral": {
+    "financialSection": "Finances",
+    "financialPartnerLabel": "Partner programme",
     "viaTelegram": "Via Telegram",
     "viaWebsite": "Via website",
     "rejectionReason": "Reason for rejection:",

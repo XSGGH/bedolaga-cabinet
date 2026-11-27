@@ -1151,6 +1151,8 @@
     "scanQrToPay": "Отсканируйте QR-код в приложении банка или откройте оплату"
   },
   "referral": {
+    "financialSection": "Финансы",
+    "financialPartnerLabel": "Партнёрская программа",
     "viaTelegram": "Через Telegram",
     "viaWebsite": "Через сайт",
     "rejectionReason": "Причина отказа:",
