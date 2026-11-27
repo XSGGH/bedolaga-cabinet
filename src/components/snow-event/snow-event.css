@@ -596,6 +596,7 @@
   color: #b6b2c1;
 }
 .snow-banner {
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 16px;
