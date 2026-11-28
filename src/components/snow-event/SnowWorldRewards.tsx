@@ -5,6 +5,16 @@ import { hasSubscription } from './snowPresentation';
 import { giftNames } from './snowGiftNames';
 import { gameDays } from './snowGrammar';
 
+type GiftView = 'shop' | 'personal' | 'received';
+
+function optionsFor(reward: SnowReward, sub: SnowState['subscriptions'][number] | undefined) {
+  return sub
+    ? (reward.options ?? []).filter((option) =>
+        option.kind === 'hours' ? !sub.daily : sub.traffic,
+      )
+    : [];
+}
+
 const giftArtByCost: Record<number, number> = {
   20: 0,
   35: 1,
@@ -64,21 +74,22 @@ export default function SnowWorldRewards({
   state,
   preview,
   refresh,
+  view: tab,
+  changeView,
 }: {
   state: SnowState;
   preview?: string;
   refresh: () => void;
+  view: GiftView;
+  changeView: (view: GiftView) => void;
 }) {
-  const [tab, setTab] = useState<'shop' | 'personal' | 'received'>('shop');
   const [selected, setSelected] = useState<SnowReward | null>(null);
-  const [opened, setOpened] = useState<{ reward: SnowReward; option: string } | null>(null);
-  const awardedOption = opened?.reward.options?.find((option) => option.kind === opened.option);
-  const rewards =
-    tab === 'shop'
-      ? state.rewards
-      : tab === 'personal'
-        ? state.personal_rewards || []
-        : state.community_rewards || [];
+  const [opened, setOpened] = useState<{
+    reward: SnowReward;
+    option?: string;
+    pending: boolean;
+  } | null>(null);
+  const rewards = tab === 'shop' ? state.rewards : (state.personal_rewards ?? []);
   const tabs = [
     ['shop', 'За снежинки'],
     ['personal', 'За приключения'],
@@ -88,18 +99,23 @@ export default function SnowWorldRewards({
     <section className="se-panel sw-gift-shop" aria-labelledby="sw-gifts-title">
       <div className="se-section-heading">
         <div>
-          <p className="se-kicker">Выбирай маленькие зимние чудеса</p>
-          <h2 id="sw-gifts-title">Лавка кота</h2>
+          <h2 id="sw-gifts-title">Подарки</h2>
         </div>
         <GiftVisual variant={3} className="sv4-shop-sign" />
       </div>
       <p className="sv3-shop-intro">
-        Меняй снежинки на подарки. Каждый набор можно получить один раз. Время добавляется к сроку
-        подписки, а бонусный трафик действует 30 дней.
+        Твои снежинки <strong>{state.progress.balance} ❄</strong>
       </p>
+      {state.phase === 'shop_only' && <p>Обмен открыт до 8 января, 00:00 МСК.</p>}
+      {state.phase === 'finished' && <p>Обмен завершён. Полученные подарки сохранены.</p>}
       <nav className="sw-tabs sv3-gift-tabs" aria-label="Подарки события">
         {tabs.map(([key, name]) => (
-          <button type="button" key={key} aria-pressed={tab === key} onClick={() => setTab(key)}>
+          <button
+            type="button"
+            key={key}
+            aria-pressed={tab === key}
+            onClick={() => changeView(key)}
+          >
             {name}
             {key === 'received' ? ` · ${state.progress.receipts.length}` : ''}
           </button>
@@ -133,6 +149,7 @@ export default function SnowWorldRewards({
                           ? `Новый срок: ${new Date(receipt.after_end).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' })}`
                           : 'Подарок получен'}
                     </small>
+                    {receipt.option && <p>{receipt.option.name}</p>}
                   </div>
                   <strong>{receipt.cost ? `${receipt.cost} ❄` : 'Подарок'}</strong>
                 </article>
@@ -176,12 +193,7 @@ export default function SnowWorldRewards({
                 key={reward.id}
                 data-reward={reward.id}
               >
-                <button
-                  type="button"
-                  className="sv3-gift-open"
-                  aria-label={`${name} · ${labels[status]}`}
-                  onClick={() => setSelected({ ...reward, name })}
-                >
+                <div className="sv3-gift-open">
                   <span className={`sv3-gift-art sv3-gift-art-${index % 3}`}>
                     <GiftVisual rewardId={reward.id} cost={reward.cost} />
                   </span>
@@ -194,7 +206,7 @@ export default function SnowWorldRewards({
                       <small className="sv3-gift-rarity">Особенный подарок</small>
                     )}
                   </h3>
-                </button>
+                </div>
                 <div className="sw-gift-copy">
                   <p>
                     {options.map((o) => o.name).join(' или ')}
@@ -206,7 +218,10 @@ export default function SnowWorldRewards({
                   <button
                     type="button"
                     className={status === 'owned' ? 'se-success' : ''}
-                    onClick={() => setSelected({ ...reward, name })}
+                    onClick={() => {
+                      if (status === 'owned' || status === 'delivery') changeView('received');
+                      else setSelected({ ...reward, name });
+                    }}
                   >
                     {labels[status]}
                   </button>
@@ -223,8 +238,13 @@ export default function SnowWorldRewards({
           state={state}
           preview={preview}
           onClose={() => setSelected(null)}
-          onSuccess={(option) => {
-            setOpened({ reward: selected, option });
+          onError={refresh}
+          onSuccess={(receipt) => {
+            setOpened({
+              reward: selected,
+              option: receipt.option?.name,
+              pending: receipt.status === 'sync_pending',
+            });
             refresh();
           }}
         />
@@ -238,20 +258,28 @@ export default function SnowWorldRewards({
         <Dialog.Portal>
           <Dialog.Overlay className="snow-event-overlay" />
           <Dialog.Content className="snow-dialog snow-event-dialog sv3-gift-unboxing">
-            <p className="sv3-unbox-kicker">✦ Сюрприз оформлен ✦</p>
-            <Dialog.Title>Маленькое чудо уже рядом!</Dialog.Title>
+            <Dialog.Title>{opened?.pending ? 'Подарок оформлен' : 'Подарок получен'}</Dialog.Title>
             <Dialog.Description>
-              Кот бережно оформил подарок. Статус доставки появится в «Полученных».
+              {opened?.pending
+                ? 'Статус доставки появится в «Полученных».'
+                : 'Подробности сохранены в «Полученных».'}
             </Dialog.Description>
             <div className="sv4-unbox-art">
               <GiftVisual rewardId={opened?.reward.id} cost={opened?.reward.cost} />
             </div>
             <h3>{opened?.reward.name}</h3>
-            {awardedOption && <p className="sv3-unbox-reward">{awardedOption.name}</p>}
-            <p className="sv3-unbox-quote">
-              «Мур! Наш праздник стал чуточку волшебнее. Спасибо тебе!»
-            </p>
-            <Dialog.Close className="se-button">Ура!</Dialog.Close>
+            {opened?.option && <p className="sv3-unbox-reward">{opened.option}</p>}
+            <button
+              type="button"
+              className="se-button"
+              onClick={() => {
+                setOpened(null);
+                changeView('received');
+              }}
+            >
+              Посмотреть полученные
+            </button>
+            <Dialog.Close className="sw-small-button">Закрыть</Dialog.Close>
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
@@ -264,22 +292,22 @@ function GiftDialog({
   state,
   preview,
   onClose,
+  onError,
   onSuccess,
 }: {
   reward: SnowReward;
   state: SnowState;
   preview?: string;
   onClose: () => void;
-  onSuccess: (option: string) => void;
+  onError: () => void;
+  onSuccess: (receipt: SnowState['progress']['receipts'][number]) => void;
 }) {
   const suitable = state.subscriptions.filter((sub) =>
     reward.options?.some((o) => (o.kind === 'hours' ? !sub.daily : sub.traffic)),
   );
   const [subscriptionId, setSubscriptionId] = useState(suitable[0]?.id ?? 0);
   const sub = state.subscriptions.find((s) => s.id === subscriptionId);
-  const available = (reward.options || []).filter((o) =>
-    o.kind === 'hours' ? !sub?.daily : sub?.traffic,
-  );
+  const available = optionsFor(reward, sub);
   const [option, setOption] = useState<string>(
     available.find((o) => o.kind === 'hours')?.kind || available[0]?.kind || '',
   );
@@ -319,7 +347,13 @@ function GiftDialog({
                 disabled={busy}
                 onChange={(e) => {
                   setSubscriptionId(Number(e.target.value));
-                  setOption('hours');
+                  const next = optionsFor(
+                    reward,
+                    suitable.find((item) => item.id === Number(e.target.value)),
+                  );
+                  setOption(
+                    next.some((item) => item.kind === option) ? option : (next[0]?.kind ?? ''),
+                  );
                 }}
               >
                 {suitable.map((sub) => (
@@ -332,22 +366,28 @@ function GiftDialog({
           )}
           {!!reward.options?.length && (
             <>
-              <fieldset className="sw-gift-choice">
-                <legend>Выбери подарок</legend>
-                {available.map((o) => (
-                  <label key={o.kind}>
-                    <input
-                      type="radio"
-                      name="snow-gift-option"
-                      value={o.kind}
-                      checked={option === o.kind}
-                      disabled={busy}
-                      onChange={() => setOption(o.kind)}
-                    />
-                    <span>{o.name}</span>
-                  </label>
-                ))}
-              </fieldset>
+              {available.length === 1 ? (
+                <p className="sw-gift-choice">{available[0].name}</p>
+              ) : (
+                available.length > 1 && (
+                  <fieldset className="sw-gift-choice">
+                    <legend>Выбери подарок</legend>
+                    {available.map((o) => (
+                      <label key={o.kind}>
+                        <input
+                          type="radio"
+                          name="snow-gift-option"
+                          value={o.kind}
+                          checked={option === o.kind}
+                          disabled={busy}
+                          onChange={() => setOption(o.kind)}
+                        />
+                        <span>{o.name}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+                )
+              )}
               {!available.length && (
                 <p className="snow-error">Для этой подписки нет подходящего варианта.</p>
               )}
@@ -402,20 +442,22 @@ function GiftDialog({
               setBusy(true);
               setError('');
               try {
-                await snowApi.action(
+                const receipt = await snowApi.action<SnowState['progress']['receipts'][number]>(
                   'claim',
                   {
                     reward_id: reward.id,
                     request_id: requestId.current,
                     subscription_id: subscriptionId,
                     option,
+                    ...(preview ? { preview_revision: state.preview_revision ?? '' } : {}),
                   },
                   preview,
                 );
-                onSuccess(option);
+                onSuccess(receipt);
                 onClose();
               } catch (e) {
                 setError(snowError(e));
+                onError();
               } finally {
                 lock.current = false;
                 setBusy(false);

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import client from '@/api/client';
 import { snowApi, snowError, subscriptionLabels, type SubscriptionScenario } from '@/api/snowEvent';
-import type { MosaicState } from '@/components/snow-event/SnowMosaics';
+import type { MosaicState } from '@/api/snowEvent';
 import '@/components/snow-event/snow-event.css';
 import '@/components/snow-event/snow-experience.css';
 

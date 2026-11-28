@@ -108,10 +108,19 @@ export function PurchaseDialog({
   );
 }
 
-export function PreviewBar({ state, onChange }: { state: SnowState; onChange: () => void }) {
+export function PreviewBar({
+  state,
+  onChange,
+  open,
+  onOpenChange,
+}: {
+  state: SnowState;
+  onChange: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const dialog = useNativeDialog();
   const client = useQueryClient();
-  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [tariff, setTariff] = useState(state.preview_tariff || 'hyperdrive');
@@ -143,7 +152,7 @@ export function PreviewBar({ state, onChange }: { state: SnowState; onChange: ()
           {subscriptionLabels[state.subscription]} · {state.today.split('-').reverse().join('.')}
         </small>
       </p>
-      <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Root open={open} onOpenChange={onOpenChange}>
         <Dialog.Trigger
           className="sw-preview-trigger"
           aria-label="Настройки предпросмотра"

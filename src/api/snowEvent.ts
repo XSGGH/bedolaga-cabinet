@@ -1,5 +1,66 @@
 import apiClient from './client';
 
+export interface SnowChapter {
+  id: string;
+  planet: string;
+  kind: 'main' | 'bonus';
+  title: string;
+  caption: string;
+  count: number;
+  total: number;
+  columns: number;
+  rows: number;
+  image_width: number;
+  image_height: number;
+  tiles: number[];
+  story: string | null;
+  unlocked: boolean;
+}
+
+export interface SnowAttempt {
+  id: string;
+  cards: (string | null)[];
+  matched: number[];
+  finished: boolean;
+  errors: number;
+  elapsed: number;
+  status: 'ready' | 'active' | 'paused' | 'timeout' | 'completed';
+  session_revision: number;
+}
+
+export interface MosaicState {
+  chapters: SnowChapter[];
+  home_lights: number;
+  epilogue: boolean;
+  personal_days: { date: string; best: number; attempts: number }[];
+  personal_earned: number;
+  reserve: number;
+  unique_players: number;
+  today_players: number;
+  personal_contributions: number;
+  personal_reserve: number;
+  personal_chapters: Record<string, number>;
+  best: number;
+  attempts_used: number;
+  attempt: SnowAttempt | null;
+  attempt_end: SnowAttempt['status'] | null;
+  target_id: string | null;
+  session_version?: number;
+  today: string;
+  server_now: string;
+}
+
+export interface SnowMove {
+  attempt: SnowAttempt;
+  index?: number;
+  first?: number;
+  symbol?: string;
+  match?: boolean;
+  earned: number;
+  best: number;
+  destination?: { kind: 'main' | 'bonus' | 'reserve'; mosaic_id?: string };
+}
+
 export type SubscriptionScenario = 'active' | 'none' | 'expired' | 'renewed';
 export interface SnowProgress {
   balance: number;
@@ -16,6 +77,7 @@ export interface SnowProgress {
     test: boolean;
     status?: string;
     after_end?: string;
+    option?: { kind: 'traffic' | 'hours'; value: number; name: string } | null;
   }[];
 }
 export interface SnowReward {
@@ -31,7 +93,8 @@ export interface SnowReward {
 }
 export interface SnowState {
   preview_planet?: string;
-  mosaics?: import('@/components/snow-event/SnowMosaics').MosaicState;
+  mosaics?: MosaicState;
+  preview_revision?: string | null;
   phase: 'upcoming' | 'active' | 'shop_only' | 'finished';
   server_now: string;
   starts_at: string;
@@ -137,7 +200,17 @@ export const subscriptionLabels: Record<SubscriptionScenario, string> = {
 const base = (preview?: string) =>
   preview ? `/cabinet/admin/snow-event/previews/${preview}` : '/cabinet/snow-event';
 export const snowApi = {
-  state: async (preview?: string): Promise<SnowState> => (await apiClient.get(base(preview))).data,
+  state: async (preview?: string, signal?: AbortSignal): Promise<SnowState> =>
+    (await apiClient.get(base(preview), { signal, params: { sessions: true } })).data,
+  mosaic: async <T>(action: string, body: Record<string, unknown>, preview?: string): Promise<T> =>
+    (await apiClient.post(`${base(preview)}/mosaics/actions`, { action, ...body })).data.result,
+  tile: async (chapter: string, index: number, signal: AbortSignal, preview?: string) =>
+    (
+      await apiClient.get<Blob>(`${base(preview)}/mosaics/${chapter}/tiles/${index}`, {
+        responseType: 'blob',
+        signal,
+      })
+    ).data,
   action: async <T = unknown>(
     action: string,
     body: Record<string, unknown> = {},

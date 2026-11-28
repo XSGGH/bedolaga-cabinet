@@ -1,342 +1,410 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Link } from 'react-router';
-import client from '@/api/client';
-import { snowError, type SnowState } from '@/api/snowEvent';
+import { Link, useLocation, useSearchParams } from 'react-router';
+import type { SnowChapter, SnowState } from '@/api/snowEvent';
 import { PreviewBar } from './SnowEventControls';
+import SnowMosaicPicture from './SnowMosaicPicture';
+import SnowPairs from './SnowPairs';
 import SnowWorldRewards from './SnowWorldRewards';
 import { hasSubscription } from './snowPresentation';
-import './snow-mosaics.css';
+import { useSnowPairs } from './useSnowPairs';
 
-type Chapter = {
-  planet: string;
-  climate: string;
-  colors: string[];
-  image_width: number;
-  image_height: number;
-  id: string;
-  title: string;
-  caption: string;
-  start: string;
-  finale: string;
-  count: number;
-  total: number;
-  columns: number;
-  rows: number;
-  tiles: number[];
-  story: string | null;
-  unlocked: boolean;
-};
-type Attempt = {
-  elapsed?: number;
-  id: string;
-  cards: (string | null)[];
-  matched: number[];
-  finished: boolean;
-  errors: number;
-};
-export type MosaicState = {
-  chapters: Chapter[];
-  home_lights: number;
-  epilogue: boolean;
-  personal_days: { date: string; best: number; attempts: number }[];
-  personal_earned: number;
-  reserve: number;
-  unique_players: number;
-  today_players: number;
-  personal_contributions: number;
-  personal_reserve: number;
-  personal_chapters: Record<string, number>;
-  best: number;
-  attempts_used: number;
-  attempt: Attempt | null;
-  today: string;
-  server_now: string;
-};
-const symbols: Record<string, string> = {
-  scarf: '🧣',
-  mitten: '🧤',
-  ornament: '🔴',
-  snowflake: '❄️',
-  cocoa: '☕',
-  star: '⭐',
-};
-const names: Record<string, string> = {
-  scarf: 'Шарф',
-  mitten: 'Варежка',
-  ornament: 'Ёлочная игрушка',
-  snowflake: 'Снежинка',
-  cocoa: 'Какао',
-  star: 'Звезда',
-};
-const base = (preview?: string) =>
-  preview ? `/cabinet/admin/snow-event/previews/${preview}` : '/cabinet/snow-event';
-function Piece({ chapter, index, preview }: { chapter: Chapter; index: number; preview?: string }) {
-  const [url, setUrl] = useState('');
-  const [failed, setFailed] = useState(false);
-  const [retry, setRetry] = useState(0);
-  useEffect(() => {
-    let live = true;
-    let blob = '';
-    setUrl('');
-    setFailed(false);
-    void client
-      .get(`${base(preview)}/mosaics/${chapter.id}/tiles/${index}`, {
-        responseType: 'blob',
-        params: { retry },
-      })
-      .then((r) => {
-        blob = URL.createObjectURL(r.data);
-        if (live) setUrl(blob);
-        else URL.revokeObjectURL(blob);
-      })
-      .catch(() => {
-        if (live) setFailed(true);
-      });
-    return () => {
-      live = false;
-      if (blob) URL.revokeObjectURL(blob);
-    };
-  }, [chapter.id, index, preview, retry]);
-  return url ? (
-    <img src={url} alt="" draggable={false} />
-  ) : failed ? (
-    <button
-      type="button"
-      aria-label="Загрузить фрагмент повторно"
-      onClick={() => setRetry((n) => n + 1)}
-    >
-      ↻
-    </button>
-  ) : (
-    <span aria-hidden="true" />
-  );
+const tabs = [
+  ['mosaics', 'Мозаики'],
+  ['play', 'Играть'],
+  ['gifts', 'Подарки'],
+  ['mine', 'Мой путь'],
+] as const;
+
+function fragments(count: number) {
+  const form = new Intl.PluralRules('ru').select(count);
+  return form === 'one' ? 'фрагмент' : form === 'few' ? 'фрагмента' : 'фрагментов';
 }
-function Mosaic({ chapter, preview }: { chapter: Chapter; preview?: string }) {
-  const tiles = new Set(chapter.tiles);
-  return (
-    <div
-      className="sm-picture"
-      role="img"
-      aria-label={`${chapter.title}: открыто ${chapter.count} из ${chapter.total} частей`}
-      style={{
-        aspectRatio: `${chapter.image_width}/${chapter.image_height}`,
-        gridTemplateColumns: `repeat(${chapter.columns},1fr)`,
-        gridTemplateRows: `repeat(${chapter.rows},1fr)`,
-      }}
-    >
-      {Array.from({ length: chapter.total }, (_, i) => (
-        <div key={i} className={tiles.has(i) ? 'sm-piece sm-revealed' : 'sm-piece'}>
-          {tiles.has(i) ? (
-            <Piece chapter={chapter} index={i} preview={preview} />
-          ) : (
-            <span aria-hidden="true">✦</span>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
+
 export default function SnowMosaics({
   state,
   preview,
   refresh,
+  stale,
+  previewOpen,
+  setPreviewOpen,
 }: {
-  state: SnowState;
+  state: SnowState & { mosaics: NonNullable<SnowState['mosaics']> };
   preview?: string;
-  refresh: () => void;
+  refresh: () => Promise<SnowState | undefined>;
+  stale: boolean;
+  previewOpen: boolean;
+  setPreviewOpen: (open: boolean) => void;
 }) {
   const data = state.mosaics;
-  const [tab, setTab] = useState('mosaics');
-  const [selected, setSelected] = useState(state.preview_planet || '');
-  const [story, setStory] = useState<Chapter | null>(null);
-  const [attempt, setAttempt] = useState<Attempt | null>(data?.attempt || null);
-  const [show, setShow] = useState<Record<number, string>>({});
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [retry, setRetry] = useState<{ action: string; body: Record<string, unknown> } | null>(
-    null,
-  );
-  const lock = useRef(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (!lock.current && !retry) {
-      setAttempt(data?.attempt || null);
-      setShow({});
-    }
-  }, [data?.attempt, retry]);
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-    },
-    [],
-  );
-  useEffect(() => {
-    if (state.preview_planet) setSelected(state.preview_planet);
-  }, [state.preview_planet]);
-  const observed = useRef(data?.chapters.filter((c) => c.story).map((c) => c.id) || []);
+  const { pathname } = useLocation();
+  const [params, setParams] = useSearchParams();
+  const requestedTab = params.get('tab');
+  const tab =
+    tabs.find(([key]) => key === requestedTab)?.[0] ??
+    (state.phase === 'shop_only' ? 'gifts' : 'mosaics');
+  const view =
+    params.get('view') === 'received'
+      ? 'received'
+      : params.get('view') === 'personal'
+        ? 'personal'
+        : 'shop';
+  const selected = params.get('planet');
+  const planets = data.chapters.filter((chapter) => chapter.kind === 'main');
+  const bonuses = data.chapters.filter((chapter) => chapter.kind === 'bonus' && chapter.unlocked);
+  const target = data.chapters.find((chapter) => chapter.id === data.target_id && chapter.unlocked);
+  const defaultChapter =
+    (preview &&
+      data.chapters.find((chapter) => chapter.id === state.preview_planet && chapter.unlocked)) ||
+    target ||
+    planets.filter((chapter) => chapter.unlocked).slice(-1)[0];
+  const chosen = data.chapters.find((chapter) => chapter.id === selected && chapter.unlocked);
+  const chapter = chosen ?? defaultChapter;
+  const completed = planets.filter((item) => item.story);
+  const home = completed.length === 7;
+  const subscribed = hasSubscription(state);
+  const canPlay = state.phase === 'active' && subscribed && !!data.session_version;
+  const unavailable = !data.session_version
+    ? 'Игра временно недоступна. Обнови страницу чуть позже.'
+    : state.phase === 'upcoming'
+      ? 'Игры откроются 1 декабря в 00:00 МСК.'
+      : state.phase !== 'active'
+        ? 'Ежедневные игры завершены. Истории и результаты сохранены.'
+        : !subscribed
+          ? 'Для игры нужна активная подписка.'
+          : '';
+  const game = useSnowPairs(state, data, preview, tab === 'play', canPlay, refresh);
+  const [story, setStory] = useState<SnowChapter | null>(null);
   const [arrival, setArrival] = useState('');
+  const [routeOpen, setRouteOpen] = useState(false);
+  const seen = useRef(new Set(data.chapters.filter((item) => item.story).map((item) => item.id)));
+  const root = useRef<HTMLElement>(null);
+  const nav = useRef<HTMLElement>(null);
+  const illustration = useRef<HTMLDivElement>(null);
+  const storyTrigger = useRef<HTMLButtonElement | null>(null);
+  const previousLocation = useRef({ tab, selected });
+
   useEffect(() => {
-    const completed = data?.chapters.filter((c) => c.story) || [];
-    const newly = completed.find((c) => !observed.current.includes(c.id));
-    if (newly) {
-      setArrival(newly.planet);
-      setStory(newly);
+    const previous = previousLocation.current;
+    previousLocation.current = { tab, selected };
+    if (tab !== previous.tab) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return;
     }
-    observed.current = completed.map((c) => c.id);
-  }, [data?.chapters]);
-  const [elapsed, setElapsed] = useState(0);
+    if (selected && selected !== previous.selected)
+      illustration.current?.scrollIntoView({ block: 'start' });
+  }, [tab, selected]);
+
   useEffect(() => {
-    const base = attempt?.elapsed || 0,
-      start = performance.now();
-    setElapsed(base);
-    if (!attempt || attempt.finished) return;
-    const ticker = window.setInterval(
-      () => setElapsed(base + (performance.now() - start) / 1000),
-      250,
-    );
-    return () => clearInterval(ticker);
-  }, [attempt]);
-  const call = async (action: string, body: Record<string, unknown> = {}) => {
-    if (lock.current) return;
-    let delayed = false;
-    lock.current = true;
-    const requestStarted = performance.now();
-    setBusy(true);
-    setError('');
-    try {
-      const r = await client.post(`${base(preview)}/mosaics/actions`, { action, ...body });
-      const result = r.data.result;
-      setRetry(null);
-      if (action === 'start') {
-        setAttempt(result);
-        setShow({});
-        setMessage('');
-      } else {
-        setAttempt(result.attempt);
-        setShow((previous) => ({ ...previous, [result.index]: result.symbol }));
-        if (result.first !== undefined && !result.match) {
-          delayed = true;
-          timer.current = setTimeout(() => {
-            setShow({});
-            timer.current = null;
-            setBusy(false);
-            lock.current = false;
-          }, 850);
-          refresh();
-          return;
-        }
-        if (result.attempt.finished) {
-          setMessage(
-            `Твой лучший результат: ${result.best} ❄. ${result.earned ? `Добавлено ${result.earned} личных снежинок.` : 'Сегодняшний рекорд сохранён.'} ${result.contribution ? 'Ты открыл один общий фрагмент!' : 'Общий вклад за этот день уже учтён.'}`,
-          );
-        }
-      }
-      refresh();
-    } catch (e) {
-      setError(snowError(e));
-      setRetry({ action, body });
-    } finally {
-      if (!delayed) {
-        const wait = Math.max(0, 300 - (performance.now() - requestStarted));
-        if (wait > 0) {
-          timer.current = setTimeout(() => {
-            timer.current = null;
-            lock.current = false;
-            setBusy(false);
-          }, wait);
-        } else {
-          lock.current = false;
-          setBusy(false);
-        }
-      }
+    if ((requestedTab && !tabs.some(([key]) => key === requestedTab)) || (selected && !chosen)) {
+      setParams(
+        (previous) => {
+          const next = new URLSearchParams(previous);
+          next.set('tab', tab);
+          if (!chosen) next.delete('planet');
+          return next;
+        },
+        { replace: true, preventScrollReset: true },
+      );
     }
-  };
-  // A mismatch delay owns the lock until its timer completes.
+  }, [requestedTab, selected, chosen, tab, setParams]);
+
   useEffect(() => {
-    if (!busy && timer.current) {
-      timer.current = null;
+    const header = root.current;
+    const menu = nav.current;
+    if (!header || !menu) return;
+    const previewBar = header.querySelector<HTMLElement>('.sw-preview-container');
+    const measure = () => {
+      header.style.setProperty('--sm-menu-height', `${menu.offsetHeight}px`);
+      header.style.setProperty(
+        '--sm-preview-height',
+        previewBar ? `${previewBar.offsetHeight + 8}px` : '0px',
+      );
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(menu);
+    if (previewBar) observer.observe(previewBar);
+    measure();
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    for (const item of data.chapters) {
+      if (!item.story || seen.current.has(item.id)) continue;
+      seen.current.add(item.id);
+      setArrival(item.id);
     }
-  }, [busy]);
-  if (!data)
-    return (
-      <section className="se-panel">
-        <h1>Снежный переполох</h1>
-        <p>Истории готовятся. Обнови страницу после установки нового API.</p>
-        <button type="button" onClick={refresh}>
-          Обновить
-        </button>
-      </section>
-    );
-  const chapter =
-    data.chapters.find((c) => c.id === selected) ||
-    data.chapters.filter((c) => c.unlocked).find((c) => c.count < c.total) ||
-    data.chapters.filter((c) => c.unlocked).slice(-1)[0] ||
-    data.chapters[0];
-  const play = state.phase === 'active' && hasSubscription(state);
+  }, [data.chapters]);
+  const currentStory = data.chapters.find((item) => item.id === story?.id && item.story);
+
+  function link(nextTab: typeof tab, options?: { planet?: string; view?: string }) {
+    const next = new URLSearchParams();
+    next.set('tab', nextTab);
+    if (options?.planet) next.set('planet', options.planet);
+    if (options?.view) next.set('view', options.view);
+    return `${pathname}?${next}`;
+  }
+
+  function read(item: SnowChapter, event: MouseEvent<HTMLButtonElement>) {
+    if (!item.story) return;
+    storyTrigger.current = event.currentTarget;
+    setStory(item);
+    if (arrival === item.id) setArrival('');
+  }
+
+  const freshArrival = data.chapters.find((item) => item.id === arrival && item.story);
+  const saved = !!game.saved;
+  const best = Math.max(data.best, game.move?.best ?? 0);
+  const canStart = canPlay && (saved || (best < 30 && data.attempts_used < 3));
+  const subscriptionLabel =
+    state.subscription === 'expired' ? 'Продлить подписку' : 'Оформить подписку';
+  const subscriptionAction = preview ? (
+    <button type="button" className="se-button" onClick={() => setPreviewOpen(true)}>
+      {subscriptionLabel}
+    </button>
+  ) : (
+    <Link className="se-button" to="/subscriptions">
+      {subscriptionLabel}
+    </Link>
+  );
+  const route = (
+    <ol className="sm-route-list">
+      {planets.map((item, i) => (
+        <li key={item.id}>
+          {item.unlocked ? (
+            <Link
+              to={link('mosaics', { planet: item.id })}
+              aria-current={item.id === chapter?.id ? 'location' : undefined}
+            >
+              <span className="sm-step">{i + 1}</span>
+              <span>
+                <strong>{item.planet}</strong>
+                <small>
+                  {item.story ? 'Открыта' : item.id === target?.id ? 'Текущая' : 'Доступна'}
+                </small>
+              </span>
+              <span className="sm-step-mark" aria-hidden="true">
+                {item.story ? '✓' : '›'}
+              </span>
+            </Link>
+          ) : (
+            <div className="sm-route-locked">
+              <span className="sm-step">{i + 1}</span>
+              <span>
+                <strong>Планета {i + 1}</strong>
+                <small>{i ? `Закрыта · после главы ${i}` : 'Закрыта до старта'}</small>
+              </span>
+            </div>
+          )}
+        </li>
+      ))}
+    </ol>
+  );
+
   return (
-    <main className="snow-page snow-experience snow-village sm-event">
+    <section ref={root} className="snow-page snow-experience snow-village sm-event">
+      {preview && (
+        <PreviewBar
+          state={state}
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          onChange={() => {
+            setStory(null);
+            setParams(
+              (previous) => {
+                const next = new URLSearchParams(previous);
+                next.delete('planet');
+                return next;
+              },
+              { replace: true, preventScrollReset: true },
+            );
+          }}
+        />
+      )}
       <header className="sm-heading">
-        <Link to={preview ? '/admin/snow-event' : '/'} aria-label="Назад">
+        <Link
+          to={preview ? '/admin/snow-event' : '/'}
+          aria-label={preview ? 'Вернуться в админку' : 'Вернуться в кабинет'}
+        >
           ←
         </Link>
-        <div>
-          <h1>Снежный переполох</h1>
-          <p>Семь планет. Один пропавший друг. Найдём Уголька вместе.</p>
-        </div>
+        <h1>Снежный переполох</h1>
       </header>
-      {preview && <PreviewBar state={state} onChange={refresh} />}
-      {!hasSubscription(state) && (
-        <aside className="sm-note">
-          <p>
-            {state.subscription === 'expired'
-              ? 'Прогресс сохранён. Продли подписку, чтобы снова играть и получать подарки.'
-              : 'Рассматривать истории можно всем. Для игры и подарков нужна активная подписка.'}
-          </p>
-          <Link to="/subscription">
-            {state.subscription === 'expired' ? 'Продлить' : 'Выбрать подписку'} ↗
+      <nav ref={nav} className="sm-nav" aria-label="Зимнее событие">
+        {tabs.map(([key, label]) => (
+          <Link key={key} to={link(key)} aria-current={tab === key ? 'page' : undefined}>
+            {label}
           </Link>
-        </aside>
-      )}
-      {arrival && (
-        <div className="sm-arrival" role="status">
-          <span>✦</span> {arrival}: связь восстановлена
-          <button type="button" aria-label="Скрыть завершение главы" onClick={() => setArrival('')}>
-            ×
+        ))}
+      </nav>
+      {stale && (
+        <div className="sm-note sm-update" role="status">
+          <span>Не удалось обновить данные. Показан сохранённый прогресс.</span>
+          <button type="button" className="se-secondary" onClick={() => void refresh()}>
+            Повторить
           </button>
         </div>
       )}
-      <section
-        id={`sm-${tab}`}
-        aria-label={{ mosaics: 'Мозаики', play: 'Играть', gifts: 'Подарки', mine: 'Мой путь' }[tab]}
-      >
-        {tab === 'mosaics' && (
-          <nav className="sm-orbit" aria-label="Маршрут к Угольку">
-            {data.chapters
-              .filter((c) => c.id !== 'bonus')
-              .slice(0, 7)
-              .map((c, i) => (
+
+      {tab === 'mosaics' && (
+        <div className="sm-layout">
+          <div className="sm-intro">
+            <p className="sm-kicker">
+              {state.phase === 'finished' ? 'Архив события' : 'Мозаики зимнего путешествия'}
+            </p>
+            <h2>{home ? 'Дорога домой' : (target?.planet ?? 'Путешествие Снежка')}</h2>
+            <p>
+              {home ? 'Уголёк найден. Наш путь отмечен огнями.' : 'Поможем Снежку найти Уголька.'}
+            </p>
+            {target && (
+              <div className="sm-progress">
+                {state.phase === 'active' && (
+                  <p>
+                    <strong>
+                      Ещё {target.total - target.count} {fragments(target.total - target.count)}
+                    </strong>{' '}
+                    до открытия {target.kind === 'bonus' ? 'дополнительной истории' : 'главы'}
+                  </p>
+                )}
+                <progress
+                  max={target.total}
+                  value={target.count}
+                  aria-label={`Мозаика ${target.planet}`}
+                />
+                <small>
+                  {target.count} из {target.total} открыто
+                </small>
+              </div>
+            )}
+            {canStart ? (
+              <div className="sm-primary">
                 <button
                   type="button"
-                  key={c.id}
-                  className={
-                    c.count === c.total ? 'is-done' : c.unlocked ? 'is-current' : 'is-locked'
-                  }
-                  aria-label={`${i + 1}. ${c.planet}: ${c.count === c.total ? 'исследована' : c.unlocked ? 'исследуем' : 'закрыта'}`}
-                  aria-pressed={selected === c.id}
-                  onClick={() => setSelected(c.id)}
-                  style={{ '--planet-color': c.colors[0] } as CSSProperties}
+                  className="se-button"
+                  onClick={() => {
+                    setParams({ tab: 'play' });
+                    void game.start();
+                  }}
                 >
-                  <span>{c.count === c.total ? '✓' : i + 1}</span>
-                  <small>{c.planet}</small>
+                  {saved ? 'Продолжить игру' : best > 0 ? 'Улучшить результат' : 'Играть сегодня'}
                 </button>
-              ))}
-          </nav>
-        )}
-        {tab === 'mosaics' && (
-          <details className="sm-prologue">
-            <summary>Как началось наше путешествие</summary>
+                <p>
+                  {best
+                    ? 'Сегодняшний вклад учтён. Можно улучшить личный результат.'
+                    : home && !target
+                      ? 'Первая партия дня пополнит общий резерв. За игру можно заработать 10–30 снежинок.'
+                      : 'Заверши первую игру дня и открой общий фрагмент. За игру можно заработать 10–30 снежинок и обменять их на время VPN или трафик.'}
+                </p>
+              </div>
+            ) : !subscribed && ['active', 'shop_only'].includes(state.phase) ? (
+              <div className="sm-primary">
+                {subscriptionAction}
+                <p>
+                  {state.subscription === 'expired'
+                    ? 'Твой прогресс сохранён. Подписка откроет доступ к участию.'
+                    : 'Истории доступны всем. Для участия нужна подписка.'}
+                </p>
+              </div>
+            ) : state.phase === 'active' || state.phase === 'shop_only' ? (
+              <Link className="se-button" to={link('gifts')}>
+                Посмотреть подарки
+              </Link>
+            ) : null}
+          </div>
+
+          <div className="sm-illustration" ref={illustration}>
+            {freshArrival && (
+              <div className="sm-arrival">
+                <span role="status">Открылась история планеты {freshArrival.planet}</span>
+                <button
+                  type="button"
+                  className="se-secondary"
+                  onClick={(event) => read(freshArrival, event)}
+                >
+                  Читать
+                </button>
+              </div>
+            )}
+            {chapter ? (
+              <>
+                <div className="sm-chapter-heading">
+                  <div>
+                    <h3>
+                      {chapter.title === target?.planet
+                        ? 'Иллюстрация'
+                        : chapter.title || chapter.planet}
+                    </h3>
+                    {chapter.caption && <p>{chapter.caption}</p>}
+                    {chapter.id !== target?.id && !chapter.story && (
+                      <p>
+                        {chapter.count} из {chapter.total} открыто
+                      </p>
+                    )}
+                  </div>
+                  {chapter.story && (
+                    <button
+                      type="button"
+                      className="se-secondary"
+                      onClick={(event) => read(chapter, event)}
+                    >
+                      Прочитать историю
+                    </button>
+                  )}
+                </div>
+                <SnowMosaicPicture key={chapter.id} chapter={chapter} preview={preview} />
+              </>
+            ) : (
+              <p className="sm-note">Первая планета откроется 1 декабря в 00:00 МСК.</p>
+            )}
+            {home && (
+              <section className="sm-home-lights">
+                <h3>Огни дороги домой</h3>
+                <p>
+                  Зажгли огней: <strong>{data.home_lights}</strong>. Каждый следующий огонь — пять
+                  общих вкладов после финала.
+                </p>
+                <div aria-hidden="true">
+                  {Array.from({ length: Math.min(24, data.home_lights) }, (_, i) => (
+                    <span key={i}>✦</span>
+                  ))}
+                </div>
+                {data.epilogue && (
+                  <p>С Новым годом! Пусть надёжные маршруты всегда приводят туда, где тебя ждут.</p>
+                )}
+              </section>
+            )}
+          </div>
+
+          <aside className="sm-route" aria-label="Маршрут семи планет">
+            <h3 className="sm-route-desktop">Маршрут · {completed.length} из 7 открыты</h3>
+            <button
+              className="sm-route-toggle se-secondary"
+              type="button"
+              aria-expanded={routeOpen}
+              aria-controls="sm-route-list"
+              onClick={() => setRouteOpen(!routeOpen)}
+            >
+              Маршрут · {completed.length} из 7 открыты{' '}
+              <span aria-hidden="true">{routeOpen ? '−' : '+'}</span>
+            </button>
+            <div id="sm-route-list" className="sm-route-content" data-expanded={routeOpen}>
+              {route}
+              {bonuses.length > 0 && (
+                <details className="sm-rules">
+                  <summary>Дополнительные истории</summary>
+                  <ul>
+                    {bonuses.map((item) => (
+                      <li key={item.id}>
+                        <Link to={link('mosaics', { planet: item.id })}>{item.title}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          </aside>
+          <details className="sm-prologue sm-rules">
+            <summary>Как началось путешествие</summary>
             <p>
               В конце ноября Уголёк полетел помочь далёкой планете и обещал вернуться к празднику.
               Но после космической бури связь оборвалась. «Снежок, если задержусь, не переживай. Я
@@ -348,343 +416,123 @@ export default function SnowMosaics({
               собрать семь глав этой истории. Расстояние не имеет значения, когда тебя ждут.
             </p>
           </details>
-        )}
-        {tab === 'mosaics' && data.chapters.length > 7 && (
-          <details className="sm-gallery">
-            <summary>Дополнительные истории</summary>
-            {data.chapters.slice(7).map((c) => (
-              <button type="button" key={c.id} onClick={() => setSelected(c.id)}>
-                {c.title}
-              </button>
-            ))}
-          </details>
-        )}
-        {tab === 'mosaics' && chapter && (
-          <>
-            <div className="sm-chapter-heading">
-              <div>
-                <p className="sm-eyebrow">{chapter.climate}</p>
-                <p className="sm-planet-name">{chapter.planet}</p>
-                <h2>{chapter.title}</h2>
-                <p>{chapter.caption}</p>
-              </div>
-              <span>
-                {chapter.unlocked
-                  ? chapter.count === chapter.total
-                    ? 'Собрана'
-                    : 'Собираем'
-                  : 'Следующая остановка'}
-              </span>
+        </div>
+      )}
+      {tab === 'play' && <SnowPairs game={game} data={data} unavailable={unavailable} />}
+      {tab === 'gifts' && (
+        <>
+          {!subscribed && ['active', 'shop_only'].includes(state.phase) && (
+            <div className="sm-note sm-update">
+              <p>Для обмена снежинок нужна активная подписка.</p>
+              {subscriptionAction}
             </div>
-            <div className="sm-main">
-              <Mosaic chapter={chapter} preview={preview} />
-              <div className="sm-sidebar">
-                <strong>
-                  {chapter.count} <small>из {chapter.total} частей</small>
-                </strong>
-                <progress max={chapter.total} value={chapter.count} />
-                <p>
-                  {Math.floor((chapter.count / chapter.total) * 100)}% · Сегодня помогли{' '}
-                  {data.today_players}
-                </p>
-                <button
-                  type="button"
-                  className="se-button"
-                  disabled={!hasSubscription(state)}
-                  onClick={() => setTab('play')}
-                >
-                  {hasSubscription(state) ? 'Помочь Снежку сегодня' : 'Нужна активная подписка'}
-                </button>
-                {chapter.story && (
-                  <button type="button" className="se-secondary" onClick={() => setStory(chapter)}>
-                    Прочитать нашу историю
-                  </button>
-                )}
-                <p>
-                  Твои фрагменты этой истории: {data.personal_chapters[chapter.id] || 0}. Личные
-                  снежинки за него не списываются.
-                </p>
-              </div>
+          )}
+          <SnowWorldRewards
+            state={state}
+            preview={preview}
+            refresh={() => void refresh()}
+            view={view}
+            changeView={(next) =>
+              setParams(next === 'shop' ? { tab: 'gifts' } : { tab: 'gifts', view: next })
+            }
+          />
+        </>
+      )}
+      {tab === 'mine' && (
+        <section className="sm-timeline">
+          <h2>Мой путь</h2>
+          <dl className="sm-personal">
+            <div>
+              <dt>Игровых дней</dt>
+              <dd>{data.personal_days.filter((day) => day.best > 0).length}</dd>
             </div>
-          </>
-        )}
-        {tab === 'mosaics' && (
-          <>
-            <details className="sm-gallery">
-              <summary>
-                Наши открытые истории · {data.chapters.filter((c) => c.story).length}
-              </summary>
+            <div>
+              <dt>Общих вкладов</dt>
+              <dd>{data.personal_contributions}</dd>
+            </div>
+            <div>
+              <dt>Снежинок заработано в игре</dt>
+              <dd>{data.personal_earned}</dd>
+            </div>
+            <div>
+              <dt>Подарков оформлено</dt>
+              <dd>{state.progress.receipts.length}</dd>
+            </div>
+          </dl>
+          {data.personal_contributions === 0 && (
+            <p>Заверши первую игру, чтобы добавить вклад и начать свою историю.</p>
+          )}
+          {data.chapters.some((item) => data.personal_chapters[item.id] > 0 && item.unlocked) && (
+            <ul className="sm-my-chapters">
               {data.chapters
-                .filter((c) => c.story)
-                .map((c) => (
-                  <button
-                    type="button"
-                    key={c.id}
-                    onClick={() => {
-                      setSelected(c.id);
-                      setStory(c);
-                    }}
-                  >
-                    {c.planet} · {c.title} ↗
-                  </button>
+                .filter((item) => data.personal_chapters[item.id] > 0 && item.unlocked)
+                .map((item) => (
+                  <li key={item.id}>
+                    {item.planet} · {data.personal_chapters[item.id]}{' '}
+                    {fragments(data.personal_chapters[item.id])}
+                  </li>
                 ))}
-            </details>
-            {data.chapters.slice(0, 7).every((c) => c.count === c.total) && (
-              <section className="sm-home-lights">
-                <h2>Зажжём огни по дороге домой</h2>
-                <p>
-                  Друг найден. Каждые пять новых общих вкладов зажигают ещё один огонёк:{' '}
-                  {data.home_lights}.
-                </p>
-                <div aria-label={`${data.home_lights} огоньков`}>
-                  {Array.from({ length: Math.min(40, data.home_lights) }, (_, i) => (
-                    <span key={i}>✦</span>
+            </ul>
+          )}
+          {data.personal_days.length > 0 && (
+            <details className="sm-rules">
+              <summary>Игры по датам</summary>
+              <ul>
+                {data.personal_days
+                  .slice()
+                  .reverse()
+                  .map((day) => (
+                    <li key={day.date}>
+                      <time dateTime={day.date}>{day.date.split('-').reverse().join('.')}</time>
+                      {' · '}
+                      {day.best > 0
+                        ? `Лучший результат: ${day.best} ❄`
+                        : day.date === state.today && saved
+                          ? 'Партия сохранена'
+                          : 'Игра не завершена'}
+                    </li>
                   ))}
-                </div>
-                {data.epilogue && (
-                  <p>С Новым годом! Пусть надёжные маршруты всегда приводят туда, где тебя ждут.</p>
-                )}
-              </section>
-            )}
-          </>
-        )}
-        {tab === 'play' && (
-          <div className="sm-play">
-            <div className="sm-mentor">
-              <img src="/login-cat.webp" alt="Снежок" width="52" height="52" />
-              <div>
-                <h2>Найди пару</h2>
-                <small>Восстановим ещё один сигнал вместе.</small>
-              </div>
-            </div>
-            <p>
-              «Ещё одна пара — и сигнал станет чуть яснее. Спасибо, что помогаешь мне искать друга».
-            </p>
-            {attempt && !attempt.finished && (
-              <p role="timer">
-                Время: {Math.floor(elapsed)} сек. · Пары: {attempt.matched.length / 2} / 6 · Ошибки:{' '}
-                {attempt.errors}
-              </p>
-            )}
-            <div className="sm-game-stats">
-              <span>Попытки: {data.attempts_used} / 3</span>
-              <span>Лучший результат: {data.best} ❄</span>
-            </div>
-            {!play ? (
-              <p className="sm-note">
-                {state.phase === 'upcoming'
-                  ? 'Начинаем 1 декабря.'
-                  : state.phase === 'active'
-                    ? 'Для участия нужна активная подписка.'
-                    : 'Ежедневные игры декабря завершены. Твои подарки и истории сохранены.'}
-              </p>
-            ) : (
-              <>
-                {(!attempt || attempt.finished) && (
-                  <button
-                    type="button"
-                    className="se-button"
-                    disabled={busy || data.attempts_used >= 3}
-                    onClick={() => void call('start')}
-                  >
-                    {data.attempts_used >= 3
-                      ? 'До завтра — попытки закончились'
-                      : data.attempts_used
-                        ? 'Попробовать улучшить'
-                        : 'Начать игру'}
-                  </button>
-                )}
-                {attempt && !attempt.finished && (
-                  <div className="sm-board">
-                    {attempt.cards.map((card, i) => {
-                      const value = card || show[i];
-                      return (
-                        <button
-                          type="button"
-                          key={i}
-                          className={value ? 'sm-card sm-card-open' : 'sm-card'}
-                          disabled={busy || !!retry || !!card || !!show[i]}
-                          aria-label={value ? names[value] : `Открыть карточку ${i + 1}`}
-                          onClick={() =>
-                            void call('flip', {
-                              attempt_id: attempt.id,
-                              index: i,
-                              request_id: crypto.randomUUID(),
-                            })
-                          }
-                        >
-                          <span>{value ? symbols[value] : '✦'}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </>
-            )}
-            {message && (
-              <section role="status" className="sm-success sm-result">
-                <img src="/login-cat.webp" alt="Снежок радуется" width="64" height="64" />
-                <div>
-                  <h3>{attempt?.finished ? 'Сигнал стал яснее!' : 'Отправляемся на поиски'}</h3>
-                  <p>{message}</p>
-                </div>
-              </section>
-            )}
-            {error && (
-              <p role="alert" className="snow-error">
-                {error}
-              </p>
-            )}
-            {retry && (
-              <button
-                type="button"
-                className="se-secondary"
-                disabled={busy}
-                onClick={() => void call(retry.action, retry.body)}
-              >
-                Повторить ход
-              </button>
-            )}
-            {retry && (
-              <button
-                type="button"
-                className="se-secondary"
-                onClick={() => {
-                  setRetry(null);
-                  setError('');
-                  setShow({});
-                  refresh();
-                }}
-              >
-                Обновить партию
-              </button>
-            )}
-            <details>
-              <summary>Как играем и получаем снежинки</summary>
-              <p>
-                Открой шесть пар. До трёх попыток в день по Москве. Отлично: до 40 секунд и не
-                больше двух ошибок — 30 ❄. Хорошо: до 75 секунд и не больше шести ошибок — 20 ❄.
-                Остальные завершённые партии — 10 ❄. На игру есть три минуты.
-              </p>
-              <p>
-                Получаешь только лучший результат дня: при улучшении начисляем разницу. Первая
-                успешная игра за день открывает один общий фрагмент; повторные попытки общий вклад
-                не увеличивают.
-              </p>
+              </ul>
             </details>
-          </div>
-        )}
-        {tab === 'gifts' && (
-          <>
-            <div className="sm-wallet">
-              Твои снежинки <strong>{state.progress.balance} ❄</strong>
-            </div>
-            <SnowWorldRewards state={state} preview={preview} refresh={refresh} />
-          </>
-        )}
-        {tab === 'mine' && (
-          <section className="sm-timeline">
-            <p>
-              Благодаря тебе Снежок стал ближе к другу. Заработано в игре: {data.personal_earned} ❄.
-            </p>
-            <p>
-              Помогал дней: {data.personal_days.filter((day) => day.best > 0).length}. Получено
-              подарков: {state.progress.receipts.length}.
-            </p>
-            {data.chapters
-              .filter((c) => data.personal_chapters[c.id] > 0)
-              .map((c) => (
-                <p key={c.id}>
-                  Ты помог исследовать {c.planet}: {data.personal_chapters[c.id]} фрагментов.
-                </p>
-              ))}
-            <details>
-              <summary>Мои приключения по датам</summary>
-              {data.personal_days.map((day) => (
-                <p key={day.date}>
-                  {day.date.split('-').reverse().join('.')} ·{' '}
-                  {day.best > 0
-                    ? `Помощь Снежку · ${day.best} ❄`
-                    : 'Попытка начата — можно продолжить сегодня'}
-                </p>
-              ))}
-            </details>
-          </section>
-        )}
-        {tab === 'mine' && (
-          <div className="sm-play">
-            <h2>Мой путь к Угольку</h2>
-            <div className="sm-personal">
-              <p>
-                Твой вклад <strong>{data.personal_contributions} вкладов</strong>
-              </p>
-              <p>
-                Сегодня <strong>{data.best} личных ❄</strong>
-              </p>
-              <p>
-                Вместе с нами <strong>{data.unique_players} игроков</strong>
-              </p>
-              <p>
-                Общий резерв для будущих историй <strong>{data.reserve} вкладов</strong>
-              </p>
-            </div>
-            <p>
-              Следующая планета открывается сразу после завершения предыдущей. Когда найдём Уголька,
-              новые вклады будут зажигать огни по дороге домой.
-            </p>
-            <button type="button" className="se-secondary" onClick={() => setTab('gifts')}>
-              Мои подарки и история наград ↗
-            </button>
-          </div>
-        )}
-      </section>
-      <nav className="sm-nav" aria-label="Зимнее событие">
-        {[
-          ['mosaics', '▦', 'Мозаики'],
-          ['play', '✦', 'Играть'],
-          ['gifts', '♧', 'Подарки'],
-          ['mine', '♡', 'Мой путь'],
-        ].map(([key, icon, label]) => (
-          <button
-            type="button"
-            key={key}
-            aria-pressed={tab === key}
-            onClick={() => {
-              setTab(key);
-              window.scrollTo({ top: 0, behavior: 'instant' });
-            }}
-          >
-            <span aria-hidden="true">{icon}</span>
-            {label}
-          </button>
-        ))}
-      </nav>
+          )}
+          <Link className="se-secondary" to={link('gifts', { view: 'received' })}>
+            Полученные подарки
+          </Link>
+        </section>
+      )}
+
       <Dialog.Root
-        open={!!story}
+        open={!!currentStory && tab === 'mosaics' && !previewOpen}
         onOpenChange={(value) => {
           if (!value) setStory(null);
         }}
       >
         <Dialog.Portal>
           <Dialog.Overlay className="snow-event-overlay" />
-          <Dialog.Content className="snow-dialog snow-event-dialog sm-story">
+          <Dialog.Content
+            className="snow-dialog snow-event-dialog sm-story"
+            aria-describedby={undefined}
+            onCloseAutoFocus={(event) => {
+              event.preventDefault();
+              if (storyTrigger.current?.isConnected) storyTrigger.current.focus();
+              else nav.current?.querySelector<HTMLElement>('[aria-current="page"]')?.focus();
+            }}
+          >
             <div className="sm-story-heading">
-              <Dialog.Title>{story?.title}</Dialog.Title>
+              <Dialog.Title>{currentStory?.title}</Dialog.Title>
               <Dialog.Close className="sw-close" aria-label="Закрыть рассказ">
                 ×
               </Dialog.Close>
             </div>
-            <Dialog.Description asChild>
-              <div className="sm-story-text">
-                {story?.story?.split('\n\n').map((paragraph, i) => (
-                  <p key={i}>{paragraph}</p>
-                ))}
-              </div>
-            </Dialog.Description>
-            <Dialog.Close className="se-button">Сохраню это тепло</Dialog.Close>
+            <div className="sm-story-text">
+              {currentStory?.story?.split('\n\n').map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
+            <Dialog.Close className="se-secondary">Закрыть рассказ</Dialog.Close>
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
-    </main>
+    </section>
   );
 }

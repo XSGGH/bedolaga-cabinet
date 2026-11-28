@@ -8,7 +8,7 @@ export function useSnowEvent(preview?: string) {
   return useQuery({
     queryKey: ['snow-event', preview || 'real', userId],
     enabled: !!userId,
-    queryFn: () => snowApi.state(preview),
+    queryFn: ({ signal }) => snowApi.state(preview, signal),
     staleTime: 5000,
     refetchInterval: 15000,
     refetchOnWindowFocus: true,
