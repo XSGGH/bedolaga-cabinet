@@ -1,5 +1,6 @@
 """Reproduce the SPA/public-directory collision with a real nginx executable."""
 import os
+import re
 import http.client
 from pathlib import Path
 import socket
@@ -15,8 +16,18 @@ class SnowAssetLayoutTests(unittest.TestCase):
     def test_public_assets_do_not_shadow_the_event_page(self):
         repo = Path(__file__).resolve().parents[2]
         self.assertFalse((repo / 'public/snow-event').exists())
-        for name in ('winter-hero.webp', 'winter-base.webp'):
+        for name in ('winter-hero.webp', 'snow-gift-atlas.png'):
             self.assertTrue((repo / 'public/xsg-snow-assets' / name).is_file())
+
+    def test_deploy_probe_only_requests_existing_current_assets(self):
+        repo = Path(__file__).resolve().parents[2]
+        script = (repo / 'scripts/xsg-probe-frontend.sh').read_text(encoding='utf-8')
+        assets = re.search(r'for art in ([^;]+); do', script).group(1).split()
+        self.assertEqual(assets, ['winter-hero.webp', 'snow-gift-atlas.png'])
+        for name in assets:
+            self.assertTrue((repo / 'public/xsg-snow-assets' / name).is_file(), name)
+        self.assertIn('cmp -s /tmp/xsg-art-check.webp', script)
+        self.assertIn('test -s "/usr/share/nginx/html/xsg-snow-assets/$art"', script)
 
 
 @unittest.skipUnless(os.environ.get('NGINX_BINARY'), 'Set NGINX_BINARY to run real nginx integration tests')
@@ -101,12 +112,21 @@ class NginxSnowRoutingTests(unittest.TestCase):
         for route, file in [('/snow-event', 'index.html'),
                 ('/admin/snow-event', 'index.html'),
                 ('/xsg-snow-assets/winter-hero.webp', 'xsg-snow-assets/winter-hero.webp'),
-                ('/xsg-snow-assets/winter-base.webp', 'xsg-snow-assets/winter-base.webp')]:
+                ('/xsg-snow-assets/snow-gift-atlas.png', 'xsg-snow-assets/snow-gift-atlas.png')]:
             with urllib.request.urlopen(base + route, timeout=2) as response:
                 self.assertEqual(response.status, 200)
                 self.assertEqual(response.geturl(), base + route)
                 self.assertEqual(response.read(), (dist / file).read_bytes())
         self.assertFalse((dist / 'snow-event').exists())
+
+    def test_removed_station_returns_html_and_must_not_count_as_artwork(self):
+        base, _ = self.serve(production=True)
+        dist = Path(__file__).resolve().parents[2] / 'dist'
+        self.assertFalse((dist / 'xsg-snow-assets/station-v2.webp').exists())
+        with urllib.request.urlopen(base + '/xsg-snow-assets/station-v2.webp', timeout=2) as response:
+            # A 200 from the SPA fallback is not evidence that an image exists.
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.read(), (dist / 'index.html').read_bytes())
 
 
 if __name__ == '__main__':

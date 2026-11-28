@@ -16,7 +16,11 @@ if ! docker exec "$container" sh -c '
         sleep 1
     done
     test ! -d /usr/share/nginx/html/snow-event || exit 1
-    for art in winter-hero.webp station-v2.webp station-sprites-v2.webp; do
+    for art in winter-hero.webp snow-gift-atlas.png; do
+        test -s "/usr/share/nginx/html/xsg-snow-assets/$art" || {
+            echo "В новом образе отсутствует обязательная картинка: $art" >&2
+            exit 1
+        }
         wget -q --header="Host: xsgvpn.ru" -O /tmp/xsg-art-check.webp "http://127.0.0.1/xsg-snow-assets/$art" &&
         cmp -s /tmp/xsg-art-check.webp "/usr/share/nginx/html/xsg-snow-assets/$art" || exit 1
     done
@@ -25,4 +29,4 @@ if ! docker exec "$container" sh -c '
     echo 'Новый образ не прошёл HTTP-проверку страницы или картинки. Работающие контейнеры не заменены.' >&2
     exit 1
 fi
-echo 'Новый образ проверен: /snow-event отдаёт страницу кабинета, картинка доступна nginx.'
+echo 'Новый образ проверен: /snow-event отдаёт страницу кабинета, актуальные картинки анонса и подарков доступны nginx.'
