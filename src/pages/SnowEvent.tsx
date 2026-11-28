@@ -35,6 +35,7 @@ export default function SnowEvent() {
   const query = useSnowEvent(previewId);
   const now = useServerNow(query.data?.server_now, query.dataUpdatedAt);
   const [tab, setTab] = useState<WinterTab>('station');
+  const [navCompact, setNavCompact] = useState(false);
   const [game, setGame] = useState<Game | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -45,6 +46,18 @@ export default function SnowEvent() {
   const state = query.data;
   const signature = `${previewId}/${state?.today}/${state?.subscription}/${state?.phase}`;
   const { refetch } = query;
+  useEffect(() => {
+    let previousY = window.scrollY;
+    const onScroll = () => {
+      const nextY = window.scrollY;
+      if (Math.abs(nextY - previousY) > 10) {
+        setNavCompact(nextY > previousY && nextY > 180);
+        previousY = nextY;
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   useEffect(() => {
     if (previous.current !== signature) {
       setGame(null);
@@ -179,18 +192,20 @@ export default function SnowEvent() {
   );
   const changeTab = (next: WinterTab) => {
     setTab(next);
-    document.getElementById('winter-tabs')?.scrollIntoView({ block: 'start' });
+    setNavCompact(false);
+    document.querySelector('.sv3-page-header')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   };
   return (
     <div className={`snow-page snow-experience snow-world-experience snow-village sv3-phase-${state.phase}`}>
       <header className="sv3-page-header"><Link to={previewId?'/admin/snow-event':'/'} aria-label={previewId?'Вернуться в управление мероприятием':'Вернуться на главную'}>←</Link><div><h1>Снежный переполох</h1><p>{upcoming?'Вместе создадим маленькое зимнее чудо':state.phase==='finished'?'Праздник, который мы построили вместе':'Наша маленькая зимняя история'}</p></div>{previewId&&<PreviewBar state={state} onChange={()=>{setGame(null);visitRequested.current='';void refetch();}}/>}<span className="sv3-header-season">XSG · 2026/27</span></header>
-      <nav id="winter-tabs" className="sv3-tabs" role="tablist" aria-label="Разделы зимнего события">
+      <nav id="winter-tabs" className={`sv3-tabs ${navCompact ? 'is-compact' : ''}`} role="tablist" aria-label="Разделы зимнего события">
         {winterTabs.map(({ id, label, Icon }, index) => (
           <button
             type="button"
             key={id}
             id={`winter-tab-${id}`}
             role="tab"
+            aria-label={label}
             aria-selected={tab === id}
             aria-controls={`winter-panel-${id}`}
             tabIndex={tab === id ? 0 : -1}
@@ -264,7 +279,7 @@ export default function SnowEvent() {
         </p>
       </details>
 
-        </div><SnowCalendar state={state}/></div>}
+        </div><SnowCalendar state={state} compact onViewAll={()=>changeTab('journey')}/></div>}
         {tab==='gifts'&&<><SnowWallet state={state}/><SnowWorldRewards state={state} preview={previewId} refresh={()=>void refetch()}/></>}
         {tab==='journey'&&<><div className="sv3-journey-layout"><QuazarJourney state={state} preview={previewId} refresh={()=>void refetch()}/><SnowCalendar state={state} showWeek={false}/></div><div className="sv3-personal-summary"><span>Твой вклад <strong>{state.progress.earned.toLocaleString('ru')} ❄</strong></span><span>Украшения <strong>{state.world.decorations.filter(d=>d.own).length} / 3</strong></span><span>Приключения <strong>{state.completed_days||0} / 31</strong></span><button type="button" onClick={()=>changeTab('station')}>К нашей станции ↗</button></div></>}
       </section>
