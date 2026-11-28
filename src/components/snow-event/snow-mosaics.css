@@ -444,14 +444,16 @@
   border-top: 1px solid #4b4054;
   padding: 12px 0;
 }
-.sm-story-text p {
+.sm-story .sm-story-text p {
   margin: 16px 0;
   font-size: 16px;
   line-height: 1.85;
   color: #ddd4e6;
 }
-.sm-story {
+.snow-event-dialog.sm-story {
+  width: min(740px, calc(100vw - 24px));
   max-width: 740px;
+  border-radius: 20px;
 }
 .sm-home-lights > div {
   display: flex;
@@ -557,7 +559,7 @@
   .sm-card {
     font-size: 27px;
   }
-  .sm-story-text p {
+  .sm-story .sm-story-text p {
     font-size: 15px;
   }
   .sm-play h2 {
@@ -678,4 +680,16 @@
 .sm-prologue p {
   max-width: 800px;
   margin: 10px 0;
+}
+
+.sm-story-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  background: #242430;
+  padding-bottom: 12px;
+  z-index: 1;
 }

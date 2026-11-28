@@ -668,7 +668,12 @@ export default function SnowMosaics({
         <Dialog.Portal>
           <Dialog.Overlay className="snow-event-overlay" />
           <Dialog.Content className="snow-dialog snow-event-dialog sm-story">
-            <Dialog.Title>{story?.title}</Dialog.Title>
+            <div className="sm-story-heading">
+              <Dialog.Title>{story?.title}</Dialog.Title>
+              <Dialog.Close className="sw-close" aria-label="Закрыть рассказ">
+                ×
+              </Dialog.Close>
+            </div>
             <Dialog.Description asChild>
               <div className="sm-story-text">
                 {story?.story?.split('\n\n').map((paragraph, i) => (
