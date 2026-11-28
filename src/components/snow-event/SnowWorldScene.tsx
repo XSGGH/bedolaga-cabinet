@@ -5,7 +5,7 @@ import type { SnowState, StationStage } from '@/api/snowEvent';
 import { hasSubscription } from './snowPresentation';
 import { momentFor } from './snowMoments';
 import { participantDecorations } from './snowGrammar';
-import StationDetails from './StationDetails';
+import StationPaint from './StationPaint';
 
 // Kept for the older game illustrations outside the station.
 export function StationSprite({ index, className = '', style }: { index: number; className?: string; style?: CSSProperties }) {
@@ -35,7 +35,7 @@ const focusAreas: Record<ZoneId, { left: string; top: string; width: string; hei
   orbit: { left: '2%', top: '61%', width: '42%', height: '33%' },
 };
 
-// A permanent base plus 25 independent additions, with no image blending.
+// The original map and paving stay fixed; milestones reveal illustrated details.
 function StationIllustration({ stages, revealed, description, focusZone }: {
   stages: StationStage[];
   revealed: StationStage[];
@@ -44,8 +44,7 @@ function StationIllustration({ stages, revealed, description, focusZone }: {
 }) {
   return <figure className="sv4-scene">
     <img className="sv4-scene-base" src={image} width="1536" height="1024" alt={description} loading="lazy" draggable={false} />
-    <StationDetails count={revealed.length} />
-    {revealed.length >= 7 && <img className="sv4-station-tree" src="/xsg-snow-assets/station-tree-cutout.png" width="1130" height="1392" alt="" aria-hidden="true" draggable={false} />}
+    <StationPaint count={revealed.length} />
     {focusZone && <div className="sv4-zone-focus" style={focusAreas[focusZone]} aria-hidden="true"><span>{zones.find(item => item.id === focusZone)?.name}</span></div>}
     <figcaption><LuMapPin aria-hidden="true" /> Преображение станции · {revealed.length}/{stages.length} этапов</figcaption>
   </figure>;
