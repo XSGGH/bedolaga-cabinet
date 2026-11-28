@@ -1,12 +1,11 @@
 import { useState, type CSSProperties } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { LuArrowRight, LuCheck, LuGift, LuHistory, LuHouse, LuLightbulb, LuMapPin, LuSnowflake, LuSparkles, LuStar, LuVote } from 'react-icons/lu';
-import type { SnowState } from '@/api/snowEvent';
+import type { SnowState, StationStage } from '@/api/snowEvent';
 import { hasSubscription } from './snowPresentation';
 import { momentFor } from './snowMoments';
 
-// Kept for the older game illustrations outside the station. The station itself
-// intentionally renders no sprites or cut-outs over its complete background.
+// Kept for the older game illustrations outside the station.
 export function StationSprite({ index, className = '', style }: { index: number; className?: string; style?: CSSProperties }) {
   return <span aria-hidden="true" className={`sw-sprite ${className}`} style={{ ...style, backgroundPosition: `${(index % 4) * 100 / 3}% ${Math.floor(index / 4) * 100 / 3}%` }} />;
 }
@@ -31,6 +30,49 @@ const images = {
   celebration: '/xsg-snow-assets/station-v3-festival.webp',
 };
 
+// Both complete renders share the same camera and geometry. Reveal the finished
+// render gradually by area; no positioned sprite cut-outs or hard image swap.
+function StationIllustration({ stages, revealed, description }: {
+  stages: StationStage[];
+  revealed: StationStage[];
+  description: string;
+}) {
+  const fraction = stages.length ? revealed.length / stages.length : 0;
+  const areaStrength = (area: string) => {
+    const available = stages.filter(stage => stage.zone === area).length;
+    const opened = revealed.filter(stage => stage.zone === area).length;
+    return available ? Math.pow(opened / available, 1.2) * 0.76 : 0;
+  };
+  const skyOpen = revealed.some(stage => /сияни|зв[её]зд|салют|небес/i.test(stage.name));
+  const layers = [
+    { area: 'ambient', opacity: Math.pow(fraction, 2.1) },
+    { area: 'data', opacity: areaStrength('data') },
+    { area: 'workshop', opacity: areaStrength('workshop') },
+    { area: 'plaza', opacity: areaStrength('plaza') },
+    { area: 'orbit', opacity: areaStrength('orbit') },
+    { area: 'sky', opacity: skyOpen ? 0.8 : 0 },
+  ];
+
+  return <figure className="sv4-scene">
+    <img className="sv4-scene-base" src={images.beginning} width="1536" height="1024" alt={description} loading="lazy" draggable={false} />
+    {layers.map(layer =>
+      <img
+        key={layer.area}
+        className={`sv4-scene-overlay sv4-scene-overlay--${layer.area}`}
+        style={{ opacity: layer.opacity }}
+        src={images.celebration}
+        width="1536"
+        height="1024"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        draggable={false}
+      />,
+    )}
+    <figcaption><LuMapPin aria-hidden="true" /> Преображение станции · {revealed.length}/{stages.length} этапов</figcaption>
+  </figure>;
+}
+
 export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, act }: {
   state: SnowState;
   onSeen: () => void;
@@ -45,7 +87,7 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
   const [threshold, setThreshold] = useState(100);
   const [consent, setConsent] = useState(false);
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
-  const [historyView, setHistoryView] = useState<'beginning' | 'celebration'>('beginning');
+  const [historyView, setHistoryView] = useState<'beginning' | 'current'>('current');
   const [voteChoice, setVoteChoice] = useState<ZoneId>('plaza');
   const [notice, setNotice] = useState('');
 
@@ -71,27 +113,19 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
   const freeSlot = Array.from({ length: 16 }, (_, i) => placeZoneIndex * 16 + i)
     .find(slot => !decorations.some(item => item.slot === slot));
   const currentMoment = momentFor(state);
-  // A complete illustration is always shown as one piece. Changing the entire
-  // image at a major milestone is deliberate; individual masks caused artifacts.
-  const festivalVisible = total >= 2500;
-
   const open = (target: Mode) => {
     setMode(target);
     setNotice('');
     if (target === 'history') {
       setHistoryIndex(null);
-      setHistoryView(festivalVisible ? 'celebration' : 'beginning');
+      setHistoryView('current');
       onSeen();
     }
     if (target === 'vote') setVoteChoice(vote?.own && zones.some(item => item.id === vote.own) ? vote.own as ZoneId : 'plaza');
     if (target === 'place') setPlaceZone(zone);
   };
 
-  const scene = (image: string, description: string) =>
-    <figure className="sv4-scene">
-      <img src={image} width="1536" height="1024" alt={description} loading="lazy" draggable={false} />
-      <figcaption><LuMapPin aria-hidden="true" /> Зимняя станция XSG · единая иллюстрация</figcaption>
-    </figure>;
+  const historyStages = historyView === 'beginning' ? [] : historyIndex === null ? reached : reached.slice(0, historyIndex + 1);
 
   const zonePicker = (value: ZoneId, onChange: (value: ZoneId) => void, ids: ZoneId[] = zones.map(item => item.id)) =>
     <div className="sv4-zone-grid" role="group" aria-label="Зоны зимней станции">
@@ -108,7 +142,7 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
       <div><span>{reached.length ? `Вместе открыли ${reached.length} из ${stages.length} этапов` : 'Наш праздник только начинается'}</span><h2>Зимняя станция XSG</h2></div>
       {onPlay && <button className="sv3-play-short" type="button" onClick={onPlay}>{state.phase === 'active' ? 'Играть' : 'О событии'} <LuArrowRight aria-hidden="true" /></button>}
     </div>
-    {scene(festivalVisible ? images.celebration : images.beginning, 'Общий вид зимней станции с дата-центром, домиком и заснеженной площадью')}
+    <StationIllustration stages={stages} revealed={reached} description="Зимняя станция с постепенно появляющимися огнями и украшениями" />
     <div className="sv4-station-caption">
       <LuHouse aria-hidden="true" />
       <div><strong>{current?.name ?? 'Всё начинается с первого огонька'}</strong><span>{current ? `Этап ${reached.length} из ${stages.length} · наша общая история` : 'Новые детали появятся по мере общего прогресса'}</span></div>
@@ -145,13 +179,13 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
         </header>
         {mode === 'history' && <>
           <div className="sv4-compare" role="group" aria-label="Сравнить облик станции">
-            <button type="button" aria-pressed={historyView === 'beginning'} onClick={() => setHistoryView('beginning')}>Было · первый снег</button>
-            <button type="button" aria-pressed={historyView === 'celebration'} onClick={() => setHistoryView('celebration')}>Праздничный вид</button>
+            <button type="button" aria-pressed={historyView === 'beginning'} onClick={() => { setHistoryView('beginning'); setHistoryIndex(null); }}>Было · первый снег</button>
+            <button type="button" aria-pressed={historyView === 'current' && historyIndex === null} onClick={() => { setHistoryView('current'); setHistoryIndex(null); }}>Сейчас · {reached.length}/{stages.length}</button>
           </div>
-          {scene(historyView === 'beginning' ? images.beginning : images.celebration, historyView === 'beginning' ? 'Станция до праздничного оформления' : 'Станция в праздничных огнях')}
-          <p className="sv4-hint">Иллюстрации показывают крупные главы истории; промежуточные открытия перечислены ниже. Без наложенных вырезок и случайных предметов.</p>
+          <StationIllustration stages={stages} revealed={historyStages} description="Облик зимней станции на выбранном этапе" />
+          <p className="sv4-hint">Выбери открытый этап ниже — иллюстрация покажет, как выглядела станция на тот момент.</p>
           <div className="sv4-story-list"><h3>Наши открытия · {reached.length}/{stages.length}</h3>
-            {stages.map((stage, index) => <button key={stage.id} type="button" disabled={stage.threshold > total} aria-pressed={historyIndex === index} onClick={() => setHistoryIndex(historyIndex === index ? null : index)}>
+            {stages.map((stage, index) => <button key={stage.id} type="button" disabled={stage.threshold > total} aria-pressed={historyView === 'current' && historyIndex === index} onClick={() => { setHistoryView('current'); setHistoryIndex(index); }}>
               <span className={stage.threshold <= total ? 'sv4-stage-dot is-done' : 'sv4-stage-dot'}>{stage.threshold <= total ? <LuCheck /> : index + 1}</span>
               <span><strong>{stage.name}</strong><small>{zones.find(item => item.id === stage.zone)?.name ?? 'Вся станция'} · {present(stage.threshold)} ❄</small>
                 {historyIndex === index && <em>{world?.events.find(event => event.id === stage.id)?.at ? `Открыто ${new Date(world.events.find(event => event.id === stage.id)!.at).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' })}` : 'История сохранится на станции, когда этап откроется.'}</em>}</span>

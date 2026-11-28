@@ -422,11 +422,17 @@
 }
 @media(prefers-reduced-motion:reduce) {.sv3-unbox-art>.sv3-unbox-glow{animation:none!important;}.snow-village .sv3-tabs{transition:none;}}
 
-/* V4: one complete illustration at a time. No masked fragments, sprite
-   stickers, zoom controls or invisible tap targets on the station. */
+/* Station progress: aligned complete illustrations softly reveal by area.
+   No independent object cut-outs, hard tile edges or zoom controls. */
 .snow-village .sv4-station {max-width:850px;margin-inline:auto;}
 .sv4-scene {position:relative;margin:0;overflow:hidden;border:1px solid #58506d;border-radius:16px;background:#241e37;box-shadow:0 9px 30px #0d0b1940;}
 .sv4-scene img {display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;user-select:none;}
+.sv4-scene .sv4-scene-overlay {position:absolute;inset:0;height:100%;pointer-events:none;transition:opacity 650ms ease;}
+.sv4-scene-overlay--data {mask-image:radial-gradient(ellipse 48% 50% at 27% 44%,#000 45%,transparent 100%);}
+.sv4-scene-overlay--workshop {mask-image:radial-gradient(ellipse 33% 42% at 84% 48%,#000 43%,transparent 100%);}
+.sv4-scene-overlay--plaza {mask-image:radial-gradient(ellipse 49% 38% at 54% 77%,#000 42%,transparent 100%);}
+.sv4-scene-overlay--orbit {mask-image:radial-gradient(ellipse 38% 42% at 18% 78%,#000 42%,transparent 100%);}
+.sv4-scene-overlay--sky {mask-image:linear-gradient(to bottom,#000 4%,#000 18%,transparent 41%);}
 .sv4-scene figcaption {display:flex;align-items:center;gap:5px;position:absolute;bottom:9px;left:9px;max-width:calc(100% - 18px);padding:6px 9px;border:1px solid #ffffff26;border-radius:9px;background:#1c192bdc;backdrop-filter:blur(6px);color:#f2e9ff;font-size:11px;}
 .sv4-scene figcaption svg {width:12px;height:12px;flex:none;}
 .sv4-station-caption {display:flex;align-items:center;gap:11px;margin:11px 0;padding:11px 13px;background:#292634;border:1px solid #4f435d;border-radius:13px;}
@@ -501,6 +507,7 @@
   .sv4-zone-grid>button {font-size:12px;padding:8px;min-height:45px;}
   .sv4-ornament-list {grid-template-columns:repeat(3,minmax(0,1fr));}
 }
+@media(prefers-reduced-motion:reduce) {.sv4-scene .sv4-scene-overlay {transition:none;}}
 
 /* Unified, sharp SVG emblems; the old atlas frames produced cropped objects
    and phantom white fragments around rewards and the journey. */
