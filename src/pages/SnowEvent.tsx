@@ -15,6 +15,7 @@ import SnowWorldScene, { StationSprite } from '@/components/snow-event/SnowWorld
 import SnowWorldGames from '@/components/snow-event/SnowWorldGames';
 import SnowWorldRewards, { QuazarJourney } from '@/components/snow-event/SnowWorldRewards';
 import SnowWorldCelebration from '@/components/snow-event/SnowWorldCelebration';
+import SnowEventTeaser from '@/components/snow-event/SnowEventTeaser';
 import { catSays } from '@/components/snow-event/snowDialogue';
 import '@/components/snow-event/snow-event.css';
 import '@/components/snow-event/snow-experience.css';
@@ -103,7 +104,7 @@ export default function SnowEvent() {
         <section className="se-panel">
           <h1>Снежный переполох</h1>
           <p role="status">
-            {query.isError ? 'Не удалось связаться со станцией.' : 'Приближаемся к зимней станции…'}
+            {query.isError ? 'Пока не удалось загрузить анонс.' : 'Скоро здесь будет кое-что зимнее…'}
           </p>
           {query.isError && (
             <button type="button" className="se-button" onClick={() => refetch()}>
@@ -113,6 +114,11 @@ export default function SnowEvent() {
         </section>
       </div>
     );
+  // The public pre-launch announcement is intentionally separate from the event UI.
+  // Do not expose or redesign it when changing games, station, shop or admin preview.
+  if (state.phase === 'upcoming' && !previewId) {
+    return <SnowEventTeaser startsAt={state.starts_at} now={now} />;
+  }
   if (!state.world || !state.rules)
     return (
       <div className="snow-page snow-experience">
