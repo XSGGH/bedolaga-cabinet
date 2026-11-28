@@ -5,7 +5,7 @@ umask 077
 
 bot=${XSG_BOT_DIR:-/home/user1/remnawave-bedolaga-telegram-bot}
 cabinet=${XSG_CABINET_DIR:-/home/user1/bedolaga-cabinet}
-bot_ref=c898b94b83143c3f58b6482c270f2f64b629193e
+bot_ref=851ff23217cc3a0b2cf4325ad5ab7c0c392262ce
 backup_root=/root/xsg-snow-backups
 
 restore_bot_source() {
@@ -15,7 +15,7 @@ restore_bot_source() {
         else
             # Only the eight fixed, event-owned paths from our manifest.
             case "$relative" in
-                app/database/snow_event_models.py|app/services/snow_event.py|app/services/snow_event_rewards.py|app/services/snow_world.py|app/services/snow_world_actions.py|app/services/snow_games.py|app/services/snow_quazar.py|app/cabinet/routes/snow_event.py|scripts/xsg-snow-schema.py)
+                app/database/snow_event_models.py|app/services/snow_mosaics.py|app/services/snow_mosaic_context.py|resources/snow-mosaics/meeting/*.webp|resources/snow-mosaics/home/*.webp|resources/snow-mosaics/family/*.webp|app/services/snow_event.py|app/services/snow_event_rewards.py|app/services/snow_world.py|app/services/snow_world_actions.py|app/services/snow_games.py|app/services/snow_quazar.py|app/cabinet/routes/snow_event.py|scripts/xsg-snow-schema.py)
                     rm -f -- "$bot/$relative" || return 1 ;;
                 *) echo "Refusing to remove unknown path: $relative"; return 1 ;;
             esac
@@ -135,9 +135,18 @@ g "$bot" cat-file -e "$bot_ref^{commit}"
 printf '%s\n' "$bot_ref" > "$backup/bot-target"
 for relative in app/database/snow_event_models.py app/services/snow_event.py app/services/snow_event_rewards.py \
     app/services/snow_world.py app/services/snow_world_actions.py app/services/snow_games.py app/services/snow_quazar.py \
+    app/services/snow_mosaics.py app/services/snow_mosaic_context.py \
     app/cabinet/routes/snow_event.py scripts/xsg-snow-overlay.py scripts/xsg-snow-schema.py scripts/xsg-snow-integration.json; do
     mkdir -p "$backup/payload/$(dirname "$relative")"
     g "$bot" show "$bot_ref:$relative" > "$backup/payload/$relative"
+done
+for story in meeting home family; do
+    count=72; test "$story" != family || count=80
+    for ((tile=0;tile<count;tile++)); do
+        relative="resources/snow-mosaics/$story/$tile.webp"
+        mkdir -p "$backup/payload/$(dirname "$relative")"
+        g "$bot" show "$bot_ref:$relative" > "$backup/payload/$relative"
+    done
 done
 tar --exclude='./.git' --exclude='./logs' --exclude='./uploads' --exclude='./__pycache__' \
     -cf - -C "$bot" . | tar -xf - -C "$backup/stage/bot"
@@ -213,7 +222,7 @@ status=$(curl -sS --retry 20 --retry-all-errors --retry-delay 2 --retry-max-time
     -o "$backup/api-auth-check.json" -w '%{http_code}' http://127.0.0.1:8080/cabinet/snow-event)
 test "$status" = 401 || test "$status" = 403
 curl -fsS --retry 10 --retry-all-errors --retry-delay 2 --max-time 5 http://127.0.0.1:8080/cabinet/snow-event/version > "$backup/api-version.json"
-python3 -c 'import json,sys; assert json.load(open(sys.argv[1]))["version"]==2' "$backup/api-version.json"
+python3 -c 'import json,sys; assert json.load(open(sys.argv[1]))["version"]==3' "$backup/api-version.json"
 (cd "$cabinet" && docker compose up -d --force-recreate --no-deps --no-build --pull never cabinet-frontend </dev/null)
 echo 'Ожидаем готовность кабинета: временный сброс соединения при запуске nginx допустим.'
 curl -fsS --retry 30 --retry-all-errors --retry-delay 2 --retry-max-time 90 --connect-timeout 2 --max-time 5 \

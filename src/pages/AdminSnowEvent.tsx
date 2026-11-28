@@ -1,31 +1,54 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
+import client from '@/api/client';
 import { snowApi, snowError, subscriptionLabels, type SubscriptionScenario } from '@/api/snowEvent';
+import type { MosaicState } from '@/components/snow-event/SnowMosaics';
 import '@/components/snow-event/snow-event.css';
 import '@/components/snow-event/snow-experience.css';
-import '@/components/snow-event/snow-world.css';
 
+type Stats = MosaicState & {
+  average_daily: number;
+  forecast: Record<string, string | null>;
+  daily: Record<string, number>;
+  audit: Record<string, unknown>[];
+};
 export default function AdminSnowEvent() {
-  const query = useQuery({ queryKey: ['admin-snow-event'], queryFn: snowApi.admin });
   const navigate = useNavigate();
+  const query = useQuery({
+    queryKey: ['admin-mosaics'],
+    queryFn: async () => (await client.get<Stats>('/cabinet/admin/snow-event/mosaics')).data,
+  });
   const [subscription, setSubscription] = useState<SubscriptionScenario>('active');
   const [date, setDate] = useState('2026-12-15');
-  const [source, setSource] = useState('');
+  const [reason, setReason] = useState('');
+  const [chapter, setChapter] = useState('meeting');
+  const [delta, setDelta] = useState(1);
+  const [json, setJson] = useState(
+    JSON.stringify(
+      {
+        id: 'first-snow',
+        title: 'Первый снег',
+        caption: 'Первый снег вдвоём',
+        story: 'Зимняя история Снежка и Уголька.',
+        image: 'first-snow',
+        columns: 6,
+        rows: 4,
+        start: '2026-12-11',
+        finale: '2026-12-11',
+        kind: 'bonus',
+        active: false,
+        order: 10,
+      },
+      null,
+      2,
+    ),
+  );
+  const [art, setArt] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [incidentStart, setIncidentStart] = useState('2026-12-01');
-  const [incidentEnd, setIncidentEnd] = useState('2026-12-01');
-  const [reason, setReason] = useState('');
-  const [incidentId, setIncidentId] = useState('');
-  const [userId, setUserId] = useState('');
-  const [restoreDate, setRestoreDate] = useState('2026-12-01');
-  const [costGb, setCostGb] = useState('');
-  const [costDay, setCostDay] = useState('');
-  const [quazarCost, setQuazarCost] = useState('');
-  const data = query.data;
-  const run = async (work: () => Promise<unknown>, message: string) => {
+  const run = async (work: () => Promise<unknown>) => {
     if (busy) return;
     setBusy(true);
     setError('');
@@ -33,357 +56,219 @@ export default function AdminSnowEvent() {
     try {
       await work();
       await query.refetch();
-      setNotice(message);
+      setNotice('Сохранено.');
     } catch (e) {
       setError(snowError(e));
     } finally {
       setBusy(false);
     }
   };
+  const action = (action: string, extra: Record<string, unknown> = {}) =>
+    run(() => client.post('/cabinet/admin/snow-event/mosaics', { action, reason, ...extra }));
+  const data = query.data;
   return (
-    <div className="snow-page snow-experience snow-world-experience sw-admin">
-      <Link className="snow-back" to="/admin">
-        ← Административная панель
-      </Link>
-      <header>
-        <p className="se-kicker">Настоящая станция и изолированный тестовый мир</p>
-        <h1>Снежный переполох</h1>
-      </header>
+    <main className="snow-page snow-experience">
+      <Link to="/admin">← Административная панель</Link>
+      <h1>Три маленькие истории</h1>
       {error && (
-        <p className="se-error" role="alert">
+        <p role="alert" className="se-error">
           {error}
         </p>
       )}
-      {notice && (
-        <p className="se-notice" role="status">
-          {notice}
-        </p>
-      )}
+      {notice && <p role="status">{notice}</p>}
       <section className="se-panel">
-        <h2>👁 Предпросмотр глазами пользователя</h2>
+        <h2>Предпросмотр глазами пользователя</h2>
         <p>
-          Те же компоненты и серверные правила. Можно пройти все десять игр, проверить 25 этапов,
-          подарки, «Орбиту» и путь к Квазару. Никакие тестовые операции не меняют настоящие подписки
-          и общий прогресс.
+          Настоящие пользовательские компоненты, виртуальная дата и изолированные начисления.
+          Реальные подписки и балансы сохраняются.
         </p>
-        <div className="sw-preview-fields">
-          <label>
-            Подписка
-            <select
-              value={subscription}
-              onChange={(e) => setSubscription(e.target.value as SubscriptionScenario)}
-            >
-              {Object.entries(subscriptionLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Любая тестовая дата
-            <input
-              type="date"
-              min="2026-11-01"
-              max="2027-01-31"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </label>
-        </div>
+        <label className="snow-field">
+          Подписка
+          <select
+            value={subscription}
+            onChange={(e) => setSubscription(e.target.value as SubscriptionScenario)}
+          >
+            {Object.entries(subscriptionLabels).map(([key, name]) => (
+              <option key={key} value={key}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="snow-field">
+          Тестовая дата
+          <input
+            type="date"
+            value={date}
+            min="2026-11-01"
+            max="2027-01-31"
+            onChange={(e) => setDate(e.target.value)}
+          />
+        </label>
         <button
           type="button"
           className="se-button"
-          disabled={busy || !date}
+          disabled={busy}
           onClick={() =>
             void run(async () => {
-              const result = await snowApi.create(subscription, date);
-              navigate(`/admin/snow-event/preview/${result.id}?settings=1`);
-            }, '')
+              const r = await snowApi.create(subscription, date);
+              navigate(`/admin/snow-event/preview/${r.id}?settings=1`);
+            })
           }
         >
           Открыть предпросмотр
         </button>
-        <p className="sw-fine-print">
-          Настройки в предпросмотре можно полностью скрыть. Открытие отсюда снова показывает их;
-          скрытое состояние запоминается на время браузерной сессии.
-        </p>
       </section>
       {data ? (
         <>
           <section className="se-panel">
-            <h2>Настоящие результаты мероприятия</h2>
-            <div className="sw-admin-stats">
-              {[
-                ['Участников', data.participants],
-                ['Активных сегодня', data.stats?.active_today],
-                ['Ещё могут выполнить 26/31', data.stats?.quazar_candidates],
-                ['Уже выполнили 26/31', data.stats?.quazar_completed],
-                ['Общий прогресс', data.earned],
-                ['Потрачено снежинок', data.stats?.spent],
-                ['Выдано времени, ч.', data.stats?.hours_granted],
-                ['Выдано трафика, ГБ', data.stats?.traffic_granted],
-                ['Постоянных прав на Квазар', data.stats?.quazar_accounts],
-              ].map(([name, value]) => (
-                <div key={String(name)}>
-                  <span>{name}</span>
-                  <strong>{value ?? '—'}</strong>
-                </div>
+            <h2>Общие результаты</h2>
+            <p>
+              Уникальных игроков: {data.unique_players} · Сегодня: {data.today_players} · Резерв:{' '}
+              {data.reserve}
+            </p>
+            <p>
+              Среднее число вкладов за активный день: {data.average_daily.toFixed(1)}. При нулевой
+              активности прогноз отсутствует.
+            </p>
+            {data.chapters.map((c) => (
+              <p key={c.id}>
+                <strong>{c.title}</strong> — {c.count}/{c.total}.{' '}
+                {data.average_daily > 0
+                  ? `Прогноз: ${data.forecast[c.id] || 'нет данных'}.`
+                  : 'Пока недостаточно данных для прогноза.'}
+              </p>
+            ))}
+            <details>
+              <summary>Вклады по дням</summary>
+              {Object.entries(data.daily).map(([day, count]) => (
+                <p key={day}>
+                  {day}: {count}
+                </p>
               ))}
-            </div>
+            </details>
           </section>
           <section className="se-panel">
-            <p className="se-kicker">Обязательная проверка перед оформлением</p>
-            <h2>Исходный тариф для Квазара</h2>
+            <h2>Корректировка с аудитом</h2>
             <p>
-              Выбери действующий «Гипердрайв». Сервер проверит раздельные лимиты, сохранит
-              безлимитные сквады и перенесёт специальные серверы с лимитом 250 ГБ. Внутренние
-              названия доступны только здесь.
+              Это отдельная административная корректировка, она не создаёт вымышленных игроков или
+              личных наград.
             </p>
-            <label className="sw-field">
-              Действующий исходный тариф
-              <select value={source} onChange={(e) => setSource(e.target.value)}>
-                <option value="">Выбрать тариф</option>
-                {data.sources?.map((tariff) => (
-                  <option key={tariff.id} value={tariff.id}>
-                    {tariff.name} · ID {tariff.id} · {tariff.traffic} ГБ · {tariff.devices} устр.
+            <label className="snow-field">
+              Причина
+              <input value={reason} onChange={(e) => setReason(e.target.value)} minLength={5} />
+            </label>
+            <label className="snow-field">
+              Мозаика
+              <select value={chapter} onChange={(e) => setChapter(e.target.value)}>
+                {data.chapters.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title}
                   </option>
                 ))}
               </select>
             </label>
-            <button
-              type="button"
-              className="se-secondary"
-              disabled={busy || !source}
-              onClick={() =>
-                void run(
-                  () => snowApi.setupQuazar(Number(source)),
-                  'Тариф проверен. Квазар доступен только заслужившим его аккаунтам с 31 декабря.',
-                )
-              }
-            >
-              Проверить и настроить Квазар
-            </button>
-            <p className="sw-fine-print">
-              При неоднозначных лимитах настройка будет отклонена. До проверки оформление закрыто.
-              Никакая действующая подписка при этом не переключается.
-            </p>
-          </section>
-          <section className="se-panel">
-            <h2>Опубликованные правила</h2>
-            <p>
-              Основная цель — 1 500, дополнительные этапы — до 5 000. Экономика: 5 / 15 / 25;
-              максимум 720 базовых снежинок и 80 коллективных. Цели и каталог не увеличиваются
-              незаметно.
-            </p>
-            <p>
-              1 декабря, 00:00 МСК — автоматический старт. С 1 января только магазин. 8 января —
-              завершение.
-            </p>
-            <div className="sw-admin-catalog">
-              {data.config.rewards.map((gift) => (
-                <div key={gift.id}>
-                  <strong>{gift.cost} ❄</strong>
-                  <span>{gift.options?.map((o) => o.name).join(' / ')}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-          {data.budget && (
-            <section className="se-panel">
-              <h2>Обязательства по наградам</h2>
-              <p>{data.budget.note}</p>
-              <div className="sw-preview-fields">
-                <label>
-                  Себестоимость 1 ГБ, ₽
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.001"
-                    value={costGb}
-                    onChange={(e) => setCostGb(e.target.value)}
-                    placeholder="Не задана"
-                  />
-                </label>
-                <label>
-                  Себестоимость суток аккаунта, ₽
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.001"
-                    value={costDay}
-                    onChange={(e) => setCostDay(e.target.value)}
-                    placeholder="Не задана"
-                  />
-                </label>
-                <label>
-                  Обслуживание Квазара / месяц, ₽
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={quazarCost}
-                    onChange={(e) => setQuazarCost(e.target.value)}
-                    placeholder="Не задано"
-                  />
-                </label>
-              </div>
-              <div className="sw-budget-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Игроков</th>
-                      <th>Время, суток ≤</th>
-                      <th>Трафик, ГБ ≤</th>
-                      <th>Бюджет наград ≤</th>
-                      <th>Квазар / месяц</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.budget.scenarios.map((row) => (
-                      <tr key={row.participants}>
-                        <td>{row.participants}</td>
-                        <td>{(row.hours_upper / 24).toLocaleString('ru')}</td>
-                        <td>{row.gb_upper}</td>
-                        <td>
-                          {costGb !== '' && costDay !== ''
-                            ? `${(row.gb_upper * Number(costGb) + (row.hours_upper / 24) * Number(costDay)).toLocaleString('ru', { maximumFractionDigits: 2 })} ₽`
-                            : 'Нужна себестоимость'}
-                        </td>
-                        <td>
-                          {quazarCost !== ''
-                            ? `${(row.quazar_accounts_upper * Number(quazarCost)).toLocaleString('ru')} ₽`
-                            : 'Нужна себестоимость'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="sw-fine-print">
-                ГБ и время — отдельные верхние оценки; суммирование даёт консервативный потолок, а
-                не ожидаемый расход. Время оценено в сутках аккаунта с его устройствами. Квазар —
-                постоянное право на платный тариф; стоимость обслуживания показана отдельно от цены
-                180 ₽.
-              </p>
-            </section>
-          )}
-          <details className="se-panel se-details">
-            <summary>Подтверждённые сбои и восстановление дней</summary>
-            <p>
-              Только подтверждённый сервисный инцидент. Дата восстановления должна попадать в его
-              период и уже наступить. Дубликат не начислит награду повторно; каждое восстановление
-              сохраняется в аудите.
-            </p>
-            <div className="sw-preview-fields">
-              <label>
-                Начало инцидента
-                <input
-                  type="date"
-                  value={incidentStart}
-                  onChange={(e) => setIncidentStart(e.target.value)}
-                />
-              </label>
-              <label>
-                Конец инцидента
-                <input
-                  type="date"
-                  value={incidentEnd}
-                  onChange={(e) => setIncidentEnd(e.target.value)}
-                />
-              </label>
-            </div>
-            <label className="sw-field">
-              Подтверждение и описание сбоя
-              <textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                minLength={12}
-                maxLength={500}
+            <label className="snow-field">
+              Изменение числа фрагментов
+              <input
+                type="number"
+                value={delta}
+                onChange={(e) => setDelta(Number(e.target.value))}
               />
             </label>
             <button
               type="button"
               className="se-secondary"
-              disabled={busy || reason.length < 12}
-              onClick={() =>
-                void run(async () => {
-                  const result = await snowApi.incident({
-                    start: incidentStart,
-                    end: incidentEnd,
-                    reason,
-                  });
-                  setIncidentId(result.data.id);
-                }, 'Инцидент зарегистрирован.')
-              }
+              disabled={busy || reason.trim().length < 5}
+              onClick={() => void action('correct', { mosaic_id: chapter, delta })}
             >
-              Зарегистрировать инцидент
+              Применить корректировку
             </button>
-            <div className="sw-preview-fields">
-              <label>
-                ID инцидента
-                <input value={incidentId} onChange={(e) => setIncidentId(e.target.value)} />
-              </label>
-              <label>
-                ID аккаунта
-                <input
-                  type="number"
-                  min="1"
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
-                />
-              </label>
-              <label>
-                Восстановить игровой день
-                <input
-                  type="date"
-                  value={restoreDate}
-                  onChange={(e) => setRestoreDate(e.target.value)}
-                />
-              </label>
-            </div>
             <button
               type="button"
               className="se-secondary"
-              disabled={busy || !incidentId || !userId || reason.length < 12}
+              disabled={busy || reason.trim().length < 5}
+              onClick={() => void action('reserve')}
+            >
+              Направить резерв в доступные бонусные мозаики
+            </button>
+          </section>
+          <section className="se-panel">
+            <h2>Дополнительная история</h2>
+            <p>
+              Сетка 24, 32 или 40 частей. Сначала сохраните черновик с active:false. После
+              подготовки художественных фрагментов можно включить active:true. Опубликованные цели
+              неизменяемы; начисление ретроактивных подарков отсутствует.
+            </p>
+            <label className="snow-field">
+              Параметры истории
+              <textarea rows={13} value={json} onChange={(e) => setJson(e.target.value)} />
+            </label>
+            <label className="snow-field">
+              Художественный исходник для черновика
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(e) => setArt(e.target.files?.[0] || null)}
+              />
+            </label>
+            <button
+              type="button"
+              className="se-secondary"
+              disabled={busy || !art || reason.trim().length < 5}
               onClick={() =>
-                void run(
-                  () =>
-                    snowApi.restoreDay({
-                      user_id: Number(userId),
-                      day: restoreDate,
-                      incident_id: incidentId,
-                      reason,
-                    }),
-                  'День восстановлен. Повторного начисления при дубликате не будет.',
-                )
+                void run(async () => {
+                  const spec = JSON.parse(json);
+                  await client.put(
+                    `/cabinet/admin/snow-event/mosaics/art/${encodeURIComponent(spec.id)}`,
+                    art,
+                    {
+                      params: { columns: spec.columns, rows: spec.rows, reason },
+                      headers: { 'Content-Type': art?.type || 'application/octet-stream' },
+                    },
+                  );
+                })
               }
             >
-              Восстановить подтверждённый день
+              Подготовить фрагменты из изображения
             </button>
-            <ul className="sw-history">
-              {data.audit?.map((entry) => (
-                <li key={entry.id}>
-                  <strong>
-                    Аккаунт {entry.user_id} · {entry.day} · +{entry.credited} ❄
-                  </strong>
-                  <span>
-                    {entry.reason} · {entry.at}
-                  </span>
-                </li>
+            <button
+              type="button"
+              className="se-secondary"
+              disabled={busy || reason.trim().length < 5}
+              onClick={() =>
+                void run(async () => {
+                  await client.post('/cabinet/admin/snow-event/mosaics', {
+                    action: 'bonus',
+                    reason,
+                    spec: JSON.parse(json),
+                  });
+                })
+              }
+            >
+              Сохранить историю
+            </button>
+          </section>
+          <section className="se-panel">
+            <h2>Журнал операций</h2>
+            {data.audit
+              .slice()
+              .reverse()
+              .map((entry, i) => (
+                <pre
+                  key={i}
+                  style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: 12 }}
+                >
+                  {JSON.stringify(entry, null, 2)}
+                </pre>
               ))}
-            </ul>
-          </details>
+          </section>
         </>
       ) : (
-        <section className="se-panel">
-          <p role="status">
-            {query.isError
-              ? 'Не удалось загрузить серверную статистику мероприятия.'
-              : 'Загружаем статистику…'}
-          </p>
-        </section>
+        <p role="status">
+          {query.isError ? 'Не удалось загрузить API мозаик.' : 'Загружаем результаты…'}
+        </p>
       )}
-    </div>
+    </main>
   );
 }
