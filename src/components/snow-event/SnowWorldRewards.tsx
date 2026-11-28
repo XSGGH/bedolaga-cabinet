@@ -41,7 +41,7 @@ export default function SnowWorldRewards({ state, preview, refresh }: {
     <p className="sv3-shop-intro">Один набор — один подарок на выбор. Дополнительное время сохраняет оплаченные дни, а гигабайты пригодятся на специальных серверах.</p>
     <nav className="sw-tabs sv3-gift-tabs" aria-label="Подарки события">{tabs.map(([key,name])=><button type="button" key={key} aria-pressed={tab===key} onClick={()=>setTab(key)}>{name}{key==='received' ? ` · ${state.progress.receipts.length}` : ''}</button>)}</nav>
     {tab==='community'&&<p className="sw-fine-print">Нужно заработать 100 личных снежинок. Уже открытые общие подарки доступны и поздним участникам до 8 января. Бонусы не продвигают станцию повторно.</p>}
-    {tab==='received'?<div className="sv3-receipts">{state.progress.receipts.length?state.progress.receipts.slice().reverse().map(receipt=><article key={receipt.id}><WinterArt index={7}/><div><h3>{giftNames[receipt.reward_id]||receipt.name}</h3><p>{new Date(receipt.at).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})} МСК{receipt.test?' · Тестовый подарок':''}</p><small>{receipt.status==='sync_pending'?'Подарок оформлен · доставляем':receipt.after_end?`Новый срок: ${new Date(receipt.after_end).toLocaleDateString('ru-RU',{timeZone:'Europe/Moscow'})}`:'Подарок получен'}</small></div><strong>{receipt.cost?`${receipt.cost} ❄`:'Подарок'}</strong></article>):<div className="sv3-empty-gifts"><WinterArt index={7}/><h3>Первый сюрприз ещё впереди</h3><p>Здесь кот сохранит всё, что ты получил в лавке.</p></div>}</div>:<div className="sw-gift-list">{rewards.map((reward,index)=>{
+    {tab==='received'?<div className="sv3-receipts">{state.progress.receipts.length?state.progress.receipts.slice().reverse().map(receipt=><article key={receipt.id}><WinterArt index={7}/><div><h3>{giftNames[receipt.reward_id]||receipt.name}</h3><p>{new Date(receipt.at).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})} МСК</p><small>{receipt.status==='sync_pending'?'Подарок оформлен · доставляем':receipt.after_end?`Новый срок: ${new Date(receipt.after_end).toLocaleDateString('ru-RU',{timeZone:'Europe/Moscow'})}`:'Подарок получен'}</small></div><strong>{receipt.cost?`${receipt.cost} ❄`:'Подарок'}</strong></article>):<div className="sv3-empty-gifts"><WinterArt index={7}/><h3>Первый сюрприз ещё впереди</h3><p>Здесь кот сохранит всё, что ты получил в лавке.</p></div>}</div>:<div className="sw-gift-list">{rewards.map((reward,index)=>{
       const status=giftState(state,reward), name=giftNames[reward.id]||reward.name;
       const labels:Record<string,string>={available:'Выбрать подарок',delivery:'Оформлено · доставляем',owned:'✓ Уже получено',closed:state.phase==='finished'?'Обмен завершён':'Откроется 1 декабря',subscription:'Нужна активная подписка',personal:`После ${reward.threshold} игровых дней`,community:(state.world?.total||0)<(reward.threshold||0)?`Общая цель: ${reward.threshold?.toLocaleString('ru')} ❄`:'Нужно 100 личных снежинок',ineligible:'Нет подходящей подписки',insufficient:`Ещё ${reward.cost-state.progress.balance} ❄`};
       const options=(reward.options||[]).filter(o=>o.kind!=='traffic'||state.subscriptions.some(sub=>sub.traffic)||!hasSubscription(state));
@@ -71,11 +71,8 @@ function GiftDialog({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [subscriptionId, setSubscriptionId] = useState(
-    state.subscriptions.find((s) =>
-      reward.options?.some((o) => (o.kind === 'hours' ? !s.daily : s.traffic)),
-    )?.id ?? 0,
-  );
+  // The account has a single subscription; reward options depend on its tariff.
+  const subscriptionId = state.subscriptions[0]?.id ?? 0;
   const sub = state.subscriptions.find((s) => s.id === subscriptionId);
   const available = (reward.options || []).filter((o) =>
     o.kind === 'hours' ? !sub?.daily : sub?.traffic,
@@ -110,31 +107,10 @@ function GiftDialog({
           <WinterArt index={7} className="sv3-gift-dialog-art"/>
           <p>{reward.description}</p>
           <Dialog.Description>
-            {preview
-              ? '🧪 Тестовая выдача в изолированном мире. Реальные данные не изменятся.'
-              : 'Один набор — один подарок на выбор. Повторно выбрать второй вариант нельзя.'}
+            Один набор — один подарок на выбор. Повторно выбрать второй вариант нельзя.
           </Dialog.Description>
           {!!reward.options?.length && (
             <>
-              <label className="snow-field">
-                К какой подписке добавить
-                <select
-                  value={subscriptionId}
-                  disabled={busy}
-                  onChange={(e) => {
-                    const id = Number(e.target.value);
-                    setSubscriptionId(id);
-                    const target = state.subscriptions.find((s) => s.id === id);
-                    setOption(target && !target.daily ? 'hours' : target?.traffic ? 'traffic' : '');
-                  }}
-                >
-                  {state.subscriptions.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
               <fieldset className="sw-gift-choice">
                 <legend>Выбери подарок</legend>
                 {available.map((o) => (
@@ -212,11 +188,7 @@ function GiftDialog({
               }
             }}
           >
-            {busy
-              ? 'Выдаём подарок…'
-              : preview
-                ? 'Получить тестовый подарок'
-                : 'Подтвердить получение'}
+            {busy ? 'Выдаём подарок…' : 'Подтвердить получение'}
           </button>
           <button type="button" className="sw-small-button" disabled={busy} onClick={onClose}>
             Отмена
@@ -294,7 +266,7 @@ export function QuazarJourney({
               }
             }}
           >
-            Проверить тестовый переход
+            Рассчитать переход
           </button>
         ) : (
           <Link className="se-button" to="/subscription/purchase">
@@ -329,18 +301,17 @@ export function QuazarJourney({
         <Dialog.Portal>
           <Dialog.Overlay className="snow-event-overlay" />
           <Dialog.Content className="snow-dialog snow-event-dialog">
-            <Dialog.Title>🧪 Переход на Квазар</Dialog.Title>
+            <Dialog.Title>Переход на Квазар</Dialog.Title>
             <Dialog.Description>
-              Изолированная подписка и тестовый баланс. Расчёт использует штатные правила
-              переключения тарифов.
+              Расчёт использует действующие правила переключения тарифов.
             </Dialog.Description>
             {quote?.already_switched ? (
-              <p>Тестовая подписка уже на Квазаре.</p>
+              <p>Квазар уже подключён.</p>
             ) : (
               <>
                 <p>Дата до перехода: {quote?.before_end}</p>
                 <p>Дата после: {quote?.after_end}</p>
-                <p>Тестовая доплата: {((quote?.cost_kopeks || 0) / 100).toLocaleString('ru')} ₽</p>
+                <p>Доплата: {((quote?.cost_kopeks || 0) / 100).toLocaleString('ru')} ₽</p>
                 <button
                   type="button"
                   className="se-button"
@@ -359,7 +330,7 @@ export function QuazarJourney({
                     }
                   }}
                 >
-                  Выполнить тестовый переход
+                  Подтвердить переход
                 </button>
               </>
             )}

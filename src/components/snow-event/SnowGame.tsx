@@ -71,9 +71,7 @@ export default function SnowGame({
         preview,
       );
       if (!mounted.current) return;
-      setMessage(
-        `Отличная работа! +${result.earned} снежинок зачислено${preview ? ' в тестовый прогресс' : ''}.`,
-      );
+      setMessage(`Отличная работа! +${result.earned} снежинок зачислено.`);
       setWon(true);
       onComplete();
     } catch (error) {

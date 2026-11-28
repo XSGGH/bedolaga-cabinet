@@ -857,8 +857,20 @@
   color: #f0d7a3;
 }
 .sw-preview-container {
+  margin-left: auto;
+  flex: none;
+}
+.sw-preview-trigger {
   display: grid;
-  gap: 10px;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #6b567a;
+  border-radius: 14px;
+  background: #292331;
+  color: #e3c8fb;
+  cursor: pointer;
+  font-size: 22px;
 }
 .sw-preview-indicator {
   display: flex;
@@ -882,7 +894,10 @@
   border: 1px solid #7c6092;
   border-radius: 16px;
   background: #292331;
-  position: static;
+  position: fixed;
+  width: min(600px, calc(100vw - 24px));
+  max-height: 90dvh;
+  overflow-y: auto;
   font-size: 14px;
 }
 .sw-preview-controls p {

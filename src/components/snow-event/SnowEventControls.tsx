@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { Link } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
@@ -26,12 +26,6 @@ export function PurchaseDialog({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [subscriptionId, setSubscriptionId] = useState<number>(
-    () =>
-      state.subscriptions.find((s) =>
-        reward.kind === 'days' ? !s.daily : reward.kind === 'traffic' ? s.traffic : true,
-      )?.id ?? 0,
-  );
   // Keep the idempotency key for the whole dialog, including background state refreshes.
   const requestId = useRef(crypto.randomUUID());
   const submitting = useRef(false);
@@ -39,6 +33,7 @@ export function PurchaseDialog({
   const eligible = state.subscriptions.filter((s) =>
     reward?.kind === 'days' ? !s.daily : reward?.kind === 'traffic' ? s.traffic : true,
   );
+  const subscriptionId = eligible[0]?.id ?? 0;
   return (
     <Dialog.Root
       open={!!reward}
@@ -59,25 +54,10 @@ export function PurchaseDialog({
         >
           <Dialog.Title>{reward?.name}</Dialog.Title>
           <Dialog.Description>
-            {preview
-              ? 'Тестовый обмен. Настоящая подписка и баланс не изменятся.'
-              : 'Обменяем снежинки на подарок. Эту награду можно получить один раз.'}
+            Обменяем снежинки на подарок. Эту награду можно получить один раз.
           </Dialog.Description>
-          {physical && (
-            <label className="snow-field">
-              Куда добавить подарок
-              <select
-                value={subscriptionId}
-                onChange={(e) => setSubscriptionId(Number(e.target.value))}
-              >
-                {eligible.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-              {!eligible.length && <span>Для этой награды нет подходящей подписки.</span>}
-            </label>
+          {physical && !eligible.length && (
+            <p className="snow-error">Для текущего тарифа эта награда недоступна.</p>
           )}
           <p className="snow-purchase-total">
             <span>Будет списано</span>
@@ -117,7 +97,7 @@ export function PurchaseDialog({
               }
             }}
           >
-            {busy ? 'Выдаём подарок…' : preview ? 'Выполнить тестовый обмен' : 'Подтвердить обмен'}
+            {busy ? 'Выдаём подарок…' : 'Подтвердить обмен'}
           </button>
           <button type="button" className="snow-text-button" disabled={busy} onClick={onClose}>
             Отмена
@@ -131,11 +111,7 @@ export function PurchaseDialog({
 export function PreviewBar({ state, onChange }: { state: SnowState; onChange: () => void }) {
   const dialog = useNativeDialog();
   const client = useQueryClient();
-  const [search] = useSearchParams();
-  const storageKey = `snow-preview-hidden:${state.preview_id}`;
-  const [hidden, setHidden] = useState(
-    () => search.get('settings') !== '1' && sessionStorage.getItem(storageKey) === 'yes',
-  );
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [tariff, setTariff] = useState(state.preview_tariff || 'hyperdrive');
@@ -158,40 +134,30 @@ export function PreviewBar({ state, onChange }: { state: SnowState; onChange: ()
       setBusy(false);
     }
   };
-  const visibility = (value: boolean) => {
-    setHidden(value);
-    sessionStorage.setItem(storageKey, value ? 'yes' : 'no');
-  };
   return (
     <div className="sw-preview-container">
-      <div className="sw-preview-indicator">
-        <span>
-          🧪 Тестовый предпросмотр · {subscriptionLabels[state.subscription]} · {state.today}
-        </span>
-        <button type="button" onClick={() => visibility(!hidden)}>
-          {hidden ? 'Открыть настройки' : 'Скрыть настройки'}
-        </button>
-      </div>
-      {!hidden && (
-        <section className="sw-preview-controls" aria-label="Управление тестовым предпросмотром">
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Trigger className="sw-preview-trigger" aria-label="Настройки предпросмотра" title="Настройки предпросмотра">⚙</Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Overlay className="snow-event-overlay" />
+          <Dialog.Content className="snow-dialog snow-event-dialog sw-preview-controls" aria-describedby="sw-preview-description">
           <div className="se-section-heading">
             <div>
-              <strong>Предпросмотр глазами пользователя</strong>
+              <Dialog.Title>Предпросмотр глазами пользователя</Dialog.Title>
               <p>
                 {subscriptionLabels[state.subscription]} ·{' '}
                 {tariff === 'orbita' ? 'Орбита' : 'Гипердрайв'}
               </p>
             </div>
-            <button
+            <Dialog.Close
               type="button"
               className="sw-close"
               aria-label="Полностью скрыть настройки предпросмотра"
-              onClick={() => visibility(true)}
             >
               ×
-            </button>
+            </Dialog.Close>
           </div>
-          <p className="sw-fine-print">
+          <p className="sw-fine-print" id="sw-preview-description">
             Подписка, снежинки, станция и подарки изолированы. Тестовый личный вклад не входит в
             настоящий общий счётчик.
           </p>
@@ -302,8 +268,9 @@ export function PreviewBar({ state, onChange }: { state: SnowState; onChange: ()
             </button>
             <Link to="/admin/snow-event">Вернуться в админку ↗</Link>
           </div>
-        </section>
-      )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
       {error && (
         <p role="alert" className="se-error">
           {error}
