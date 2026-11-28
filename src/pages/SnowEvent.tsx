@@ -183,8 +183,7 @@ export default function SnowEvent() {
   };
   return (
     <div className={`snow-page snow-experience snow-world-experience snow-village sv3-phase-${state.phase}`}>
-      {previewId&&<PreviewBar state={state} onChange={()=>{setGame(null);visitRequested.current='';void refetch();}}/>}
-      <header className="sv3-page-header"><Link to={previewId?'/admin/snow-event':'/'} aria-label={previewId?'Вернуться в управление мероприятием':'Вернуться на главную'}>←</Link><div><h1>Снежный переполох</h1><p>{upcoming?'Вместе создадим маленькое зимнее чудо':state.phase==='finished'?'Праздник, который мы построили вместе':'Наша маленькая зимняя история'}</p></div><span className="sv3-header-season">XSG · 2026/27</span></header>
+      <header className="sv3-page-header"><Link to={previewId?'/admin/snow-event':'/'} aria-label={previewId?'Вернуться в управление мероприятием':'Вернуться на главную'}>←</Link><div><h1>Снежный переполох</h1><p>{upcoming?'Вместе создадим маленькое зимнее чудо':state.phase==='finished'?'Праздник, который мы построили вместе':'Наша маленькая зимняя история'}</p></div>{previewId&&<PreviewBar state={state} onChange={()=>{setGame(null);visitRequested.current='';void refetch();}}/>}<span className="sv3-header-season">XSG · 2026/27</span></header>
       <nav id="winter-tabs" className="sv3-tabs" role="tablist" aria-label="Разделы зимнего события">
         {winterTabs.map(({ id, label, Icon }, index) => (
           <button
@@ -282,7 +281,6 @@ export default function SnowEvent() {
             <Dialog.Description className="se-sr-only">
               Мини-игра с проверкой действий и награды на сервере.
             </Dialog.Description>
-            {previewId && <div className="se-game-preview">🧪 Тестовый мир · {state.today}</div>}
             {error && (
               <p role="alert" className="snow-error">
                 {error}
