@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Link } from 'react-router';
 import client from '@/api/client';
@@ -9,6 +9,9 @@ import { hasSubscription } from './snowPresentation';
 import './snow-mosaics.css';
 
 type Chapter = {
+  planet: string;
+  climate: string;
+  colors: string[];
   image_width: number;
   image_height: number;
   id: string;
@@ -34,6 +37,10 @@ type Attempt = {
 };
 export type MosaicState = {
   chapters: Chapter[];
+  home_lights: number;
+  epilogue: boolean;
+  personal_days: { date: string; best: number; attempts: number }[];
+  personal_earned: number;
   reserve: number;
   unique_players: number;
   today_players: number;
@@ -141,7 +148,7 @@ export default function SnowMosaics({
 }) {
   const data = state.mosaics;
   const [tab, setTab] = useState('mosaics');
-  const [selected, setSelected] = useState('');
+  const [selected, setSelected] = useState(state.preview_planet || '');
   const [story, setStory] = useState<Chapter | null>(null);
   const [attempt, setAttempt] = useState<Attempt | null>(data?.attempt || null);
   const [show, setShow] = useState<Record<number, string>>({});
@@ -165,6 +172,20 @@ export default function SnowMosaics({
     },
     [],
   );
+  useEffect(() => {
+    if (state.preview_planet) setSelected(state.preview_planet);
+  }, [state.preview_planet]);
+  const observed = useRef(data?.chapters.filter((c) => c.story).map((c) => c.id) || []);
+  const [arrival, setArrival] = useState('');
+  useEffect(() => {
+    const completed = data?.chapters.filter((c) => c.story) || [];
+    const newly = completed.find((c) => !observed.current.includes(c.id));
+    if (newly) {
+      setArrival(newly.planet);
+      setStory(newly);
+    }
+    observed.current = completed.map((c) => c.id);
+  }, [data?.chapters]);
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     const base = attempt?.elapsed || 0,
@@ -191,7 +212,7 @@ export default function SnowMosaics({
       if (action === 'start') {
         setAttempt(result);
         setShow({});
-        setMessage('Найди шесть пар. Можно ошибаться — это часть игры.');
+        setMessage('');
       } else {
         setAttempt(result.attempt);
         setShow((previous) => ({ ...previous, [result.index]: result.symbol }));
@@ -262,7 +283,7 @@ export default function SnowMosaics({
         </Link>
         <div>
           <h1>Снежный переполох</h1>
-          <p>Маленькие истории, которые мы открываем вместе.</p>
+          <p>Семь планет. Один пропавший друг. Найдём Уголька вместе.</p>
         </div>
       </header>
       {preview && <PreviewBar state={state} onChange={refresh} />}
@@ -278,17 +299,72 @@ export default function SnowMosaics({
           </Link>
         </aside>
       )}
+      {arrival && (
+        <div className="sm-arrival" role="status">
+          <span>✦</span> {arrival}: связь восстановлена
+          <button type="button" aria-label="Скрыть завершение главы" onClick={() => setArrival('')}>
+            ×
+          </button>
+        </div>
+      )}
       <section
         id={`sm-${tab}`}
-        aria-label={
-          { mosaics: 'Мозаики', play: 'Играть', gifts: 'Подарки', mine: 'Мой вклад' }[tab]
-        }
+        aria-label={{ mosaics: 'Мозаики', play: 'Играть', gifts: 'Подарки', mine: 'Мой путь' }[tab]}
       >
+        {tab === 'mosaics' && (
+          <nav className="sm-orbit" aria-label="Маршрут к Угольку">
+            {data.chapters
+              .filter((c) => c.id !== 'bonus')
+              .slice(0, 7)
+              .map((c, i) => (
+                <button
+                  type="button"
+                  key={c.id}
+                  className={
+                    c.count === c.total ? 'is-done' : c.unlocked ? 'is-current' : 'is-locked'
+                  }
+                  aria-label={`${i + 1}. ${c.planet}: ${c.count === c.total ? 'исследована' : c.unlocked ? 'исследуем' : 'закрыта'}`}
+                  aria-pressed={selected === c.id}
+                  onClick={() => setSelected(c.id)}
+                  style={{ '--planet-color': c.colors[0] } as CSSProperties}
+                >
+                  <span>{c.count === c.total ? '✓' : i + 1}</span>
+                  <small>{c.planet}</small>
+                </button>
+              ))}
+          </nav>
+        )}
+        {tab === 'mosaics' && (
+          <details className="sm-prologue">
+            <summary>Как началось наше путешествие</summary>
+            <p>
+              В конце ноября Уголёк полетел помочь далёкой планете и обещал вернуться к празднику.
+              Но после космической бури связь оборвалась. «Снежок, если задержусь, не переживай. Я
+              обязательно вернусь. Ты только…» — и тишина.
+            </p>
+            <p>
+              Дома остались наряженная ёлка, две чашки какао и подарок для друга. Снежок сел в
+              маленький корабль XSG VPN и отправился на поиски. Поможем ему восстановить сигналы и
+              собрать семь глав этой истории. Расстояние не имеет значения, когда тебя ждут.
+            </p>
+          </details>
+        )}
+        {tab === 'mosaics' && data.chapters.length > 7 && (
+          <details className="sm-gallery">
+            <summary>Дополнительные истории</summary>
+            {data.chapters.slice(7).map((c) => (
+              <button type="button" key={c.id} onClick={() => setSelected(c.id)}>
+                {c.title}
+              </button>
+            ))}
+          </details>
+        )}
         {tab === 'mosaics' && chapter && (
           <>
             <div className="sm-chapter-heading">
               <div>
-                <p className="sm-eyebrow">Три маленькие истории</p>
+                <p className="sm-eyebrow">{chapter.climate}</p>
+                <p className="sm-planet-name">{chapter.planet}</p>
                 <h2>{chapter.title}</h2>
                 <p>{chapter.caption}</p>
               </div>
@@ -297,7 +373,7 @@ export default function SnowMosaics({
                   ? chapter.count === chapter.total
                     ? 'Собрана'
                     : 'Собираем'
-                  : `С ${chapter.start.slice(8)} декабря`}
+                  : 'Следующая остановка'}
               </span>
             </div>
             <div className="sm-main">
@@ -311,11 +387,13 @@ export default function SnowMosaics({
                   {Math.floor((chapter.count / chapter.total) * 100)}% · Сегодня помогли{' '}
                   {data.today_players}
                 </p>
-                {chapter.id === 'family' && state.today < '2026-12-31' && (
-                  <p>Последние части и развязку откроем 31 декабря.</p>
-                )}
-                <button type="button" className="se-button" onClick={() => setTab('play')}>
-                  Сыграть сегодня
+                <button
+                  type="button"
+                  className="se-button"
+                  disabled={!hasSubscription(state)}
+                  onClick={() => setTab('play')}
+                >
+                  {hasSubscription(state) ? 'Помочь Снежку сегодня' : 'Нужна активная подписка'}
                 </button>
                 {chapter.story && (
                   <button type="button" className="se-secondary" onClick={() => setStory(chapter)}>
@@ -326,36 +404,66 @@ export default function SnowMosaics({
                   Твои фрагменты этой истории: {data.personal_chapters[chapter.id] || 0}. Личные
                   снежинки за него не списываются.
                 </p>
-                <div className="sm-chapters">
-                  {data.chapters.map((c) => (
-                    <button
-                      type="button"
-                      key={c.id}
-                      aria-pressed={chapter.id === c.id}
-                      onClick={() => setSelected(c.id)}
-                    >
-                      <strong>{c.title}</strong>
-                      <small>
-                        {c.unlocked
-                          ? `${c.count} / ${c.total} · ${c.count === c.total ? 'собрана' : 'собираем'}`
-                          : `Откроется ${c.start.slice(8)} декабря`}
-                      </small>
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           </>
         )}
+        {tab === 'mosaics' && (
+          <>
+            <details className="sm-gallery">
+              <summary>
+                Наши открытые истории · {data.chapters.filter((c) => c.story).length}
+              </summary>
+              {data.chapters
+                .filter((c) => c.story)
+                .map((c) => (
+                  <button
+                    type="button"
+                    key={c.id}
+                    onClick={() => {
+                      setSelected(c.id);
+                      setStory(c);
+                    }}
+                  >
+                    {c.planet} · {c.title} ↗
+                  </button>
+                ))}
+            </details>
+            {data.chapters.slice(0, 7).every((c) => c.count === c.total) && (
+              <section className="sm-home-lights">
+                <h2>Зажжём огни по дороге домой</h2>
+                <p>
+                  Друг найден. Каждые пять новых общих вкладов зажигают ещё один огонёк:{' '}
+                  {data.home_lights}.
+                </p>
+                <div aria-label={`${data.home_lights} огоньков`}>
+                  {Array.from({ length: Math.min(40, data.home_lights) }, (_, i) => (
+                    <span key={i}>✦</span>
+                  ))}
+                </div>
+                {data.epilogue && (
+                  <p>С Новым годом! Пусть надёжные маршруты всегда приводят туда, где тебя ждут.</p>
+                )}
+              </section>
+            )}
+          </>
+        )}
         {tab === 'play' && (
           <div className="sm-play">
-            <h2>Найди пару</h2>
+            <div className="sm-mentor">
+              <img src="/login-cat.webp" alt="Снежок" width="52" height="52" />
+              <div>
+                <h2>Найди пару</h2>
+                <small>Восстановим ещё один сигнал вместе.</small>
+              </div>
+            </div>
             <p>
-              «Я приготовил какао. Уголёк — карточки. Кажется, всё для хорошего вечера на месте».
+              «Ещё одна пара — и сигнал станет чуть яснее. Спасибо, что помогаешь мне искать друга».
             </p>
             {attempt && !attempt.finished && (
               <p role="timer">
-                Время: {Math.floor(elapsed)} сек. · Пары: {attempt.matched.length / 2} / 6
+                Время: {Math.floor(elapsed)} сек. · Пары: {attempt.matched.length / 2} / 6 · Ошибки:{' '}
+                {attempt.errors}
               </p>
             )}
             <div className="sm-game-stats">
@@ -414,9 +522,13 @@ export default function SnowMosaics({
               </>
             )}
             {message && (
-              <p role="status" className="sm-success">
-                {message}
-              </p>
+              <section role="status" className="sm-success sm-result">
+                <img src="/login-cat.webp" alt="Снежок радуется" width="64" height="64" />
+                <div>
+                  <h3>{attempt?.finished ? 'Сигнал стал яснее!' : 'Отправляемся на поиски'}</h3>
+                  <p>{message}</p>
+                </div>
+              </section>
             )}
             {error && (
               <p role="alert" className="snow-error">
@@ -430,7 +542,21 @@ export default function SnowMosaics({
                 disabled={busy}
                 onClick={() => void call(retry.action, retry.body)}
               >
-                Повторить тот же запрос
+                Повторить ход
+              </button>
+            )}
+            {retry && (
+              <button
+                type="button"
+                className="se-secondary"
+                onClick={() => {
+                  setRetry(null);
+                  setError('');
+                  setShow({});
+                  refresh();
+                }}
+              >
+                Обновить партию
               </button>
             )}
             <details>
@@ -457,8 +583,37 @@ export default function SnowMosaics({
           </>
         )}
         {tab === 'mine' && (
+          <section className="sm-timeline">
+            <p>
+              Благодаря тебе Снежок стал ближе к другу. Заработано в игре: {data.personal_earned} ❄.
+            </p>
+            <p>
+              Помогал дней: {data.personal_days.filter((day) => day.best > 0).length}. Получено
+              подарков: {state.progress.receipts.length}.
+            </p>
+            {data.chapters
+              .filter((c) => data.personal_chapters[c.id] > 0)
+              .map((c) => (
+                <p key={c.id}>
+                  Ты помог исследовать {c.planet}: {data.personal_chapters[c.id]} фрагментов.
+                </p>
+              ))}
+            <details>
+              <summary>Мои приключения по датам</summary>
+              {data.personal_days.map((day) => (
+                <p key={day.date}>
+                  {day.date.split('-').reverse().join('.')} ·{' '}
+                  {day.best > 0
+                    ? `Помощь Снежку · ${day.best} ❄`
+                    : 'Попытка начата — можно продолжить сегодня'}
+                </p>
+              ))}
+            </details>
+          </section>
+        )}
+        {tab === 'mine' && (
           <div className="sm-play">
-            <h2>В этой истории есть твоё тепло</h2>
+            <h2>Мой путь к Угольку</h2>
             <div className="sm-personal">
               <p>
                 Твой вклад <strong>{data.personal_contributions} вкладов</strong>
@@ -474,8 +629,8 @@ export default function SnowMosaics({
               </p>
             </div>
             <p>
-              Если глава собрана раньше срока, твой вклад остаётся в резерве для дополнительных
-              историй. Следующая основная глава откроется в свою дату.
+              Следующая планета открывается сразу после завершения предыдущей. Когда найдём Уголька,
+              новые вклады будут зажигать огни по дороге домой.
             </p>
             <button type="button" className="se-secondary" onClick={() => setTab('gifts')}>
               Мои подарки и история наград ↗
@@ -488,7 +643,7 @@ export default function SnowMosaics({
           ['mosaics', '▦', 'Мозаики'],
           ['play', '✦', 'Играть'],
           ['gifts', '♧', 'Подарки'],
-          ['mine', '♡', 'Мой вклад'],
+          ['mine', '♡', 'Мой путь'],
         ].map(([key, icon, label]) => (
           <button
             type="button"
@@ -514,7 +669,13 @@ export default function SnowMosaics({
           <Dialog.Overlay className="snow-event-overlay" />
           <Dialog.Content className="snow-dialog snow-event-dialog sm-story">
             <Dialog.Title>{story?.title}</Dialog.Title>
-            <Dialog.Description>{story?.story}</Dialog.Description>
+            <Dialog.Description asChild>
+              <div className="sm-story-text">
+                {story?.story?.split('\n\n').map((paragraph, i) => (
+                  <p key={i}>{paragraph}</p>
+                ))}
+              </div>
+            </Dialog.Description>
             <Dialog.Close className="se-button">Сохраню это тепло</Dialog.Close>
           </Dialog.Content>
         </Dialog.Portal>

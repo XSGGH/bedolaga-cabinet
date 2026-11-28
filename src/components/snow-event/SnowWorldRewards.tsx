@@ -69,7 +69,7 @@ export default function SnowWorldRewards({
   preview?: string;
   refresh: () => void;
 }) {
-  const [tab, setTab] = useState<'shop' | 'personal' | 'community' | 'received'>('shop');
+  const [tab, setTab] = useState<'shop' | 'personal' | 'received'>('shop');
   const [selected, setSelected] = useState<SnowReward | null>(null);
   const [opened, setOpened] = useState<{ reward: SnowReward; option: string } | null>(null);
   const awardedOption = opened?.reward.options?.find((option) => option.kind === opened.option);
@@ -105,12 +105,6 @@ export default function SnowWorldRewards({
           </button>
         ))}
       </nav>
-      {tab === 'community' && (
-        <p className="sw-fine-print">
-          Нужно заработать 100 личных снежинок. Уже открытые общие подарки доступны и поздним
-          участникам до 8 января. Бонусы не продвигают станцию повторно.
-        </p>
-      )}
       {tab === 'received' ? (
         <div className="sv3-receipts">
           {state.progress.receipts.length ? (
@@ -314,7 +308,9 @@ function GiftDialog({
         >
           <Dialog.Title>{reward.name}</Dialog.Title>
           <GiftVisual rewardId={reward.id} cost={reward.cost} className="sv4-gift-dialog-art" />
-          <Dialog.Description>Один подарок на выбор. {reward.description}</Dialog.Description>
+          <Dialog.Description>
+            {reward.description.replace(/Один (подарок|вариант) на выбор\.?/gi, '').trim()}
+          </Dialog.Description>
           {suitable.length > 1 && (
             <label className="snow-field">
               К какой подписке добавить

@@ -5,7 +5,7 @@ umask 077
 
 bot=${XSG_BOT_DIR:-/home/user1/remnawave-bedolaga-telegram-bot}
 cabinet=${XSG_CABINET_DIR:-/home/user1/bedolaga-cabinet}
-bot_ref=851ff23217cc3a0b2cf4325ad5ab7c0c392262ce
+bot_ref=a78d64f47c276334f3859d371101840a4b6d7e8c
 backup_root=/root/xsg-snow-backups
 
 restore_bot_source() {
@@ -13,9 +13,9 @@ restore_bot_source() {
         if test -f "$backup/bot-code/$relative"; then
             cp -p "$backup/bot-code/$relative" "$bot/$relative" || return 1
         else
-            # Only the eight fixed, event-owned paths from our manifest.
+            # Only fixed event-owned paths from our validated manifest.
             case "$relative" in
-                app/database/snow_event_models.py|app/services/snow_mosaics.py|app/services/snow_mosaic_context.py|resources/snow-mosaics/meeting/*.webp|resources/snow-mosaics/home/*.webp|resources/snow-mosaics/family/*.webp|app/services/snow_event.py|app/services/snow_event_rewards.py|app/services/snow_world.py|app/services/snow_world_actions.py|app/services/snow_games.py|app/services/snow_quazar.py|app/cabinet/routes/snow_event.py|scripts/xsg-snow-schema.py)
+                app/database/snow_event_models.py|app/services/snow_planets.py|app/services/snow_mosaics.py|app/services/snow_mosaic_context.py|resources/snow-mosaics/niveya/*.webp|resources/snow-mosaics/solaria/*.webp|resources/snow-mosaics/orida/*.webp|resources/snow-mosaics/marena/*.webp|resources/snow-mosaics/lioris/*.webp|resources/snow-mosaics/efiria/*.webp|resources/snow-mosaics/domira/*.webp|app/services/snow_event.py|app/services/snow_event_rewards.py|app/services/snow_world.py|app/services/snow_world_actions.py|app/services/snow_games.py|app/services/snow_quazar.py|app/cabinet/routes/snow_event.py|scripts/xsg-snow-schema.py)
                     rm -f -- "$bot/$relative" || return 1 ;;
                 *) echo "Refusing to remove unknown path: $relative"; return 1 ;;
             esac
@@ -135,13 +135,13 @@ g "$bot" cat-file -e "$bot_ref^{commit}"
 printf '%s\n' "$bot_ref" > "$backup/bot-target"
 for relative in app/database/snow_event_models.py app/services/snow_event.py app/services/snow_event_rewards.py \
     app/services/snow_world.py app/services/snow_world_actions.py app/services/snow_games.py app/services/snow_quazar.py \
-    app/services/snow_mosaics.py app/services/snow_mosaic_context.py \
+    app/services/snow_mosaics.py app/services/snow_planets.py app/services/snow_mosaic_context.py \
     app/cabinet/routes/snow_event.py scripts/xsg-snow-overlay.py scripts/xsg-snow-schema.py scripts/xsg-snow-integration.json; do
     mkdir -p "$backup/payload/$(dirname "$relative")"
     g "$bot" show "$bot_ref:$relative" > "$backup/payload/$relative"
 done
-for story in meeting home family; do
-    count=72; test "$story" != family || count=80
+for story in niveya solaria orida marena lioris efiria domira; do
+    count=36; test "$story" != domira || count=48
     for ((tile=0;tile<count;tile++)); do
         relative="resources/snow-mosaics/$story/$tile.webp"
         mkdir -p "$backup/payload/$(dirname "$relative")"
@@ -222,7 +222,7 @@ status=$(curl -sS --retry 20 --retry-all-errors --retry-delay 2 --retry-max-time
     -o "$backup/api-auth-check.json" -w '%{http_code}' http://127.0.0.1:8080/cabinet/snow-event)
 test "$status" = 401 || test "$status" = 403
 curl -fsS --retry 10 --retry-all-errors --retry-delay 2 --max-time 5 http://127.0.0.1:8080/cabinet/snow-event/version > "$backup/api-version.json"
-python3 -c 'import json,sys; assert json.load(open(sys.argv[1]))["version"]==3' "$backup/api-version.json"
+python3 -c 'import json,sys; assert json.load(open(sys.argv[1]))["version"]==4' "$backup/api-version.json"
 (cd "$cabinet" && docker compose up -d --force-recreate --no-deps --no-build --pull never cabinet-frontend </dev/null)
 echo 'Ожидаем готовность кабинета: временный сброс соединения при запуске nginx допустим.'
 curl -fsS --retry 30 --retry-all-errors --retry-delay 2 --retry-max-time 90 --connect-timeout 2 --max-time 5 \

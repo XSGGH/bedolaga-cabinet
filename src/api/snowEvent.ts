@@ -30,6 +30,7 @@ export interface SnowReward {
   snow?: number;
 }
 export interface SnowState {
+  preview_planet?: string;
   mosaics?: import('@/components/snow-event/SnowMosaics').MosaicState;
   phase: 'upcoming' | 'active' | 'shop_only' | 'finished';
   server_now: string;

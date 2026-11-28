@@ -8,6 +8,7 @@ import '@/components/snow-event/snow-event.css';
 import '@/components/snow-event/snow-experience.css';
 
 type Stats = MosaicState & {
+  scenarios: Record<string, { date: string; remaining: number; daily: number; on_time: boolean }>;
   average_daily: number;
   forecast: Record<string, string | null>;
   daily: Record<string, number>;
@@ -22,7 +23,7 @@ export default function AdminSnowEvent() {
   const [subscription, setSubscription] = useState<SubscriptionScenario>('active');
   const [date, setDate] = useState('2026-12-15');
   const [reason, setReason] = useState('');
-  const [chapter, setChapter] = useState('meeting');
+  const [chapter, setChapter] = useState('niveya');
   const [delta, setDelta] = useState(1);
   const [json, setJson] = useState(
     JSON.stringify(
@@ -65,11 +66,24 @@ export default function AdminSnowEvent() {
   };
   const action = (action: string, extra: Record<string, unknown> = {}) =>
     run(() => client.post('/cabinet/admin/snow-event/mosaics', { action, reason, ...extra }));
+  const updateSpec = (key: string, value: unknown) => {
+    try {
+      setJson(JSON.stringify({ ...JSON.parse(json), [key]: value }, null, 2));
+    } catch {
+      setError('Исправьте параметры истории.');
+    }
+  };
+  let specFields: Record<string, unknown> = {};
+  try {
+    specFields = JSON.parse(json);
+  } catch {
+    /* Advanced editor can temporarily contain incomplete JSON. */
+  }
   const data = query.data;
   return (
     <main className="snow-page snow-experience">
       <Link to="/admin">← Административная панель</Link>
-      <h1>Три маленькие истории</h1>
+      <h1>Семь планет: поиск Уголька</h1>
       {error && (
         <p role="alert" className="se-error">
           {error}
@@ -123,13 +137,21 @@ export default function AdminSnowEvent() {
         <>
           <section className="se-panel">
             <h2>Общие результаты</h2>
+            <div className="sm-forecast">
+              {Object.values(data.scenarios || {}).map((s) => (
+                <p key={s.daily}>
+                  {s.daily} ежедневных участников: {s.date} ·{' '}
+                  {s.on_time ? 'успеваем к Новому году' : 'нужна дополнительная активность'}
+                </p>
+              ))}
+            </div>
             <p>
               Уникальных игроков: {data.unique_players} · Сегодня: {data.today_players} · Резерв:{' '}
               {data.reserve}
             </p>
             <p>
-              Среднее число вкладов за активный день: {data.average_daily.toFixed(1)}. При нулевой
-              активности прогноз отсутствует.
+              Среднее число вкладов за последние 7 дней мероприятия: {data.average_daily.toFixed(1)}
+              . При нулевой активности прогноз отсутствует.
             </p>
             {data.chapters.map((c) => (
               <p key={c.id}>
@@ -195,15 +217,76 @@ export default function AdminSnowEvent() {
           </section>
           <section className="se-panel">
             <h2>Дополнительная история</h2>
+            <div className="snow-field">
+              {[
+                ['id', 'Идентификатор'],
+                ['title', 'Название'],
+                ['caption', 'Короткая подпись'],
+                ['start', 'Дата начала'],
+                ['finale', 'Дата раскрытия'],
+              ].map(([key, label]) => (
+                <label key={key}>
+                  {label}
+                  <input
+                    type={key === 'start' || key === 'finale' ? 'date' : 'text'}
+                    value={String(specFields[key] || '')}
+                    onChange={(e) => updateSpec(key, e.target.value)}
+                  />
+                </label>
+              ))}
+              <label>
+                Рассказ
+                <textarea
+                  rows={6}
+                  value={String(specFields.story || '')}
+                  onChange={(e) => updateSpec('story', e.target.value)}
+                />
+              </label>
+              <label>
+                Сетка
+                <select
+                  value={`${specFields.columns}x${specFields.rows}`}
+                  onChange={(e) => {
+                    const [columns, rows] = e.target.value.split('x').map(Number);
+                    try {
+                      setJson(JSON.stringify({ ...JSON.parse(json), columns, rows }, null, 2));
+                    } catch {
+                      setError('Исправьте параметры.');
+                    }
+                  }}
+                >
+                  {[
+                    [6, 4],
+                    [8, 4],
+                    [8, 5],
+                  ].map(([x, y]) => (
+                    <option key={x * y} value={`${x}x${y}`}>
+                      {x * y} частей · {x}×{y}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={!!specFields.active}
+                  onChange={(e) => updateSpec('active', e.target.checked)}
+                />
+                Опубликовать после подготовки изображения
+              </label>
+            </div>
             <p>
-              Сетка 24, 32 или 40 частей. Сначала сохраните черновик с active:false. После
-              подготовки художественных фрагментов можно включить active:true. Опубликованные цели
+              Сетка 24, 32 или 40 частей. Сначала сохраните черновик без публикации. После
+              подготовки художественных фрагментов включите публикацию. Опубликованные цели
               неизменяемы; начисление ретроактивных подарков отсутствует.
             </p>
-            <label className="snow-field">
-              Параметры истории
-              <textarea rows={13} value={json} onChange={(e) => setJson(e.target.value)} />
-            </label>
+            <details>
+              <summary>Расширенные параметры истории</summary>
+              <label className="snow-field">
+                JSON
+                <textarea rows={13} value={json} onChange={(e) => setJson(e.target.value)} />
+              </label>
+            </details>
             <label className="snow-field">
               Художественный исходник для черновика
               <input

@@ -136,6 +136,13 @@ export function PreviewBar({ state, onChange }: { state: SnowState; onChange: ()
   };
   return (
     <div className="sw-preview-container">
+      <p className="sm-preview-label">
+        🧪 Тестовый предпросмотр
+        <br />
+        <small>
+          {subscriptionLabels[state.subscription]} · {state.today.split('-').reverse().join('.')}
+        </small>
+      </p>
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger
           className="sw-preview-trigger"
@@ -232,13 +239,70 @@ export function PreviewBar({ state, onChange }: { state: SnowState; onChange: ()
                 </select>
               </label>
               <label>
-                Общие фрагменты мозаик
+                Планета
+                <select
+                  value={state.preview_planet || state.mosaics?.chapters[0]?.id || 'niveya'}
+                  disabled={busy}
+                  onChange={(e) =>
+                    void update(state.subscription, date, { planet: e.target.value })
+                  }
+                >
+                  {state.mosaics?.chapters.slice(0, 7).map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.planet}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Раскрытие главы
+                <select
+                  value=""
+                  disabled={busy}
+                  onChange={(e) => {
+                    const chapters = state.mosaics?.chapters.slice(0, 7) || [],
+                      index = Math.max(
+                        0,
+                        chapters.findIndex((c) => c.id === state.preview_planet),
+                      ),
+                      prefix = chapters.slice(0, index).reduce((sum, c) => sum + c.total, 0),
+                      count = Math.round(
+                        ((chapters[index]?.total || 36) * Number(e.target.value)) / 100,
+                      );
+                    void update(state.subscription, date, { mosaic_count: prefix + count });
+                  }}
+                >
+                  <option value="" disabled>
+                    Выберите процент
+                  </option>
+                  {[0, 25, 50, 75, 90, 100].map((n) => (
+                    <option key={n} value={n}>
+                      {n}%
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Дополнительных вкладов после финала
                 <input
                   type="number"
                   min="0"
-                  max="224"
+                  max="10000"
+                  value={state.mosaics?.reserve || 0}
                   disabled={busy}
-                  value={state.mosaics?.chapters.reduce((n, c) => n + c.count, 0) || 0}
+                  onChange={(e) =>
+                    void update(state.subscription, date, { reserve_count: Number(e.target.value) })
+                  }
+                />
+              </label>
+              <label>
+                Всего собранных частей
+                <input
+                  type="number"
+                  min="0"
+                  max="264"
+                  value={state.mosaics?.chapters.reduce((sum, c) => sum + c.count, 0) || 0}
+                  disabled={busy}
                   onChange={(e) =>
                     void update(state.subscription, date, { mosaic_count: Number(e.target.value) })
                   }

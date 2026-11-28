@@ -1,6 +1,5 @@
 /* biome-ignore-all lint/style/noDescendingSpecificity: Independent gift and preview widgets retain responsive overrides. */
 /* Shared gift and isolated preview widgets; legacy station/game styles removed. */
-.sw-station-controls button,
 .sw-small-button {
   display: inline-flex;
   align-items: center;
