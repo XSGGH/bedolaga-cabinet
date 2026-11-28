@@ -422,17 +422,19 @@
 }
 @media(prefers-reduced-motion:reduce) {.sv3-unbox-art>.sv3-unbox-glow{animation:none!important;}.snow-village .sv3-tabs{transition:none;}}
 
-/* Station progress: aligned complete illustrations softly reveal by area.
-   No independent object cut-outs, hard tile edges or zoom controls. */
+/* Station progress is one fixed camera with individually unlocked decorations.
+   A complete second rendering must never be blended into this illustration. */
 .snow-village .sv4-station {max-width:850px;margin-inline:auto;}
 .sv4-scene {position:relative;margin:0;overflow:hidden;border:1px solid #58506d;border-radius:16px;background:#241e37;box-shadow:0 9px 30px #0d0b1940;}
-.sv4-scene img {display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;user-select:none;}
-.sv4-scene .sv4-scene-overlay {position:absolute;inset:0;height:100%;pointer-events:none;transition:opacity 650ms ease;}
-.sv4-scene-overlay--data {mask-image:radial-gradient(ellipse 48% 50% at 27% 44%,#000 45%,transparent 100%);}
-.sv4-scene-overlay--workshop {mask-image:radial-gradient(ellipse 33% 42% at 84% 48%,#000 43%,transparent 100%);}
-.sv4-scene-overlay--plaza {mask-image:radial-gradient(ellipse 49% 38% at 54% 77%,#000 42%,transparent 100%);}
-.sv4-scene-overlay--orbit {mask-image:radial-gradient(ellipse 38% 42% at 18% 78%,#000 42%,transparent 100%);}
-.sv4-scene-overlay--sky {mask-image:linear-gradient(to bottom,#000 4%,#000 18%,transparent 41%);}
+.sv4-scene > .sv4-scene-base {display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;user-select:none;}
+.sv4-station-details {position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.sv4-scene > .sv4-station-tree {position:absolute;left:51%;top:42%;width:16%;height:33%;aspect-ratio:auto;object-fit:contain;transform:translateX(-50%);pointer-events:none;filter:drop-shadow(0 5px 5px #2a1d4480);}
+.sv4-zone-focus {position:absolute;border:2px solid #ffdfaa;border-radius:45%;pointer-events:none;box-shadow:inset 0 0 25px #ffe8af25,0 0 16px #ffd8ac85;outline:2px solid #ffda8940;outline-offset:4px;}
+.sv4-zone-focus>span {position:absolute;top:-10px;left:50%;transform:translateX(-50%);max-width:95%;padding:4px 9px;white-space:nowrap;background:#271a39ef;border:1px solid #d7b6e4;border-radius:20px;color:#fff3d3;font-size:12px;}
+.sv4-zone-shortcuts {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 11px;}
+.sv4-zone-shortcuts>button {min-height:42px;min-width:0;padding:7px 3px;border:1px solid #54465e;border-radius:10px;background:#252331;color:#d7c9e0;font-size:12px;line-height:1.25;}
+.sv4-zone-shortcuts>button[aria-pressed=true] {background:#483451;border-color:#e3bfed;color:#fff;}
+.sv4-zone-shortcuts>button:focus-visible {outline:2px solid #f1c9fa;outline-offset:2px;}
 .sv4-scene figcaption {display:flex;align-items:center;gap:5px;position:absolute;bottom:9px;left:9px;max-width:calc(100% - 18px);padding:6px 9px;border:1px solid #ffffff26;border-radius:9px;background:#1c192bdc;backdrop-filter:blur(6px);color:#f2e9ff;font-size:11px;}
 .sv4-scene figcaption svg {width:12px;height:12px;flex:none;}
 .sv4-station-caption {display:flex;align-items:center;gap:11px;margin:11px 0;padding:11px 13px;background:#292634;border:1px solid #4f435d;border-radius:13px;}
@@ -467,10 +469,23 @@
 .sv4-daily-story>span {display:grid;gap:3px;}
 .sv4-daily-story small {font-size:11px;color:#bfa5cd;}
 .sv4-dialog {max-width:780px;}
+.sv4-dialog--vote,.sv4-dialog--place {width:min(600px,calc(100% - 24px));height:max-content;max-height:calc(100dvh - 24px);inset:auto;left:50%;top:50%;transform:translate(-50%,-50%);}
 .sv4-dialog .sv4-scene {max-width:720px;margin:12px auto;}
+.sv4-history-preview {position:sticky;top:-20px;z-index:2;background:#1e1e28;padding:10px 0 5px;border-bottom:1px solid #574767;box-shadow:0 7px 14px #15131d88;}
+.sv4-history-preview .sv4-scene {margin:8px auto;}
 .sv4-dialog .sv4-compare {display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .sv4-compare button {min-height:44px;padding:9px;border:1px solid #574668;border-radius:10px;background:#242331;color:#d4c6e0;font-size:13px;}
 .sv4-compare button[aria-pressed=true] {background:#584066;border-color:#c2a0de;color:white;}
+.sv4-history-nav {display:grid;grid-template-columns:42px minmax(0,1fr) 42px;align-items:center;gap:10px;text-align:center;}
+.sv4-history-nav button {display:grid;place-items:center;width:42px;height:42px;border:1px solid #786187;border-radius:11px;color:#edcef8;background:#32283f;}
+.sv4-history-nav button:disabled {opacity:.28;cursor:default;}
+.sv4-history-nav>span {display:grid;gap:3px;}
+.sv4-history-nav strong {font-size:14px;line-height:1.2;}
+.sv4-history-nav small {font-size:11px;color:#cdb5d9;}
+.sv4-stage-grid {display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;padding:4px 0 15px;}
+.sv4-stage-grid button {min-height:43px;border:1px solid #776485;border-radius:10px;background:#292333;color:#dfd0e5;font-weight:650;}
+.sv4-stage-grid button[aria-pressed=true] {background:#73558d;border-color:#dbb5fa;color:#fff;}
+.sv4-stage-grid button:disabled {opacity:.3;cursor:default;}
 .sv4-hint {margin:10px 0 15px;color:#bcb2c8;font-size:12px;line-height:1.55;}
 .sv4-story-list {display:grid;gap:7px;padding-top:13px;}
 .sv4-story-list>button {display:flex;align-items:center;gap:13px;width:100%;min-height:59px;padding:9px 12px;text-align:left;border:1px solid #4c4258;border-radius:11px;background:#252430;color:#e7ddec;}
@@ -497,7 +512,13 @@
 .sv4-own-decorations {padding:12px;border:1px solid #4c455c;border-radius:11px;background:#242631;}
 .sv4-own-decorations p {display:flex;gap:7px;align-items:center;margin:5px 0;color:#d1c1dd;font-size:12px;}
 @media(max-width:767px) {
-  .sv4-dialog {padding:16px 13px calc(96px + env(safe-area-inset-bottom));}
+  .sv4-dialog {padding:16px 13px calc(25px + env(safe-area-inset-bottom));}
+  .sv4-dialog--vote,.sv4-dialog--place {width:100%;max-height:calc(100dvh - 10px);left:0;top:auto;bottom:0;transform:none;border-radius:20px 20px 0 0;}
+  .sv4-history-preview {top:-16px;}
+  .sv4-stage-grid {grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;}
+  .sv4-zone-shortcuts {gap:4px;}
+  .sv4-zone-shortcuts>button {font-size:11px;}
+  .sv4-zone-focus>span {font-size:10px;}
   .sv4-station-caption {gap:7px;padding:9px;}
   .sv4-station-caption>svg {width:20px;height:20px;}
   .sv4-station-caption button {font-size:11px;padding:5px;}
@@ -507,7 +528,7 @@
   .sv4-zone-grid>button {font-size:12px;padding:8px;min-height:45px;}
   .sv4-ornament-list {grid-template-columns:repeat(3,minmax(0,1fr));}
 }
-@media(prefers-reduced-motion:reduce) {.sv4-scene .sv4-scene-overlay {transition:none;}}
+@media(prefers-reduced-motion:reduce) {.sv4-zone-focus {transition:none;}}
 
 /* Unified, sharp SVG emblems; the old atlas frames produced cropped objects
    and phantom white fragments around rewards and the journey. */
@@ -519,6 +540,13 @@
 .sv4-gift-emblem-4 {background:radial-gradient(circle at 30% 10%,#c2cee97a,transparent 55%),linear-gradient(145deg,#4d5672,#292a40);border-color:#8198c6;}
 .sv4-shop-sign {width:60px;height:60px;margin-left:auto;}
 .sv4-shop-sign svg {width:30px;height:30px;}
+.sv4-game-instructions {margin:8px 0 13px;padding:11px 13px;border:1px solid #685479;border-radius:12px;background:#30293d;color:#e6d8ef;font-size:13px;line-height:1.5;}
+.sv4-game-instructions strong {color:#f0cb9a;}
+.sv4-help-step {margin:0 0 10px;color:#e5cda9;font-size:13px;line-height:1.4;}
+.sw-crate-tray .sv4-mini-gift {display:block;width:52px;height:52px;flex:none;background:url('/xsg-snow-assets/snow-gift-atlas.png') 0 0 / 300% 300% no-repeat;filter:drop-shadow(0 4px 5px #0a0615b0);}
+.sw-workshop-drop .sv4-cart-icon {flex:none;width:64px;height:64px;stroke:#e3bbef;stroke-width:1.5;}
+.sw-workshop-drop.sv4-cart-ready {border-color:#e6c69b;background:#5a3d68;box-shadow:0 0 0 3px #f5d3a321;}
+.sw-workshop-drop.sv4-cart-ready .sv4-cart-icon {stroke:#ffe0a6;}
 .snow-village .sv3-gift-art:has(.sv4-gift-emblem) {width:85px;height:85px;overflow:visible;background:none;}
 .snow-village .sv3-gift-art>.sv4-gift-emblem {width:76px;height:76px;}
 .sv3-receipts .sv4-gift-emblem {width:60px;height:60px;}
@@ -530,6 +558,18 @@
 .sv4-unbox-art:before {content:'';position:absolute;width:200px;height:130px;border-radius:50%;background:radial-gradient(ellipse,#d9bfff77,transparent 65%);}
 .sv4-unbox-art .sv4-gift-emblem {position:relative;width:104px;height:104px;transform:rotate(-6deg);box-shadow:0 9px 40px #b994df77;}
 .sv4-unbox-art .sv4-gift-emblem svg {width:57px;height:57px;}
+/* Nine independently framed illustrations from one coherent, transparent atlas.
+   No generic line icons or sprite frames cropped across neighboring objects. */
+.sv4-gift-emblem,
+.sv4-gift-emblem-1,.sv4-gift-emblem-2,.sv4-gift-emblem-3,.sv4-gift-emblem-4 {
+  background-image:url('/xsg-snow-assets/snow-gift-atlas.png');
+  background-size:300% 300%;
+  background-repeat:no-repeat;
+  background-color:transparent;
+  border:0;border-radius:0;box-shadow:none;
+  filter:drop-shadow(0 5px 7px #07041388);
+}
+.sv4-unbox-art .sv4-gift-emblem {box-shadow:none;filter:drop-shadow(0 10px 25px #b994df77);}
 .sv4-journey {display:grid;gap:18px;margin:14px 0;padding:14px;border:1px solid #57516a;border-radius:16px;background:linear-gradient(140deg,#2c283d,#242431);}
 .sv4-journey-current {display:flex;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px solid #594c66;}
 .sv4-journey-current>svg {width:30px;height:30px;color:#efd2a8;flex:none;}

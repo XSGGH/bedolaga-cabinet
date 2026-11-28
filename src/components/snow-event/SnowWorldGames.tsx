@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { snowApi, snowError, type SnowGame } from '@/api/snowEvent';
 import { StationSprite } from './SnowWorldScene';
+import { LuShoppingCart } from 'react-icons/lu';
 
 interface MoveResult {
   correct: boolean;
@@ -235,7 +236,7 @@ export default function SnowWorldGames({
           ×
         </button>
       </div>
-      {!won && <details className="sv3-game-help"><summary>Как играть</summary><p className="sw-game-instructions">{instructions[kind]}</p></details>}
+      {!won && <p className="sv4-game-instructions"><strong>Как играть:</strong> {instructions[kind]}</p>}
       <div className="sw-game-stats">
         <strong>
           {result.caught} / {game.required}
@@ -390,6 +391,7 @@ export default function SnowWorldGames({
           )}
           {kind === 'help' && (
             <>
+              <p className="sv4-help-step" role="status">{selected ? `Коробка №${(cards.find(c => c.id === selected)?.index ?? 0) + 1} выбрана. Нажми на тележку ↓` : result.caught ? `Уже доставлено ${result.caught} из ${game.required}. Выбери следующую коробку.` : 'Шаг 1: нажми на коробку. Шаг 2: нажми на тележку.'}</p>
               <div className="sw-crate-tray">
                 {cards.map((c) => (
                   <button
@@ -402,14 +404,14 @@ export default function SnowWorldGames({
                     onDragStart={(e) => e.dataTransfer.setData('text/plain', c.id)}
                     onClick={() => setSelected(c.id)}
                   >
-                    <StationSprite index={4} />
+                    <span className="sv4-mini-gift" aria-hidden="true" />
                     <small>{done.has(c.id) ? '✓' : c.index + 1}</small>
                   </button>
                 ))}
               </div>
               <button
                 type="button"
-                className="sw-workshop-drop"
+                className={`sw-workshop-drop ${selected ? 'sv4-cart-ready' : ''}`}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
@@ -419,7 +421,7 @@ export default function SnowWorldGames({
                   if (selected) take(selected);
                 }}
               >
-                <StationSprite index={5} />
+                <LuShoppingCart className="sv4-cart-icon" aria-hidden="true" />
                 <span>{selected ? 'Положить коробку в тележку' : 'Тележка у мастерской'}</span>
               </button>
             </>
