@@ -422,15 +422,11 @@
 }
 @media(prefers-reduced-motion:reduce) {.sv3-unbox-art>.sv3-unbox-glow{animation:none!important;}.snow-village .sv3-tabs{transition:none;}}
 
-/* Station progress is one fixed camera with individually unlocked decorations.
-   A complete second rendering must never be blended into this illustration. */
+/* One fixed camera and illustrated, locally masked reveals; no vector decorations. */
 .snow-village .sv4-station {max-width:850px;margin-inline:auto;}
 .sv4-scene {position:relative;margin:0;overflow:hidden;border:1px solid #58506d;border-radius:16px;background:#241e37;box-shadow:0 9px 30px #0d0b1940;}
 .sv4-scene > .sv4-scene-base {display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;user-select:none;}
 .sv4-station-details {position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
-.sv4-scene > .sv4-station-arch {position:absolute;left:33.5%;top:66%;width:15.6%;height:21%;object-fit:fill;pointer-events:none;filter:drop-shadow(0 3px 3px #25203570);}
-.sv4-zone-focus {position:absolute;border:2px solid #ffdfaa;border-radius:45%;pointer-events:none;box-shadow:inset 0 0 25px #ffe8af25,0 0 16px #ffd8ac85;outline:2px solid #ffda8940;outline-offset:4px;}
-.sv4-zone-focus>span {position:absolute;top:-10px;left:50%;transform:translateX(-50%);max-width:95%;padding:4px 9px;white-space:nowrap;background:#271a39ef;border:1px solid #d7b6e4;border-radius:20px;color:#fff3d3;font-size:12px;}
 .sv4-zone-shortcuts {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 11px;}
 .sv4-zone-shortcuts>button {min-height:42px;min-width:0;padding:7px 3px;border:1px solid #54465e;border-radius:10px;background:#252331;color:#d7c9e0;font-size:12px;line-height:1.25;}
 .sv4-zone-shortcuts>button[aria-pressed=true] {background:#483451;border-color:#e3bfed;color:#fff;}

@@ -27,25 +27,17 @@ const ornaments = [
 ] as const;
 type Mode = 'history' | 'vote' | 'place';
 type ZoneId = typeof zones[number]['id'];
-const image = '/xsg-snow-assets/station-v3-base.webp';
-const focusAreas: Record<ZoneId, { left: string; top: string; width: string; height: string }> = {
-  plaza: { left: '26%', top: '50%', width: '60%', height: '36%' },
-  data: { left: '2%', top: '23%', width: '54%', height: '38%' },
-  workshop: { left: '68%', top: '31%', width: '30%', height: '27%' },
-  orbit: { left: '2%', top: '61%', width: '42%', height: '33%' },
-};
-
+// All 25 reveals must share one fixed camera and the same single approach path.
+const image = '/xsg-snow-assets/station-v5-empty.webp';
 // The original map and paving stay fixed; milestones reveal illustrated details.
-function StationIllustration({ stages, revealed, description, focusZone }: {
+function StationIllustration({ stages, revealed, description }: {
   stages: StationStage[];
   revealed: StationStage[];
   description: string;
-  focusZone?: ZoneId | null;
 }) {
   return <figure className="sv4-scene">
     <img className="sv4-scene-base" src={image} width="1536" height="1024" alt={description} loading="lazy" draggable={false} />
     <StationPaint count={revealed.length} />
-    {focusZone && <div className="sv4-zone-focus" style={focusAreas[focusZone]} aria-hidden="true"><span>{zones.find(item => item.id === focusZone)?.name}</span></div>}
     <figcaption><LuMapPin aria-hidden="true" /> Преображение станции · {revealed.length}/{stages.length} этапов</figcaption>
   </figure>;
 }
@@ -59,7 +51,6 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
 }) {
   const [mode, setMode] = useState<Mode | null>(null);
   const [zone, setZone] = useState<ZoneId>('plaza');
-  const [focusZone, setFocusZone] = useState<ZoneId | null>(null);
   const [placeZone, setPlaceZone] = useState<ZoneId>('plaza');
   const [kind, setKind] = useState<string>('lantern');
   const [threshold, setThreshold] = useState(100);
@@ -123,9 +114,9 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
       {onPlay && <button className="sv3-play-short" type="button" onClick={onPlay}>{state.phase === 'active' ? 'Играть' : 'О событии'} <LuArrowRight aria-hidden="true" /></button>}
     </div>
     <div className="sv4-zone-shortcuts" role="group" aria-label="Посмотреть участок станции">
-      {zones.map(item => <button key={item.id} type="button" aria-pressed={focusZone === item.id} onClick={() => { setZone(item.id); setFocusZone(focusZone === item.id ? null : item.id); }}>{item.name}</button>)}
+      {zones.map(item => <button key={item.id} type="button" aria-pressed={zone === item.id} onClick={() => setZone(item.id)}>{item.name}</button>)}
     </div>
-    <StationIllustration stages={stages} revealed={reached} focusZone={focusZone} description="Зимняя станция с постепенно появляющимися огнями и украшениями" />
+    <StationIllustration stages={stages} revealed={reached} description="Зимняя станция с постепенно появляющимися огнями и украшениями" />
     <div className="sv4-station-caption">
       <LuHouse aria-hidden="true" />
       <div><strong>{current?.name ?? 'Всё начинается с первого огонька'}</strong><span>{current ? `Этап ${reached.length} из ${stages.length} · наша общая история` : 'Новые детали появятся по мере общего прогресса'}</span></div>
@@ -138,7 +129,7 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
     </div>
     <div className="sv4-zone-explore">
       <h3>Что происходит на станции?</h3>
-      <p>Выбери район над иллюстрацией — он подсветится. Здесь показано, что уже открыто.</p>
+      <p>Выбери район над иллюстрацией, чтобы узнать, как он меняется.</p>
       <div className="sv4-zone-story">
         <strong>{selectedZone.name}</strong><p>{selectedZone.text}</p>
         <span>{selectedStages.filter(item => item.threshold <= total).length} из {selectedStages.length} изменений открыто · {participantDecorations(zoneDecorations.length)}</span>
@@ -188,7 +179,7 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
           {!!vote?.results.length && <details><summary>Предыдущие результаты</summary>{vote.results.map(result => <p key={result.week}>Раунд {result.week + 1}: {zones.find(item => item.id === result.choice)?.name}</p>)}</details>}
         </div>}
         {mode === 'place' && <div className="sv4-dialog-body">
-          <p>Украшения становятся частью общей истории. Выбираешь зону и предмет — никаких 64 точек на маленькой карте.</p>
+          <p>Выбери район станции и украшение — подходящее место мы подберём сами.</p>
           {zonePicker(placeZone, setPlaceZone)}
           <div className="sv4-zone-story"><strong>{zones.find(item => item.id === placeZone)?.name}</strong><p>{freeSlot === undefined ? 'Все места в этой зоне заняты. Выбери соседнюю.' : 'Место готово — кот аккуратно разместит твой подарок в этой зоне.'}</p></div>
           {access && rights.length > 0 ? <>
