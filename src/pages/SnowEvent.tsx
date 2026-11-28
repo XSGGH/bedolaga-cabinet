@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import * as Dialog from '@radix-ui/react-dialog';
+import { LuGift, LuGamepad2, LuHouse, LuRoute } from 'react-icons/lu';
 import { snowApi, snowError, type SnowGame as Game } from '@/api/snowEvent';
 import { useServerNow, useSnowEvent, timeUntil } from '@/components/snow-event/useSnowEvent';
 import { nextBoundary, hasSubscription } from '@/components/snow-event/snowPresentation';
@@ -14,16 +15,25 @@ import SnowWorldScene, { StationSprite } from '@/components/snow-event/SnowWorld
 import SnowWorldGames from '@/components/snow-event/SnowWorldGames';
 import SnowWorldRewards, { QuazarJourney } from '@/components/snow-event/SnowWorldRewards';
 import SnowWorldCelebration from '@/components/snow-event/SnowWorldCelebration';
-import SnowWorldParticipation from '@/components/snow-event/SnowWorldParticipation';
-import { catSays, snowChapters } from '@/components/snow-event/snowDialogue';
+import { catSays } from '@/components/snow-event/snowDialogue';
 import '@/components/snow-event/snow-event.css';
 import '@/components/snow-event/snow-experience.css';
 import '@/components/snow-event/snow-world.css';
+import '@/components/snow-event/snow-village.css';
+
+const winterTabs = [
+  { id: 'station', label: 'Станция', Icon: LuHouse },
+  { id: 'games', label: 'Игры', Icon: LuGamepad2 },
+  { id: 'gifts', label: 'Подарки', Icon: LuGift },
+  { id: 'journey', label: 'Мой путь', Icon: LuRoute },
+] as const;
+type WinterTab = (typeof winterTabs)[number]['id'];
 
 export default function SnowEvent() {
   const { previewId } = useParams();
   const query = useSnowEvent(previewId);
   const now = useServerNow(query.data?.server_now, query.dataUpdatedAt);
+  const [tab, setTab] = useState<WinterTab>('station');
   const [game, setGame] = useState<Game | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -55,7 +65,7 @@ export default function SnowEvent() {
   }, [boundary, now, previewId, refetch]);
   const act = useCallback(
     async (action: string, body: Record<string, unknown> = {}) => {
-      if (acting.current) return;
+      if (acting.current) return false;
       acting.current = true;
       setBusy(true);
       setError('');
@@ -63,8 +73,10 @@ export default function SnowEvent() {
         const result = await snowApi.action<Game>(action, body, previewId);
         if (action === 'start') setGame(result);
         await refetch();
+        return true;
       } catch (e) {
         setError(snowError(e));
+        return false;
       } finally {
         acting.current = false;
         setBusy(false);
@@ -107,8 +119,7 @@ export default function SnowEvent() {
         <section className="se-panel">
           <h1>Снежный переполох</h1>
           <p role="alert">
-            Сервер мероприятия ещё не обновлён до совместной станции. Нужен совместный деплой API и
-            кабинета; текущие подписки сохранены.
+            На станции идут приготовления. Загляни чуть позже — твоя подписка и прогресс сохранены.
           </p>
         </section>
       </div>
@@ -120,7 +131,6 @@ export default function SnowEvent() {
     upcoming ? state.starts_at : state.day_ends_at || state.shop_at,
     previewId ? Date.parse(state.server_now) : now,
   );
-  const chapter = Math.min(3, Math.max(0, Math.floor((Number(state.today.slice(-2)) - 1) / 7)));
   const daily = (
     <section className="se-panel sw-daily-card">
       <p className="se-kicker">
@@ -130,7 +140,7 @@ export default function SnowEvent() {
       <p>
         {today.game
           ? 'Снежинки сохранены. Можно рассмотреть станцию, поставить украшение или выбрать подарок.'
-          : 'Короткая игра на 15–30 секунд. За успешный раунд — гарантированные 15 снежинок.'}
+          : catSays(state)}
       </p>
       {!hasSubscription(state) ? (
         <SnowSubscription state={state} />
@@ -146,7 +156,7 @@ export default function SnowEvent() {
           disabled={busy}
           onClick={() => void act('start')}
         >
-          {busy ? 'Готовим приключение…' : 'Помочь коту · +15 снежинок'}
+          {busy ? 'Готовим приключение…' : 'Играть · +15 снежинок'}
         </button>
       )}
       <p className="sw-fine-print">
@@ -161,167 +171,54 @@ export default function SnowEvent() {
       </p>
     </section>
   );
+  const changeTab = (next: WinterTab) => {
+    setTab(next);
+    document.getElementById('winter-tabs')?.scrollIntoView({ block: 'start' });
+  };
   return (
-    <div className={`snow-page snow-experience snow-world-experience sw-phase-${state.phase}`}>
-      {previewId && (
-        <PreviewBar
-          state={state}
-          onChange={() => {
-            setGame(null);
-            visitRequested.current = '';
-            void refetch();
-          }}
-        />
-      )}
-      <div className="se-page-top">
-        <Link to={previewId ? '/admin/snow-event' : '/'}>
-          ← {previewId ? 'Управление мероприятием' : 'На главную'}
-        </Link>
-        <span>1 декабря — 7 января · 2026 / 27</span>
-      </div>
-      <header className="sw-page-heading">
-        <div>
-          <p className="se-kicker">
-            {active
-              ? `Глава ${chapter + 1} · ${snowChapters[chapter]}`
-              : upcoming
-                ? 'Совсем скоро — наша общая зимняя история'
-                : state.phase === 'finished'
-                  ? 'Праздник, который мы построили вместе'
-                  : 'Ещё немного времени для подарков'}
-          </p>
-          <h1>
-            <span>Снежный</span> <span>переполох</span>
-          </h1>
-          <p>{catSays(state)}</p>
-        </div>
-        <StationSprite index={15} />
-      </header>
-      {upcoming && (
-        <div className="sw-announcement-date">
-          <strong>Начнём 1 декабря · 00:00 МСК</strong>
-          <div
-            role="timer"
-            aria-label={`До старта ${time.days} дней ${time.hours} часов ${time.minutes} минут`}
+    <div className={`snow-page snow-experience snow-world-experience snow-village sv3-phase-${state.phase}`}>
+      {previewId&&<PreviewBar state={state} onChange={()=>{setGame(null);visitRequested.current='';void refetch();}}/>}
+      <header className="sv3-page-header"><Link to={previewId?'/admin/snow-event':'/'} aria-label={previewId?'Вернуться в управление мероприятием':'Вернуться на главную'}>←</Link><div><h1>Снежный переполох</h1><p>{upcoming?'Вместе создадим маленькое зимнее чудо':state.phase==='finished'?'Праздник, который мы построили вместе':'Наша маленькая зимняя история'}</p></div><span className="sv3-header-season">XSG · 2026/27</span></header>
+      <nav id="winter-tabs" className="sv3-tabs" role="tablist" aria-label="Разделы зимнего события">
+        {winterTabs.map(({ id, label, Icon }, index) => (
+          <button
+            type="button"
+            key={id}
+            id={`winter-tab-${id}`}
+            role="tab"
+            aria-selected={tab === id}
+            aria-controls={`winter-panel-${id}`}
+            tabIndex={tab === id ? 0 : -1}
+            onClick={() => changeTab(id)}
+            onKeyDown={(event) => {
+              let next = index;
+              if (event.key === 'ArrowRight') next = (index + 1) % winterTabs.length;
+              else if (event.key === 'ArrowLeft') next = (index + winterTabs.length - 1) % winterTabs.length;
+              else if (event.key === 'Home') next = 0;
+              else if (event.key === 'End') next = winterTabs.length - 1;
+              else return;
+              event.preventDefault();
+              setTab(winterTabs[next].id);
+              event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')[next]?.focus();
+            }}
           >
-            <b>{String(time.days).padStart(2, '0')}</b>
-            <span>дн.</span>
-            <i>:</i>
-            <b>{String(time.hours).padStart(2, '0')}</b>
-            <span>ч.</span>
-            <i>:</i>
-            <b>{String(time.minutes).padStart(2, '0')}</b>
-            <span>мин.</span>
-            <i>:</i>
-            <b>{String(time.seconds).padStart(2, '0')}</b>
-            <span>сек.</span>
-          </div>
-        </div>
-      )}
-      {(error || query.isError) && (
-        <p className="se-error" role="alert">
-          {error || 'Не удалось обновить станцию. Показываем последнее сохранённое состояние.'}
-          <button type="button" onClick={() => refetch()}>
-            Обновить
+            <Icon aria-hidden="true" size={19} />
+            <span>{label}</span>
           </button>
-        </p>
-      )}
-      <div className={active ? 'sw-station-and-game' : ''}>
-        <SnowWorldScene
-          state={state}
-          onSeen={() => {
-            if (active && hasSubscription(state)) void act('visit');
-          }}
-        />
-        {active && (
-          <aside className="sw-player-sidebar">
-            {daily}
-            <SnowWallet state={state} />
-          </aside>
-        )}
-      </div>
-      {!upcoming && <SnowWorldCelebration state={state} />}
-      {upcoming ? (
-        <>
-          <section className="se-panel sw-about-adventure">
-            <p className="se-kicker">Маленькие дела — большой праздник</p>
-            <h2>В декабре построим целую зимнюю станцию</h2>
-            <div className="se-features">
-              {[
-                ['10 разных игр', 'Каждый день — новое короткое задание. Без случайной награды.'],
-                [
-                  '25 общих этапов',
-                  'Зажжём огни, поставим ёлку, встретим котов-гостей и раскрасим небо.',
-                ],
-                [
-                  'Твоё украшение',
-                  'За личный вклад можно оставить на станции фонарик, звезду или подарок.',
-                ],
-                ['Путь к Квазару', '26 игровых дней откроют постоянное право на особый тариф.'],
-              ].map(([name, text]) => (
-                <div key={name}>
-                  <h3>{name}</h3>
-                  <p>{text}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-          <SnowSubscription state={state} />
-          <QuazarJourney state={state} preview={previewId} refresh={() => void refetch()} />
-        </>
-      ) : (
-        <>
-          {!active && <SnowWallet state={state} />}
-          <div className="sw-personal-grid">
-            <QuazarJourney state={state} preview={previewId} refresh={() => void refetch()} />
-            <SnowCalendar state={state} />
-          </div>
-          <SnowWorldParticipation
-            state={state}
-            busy={busy}
-            act={(action, body) => void act(action, body)}
-          />
-        </>
-      )}
-      {upcoming ? (
-        <details className="se-panel se-details">
-          <summary>Какие подарки подготовил кот?</summary>
-          <SnowWorldRewards state={state} preview={previewId} refresh={() => void refetch()} />
-        </details>
-      ) : (
-        <SnowWorldRewards state={state} preview={previewId} refresh={() => void refetch()} />
-      )}
-      {state.progress.receipts.length > 0 && (
-        <details className="se-panel se-details">
-          <summary>Мои полученные подарки · {state.progress.receipts.length}</summary>
-          <ul className="sw-history">
-            {state.progress.receipts.map((receipt) => (
-              <li key={receipt.id}>
-                <strong>{receipt.name}</strong>
-                <span>
-                  {receipt.test
-                    ? 'Тестовый подарок'
-                    : receipt.status === 'sync_pending'
-                      ? 'Доставляем'
-                      : 'Получено'}{' '}
-                  · {receipt.cost} ❄
-                </span>
-                {receipt.test && receipt.after_end && (
-                  <span>
-                    Тестовый срок до{' '}
-                    {new Date(receipt.after_end).toLocaleString('ru-RU', {
-                      timeZone: 'Europe/Moscow',
-                    })}{' '}
-                    МСК
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-      <details className="se-panel se-details sw-rules">
-        <summary>Правила и честная экономика праздника</summary>
+        ))}
+      </nav>
+      {(error||query.isError)&&<div className="se-error" role="alert">{error||'Не удалось обновить станцию. Показываем последнее сохранённое состояние.'}<button type="button" onClick={()=>{visitRequested.current='';void refetch();}}>Повторить</button></div>}
+      {!hasSubscription(state)&&<div className="sv3-subscription-note"><p>{state.subscription==='expired'?'Подписка закончилась. Снежинки, подарки и весь твой путь сохранены.':'Станция открыта для прогулок. Для игр и подарков понадобится активная подписка.'}</p><Link to="/subscription">{state.subscription==='expired'?'Продлить подписку':'Выбрать подписку'} ↗</Link></div>}
+      <section key={signature} className={`sv3-tab-panel sv3-panel-${tab}`} role="tabpanel" id={`winter-panel-${tab}`} aria-labelledby={`winter-tab-${tab}`} tabIndex={0}>
+        {tab==='station'&&<>
+          {upcoming&&<div className="sv3-countdown"><span>Начнём 1 декабря · 00:00 МСК</span><strong role="timer">{time.days} дн. {String(time.hours).padStart(2,'0')}:{String(time.minutes).padStart(2,'0')}:{String(time.seconds).padStart(2,'0')}</strong></div>}
+          <SnowWorldScene state={state} busy={busy} act={act} onPlay={()=>changeTab('games')} onSeen={()=>{if(active&&hasSubscription(state))void act('visit');}}/>
+          {!upcoming && <SnowWorldCelebration state={state} />}
+        </>}
+        {tab==='games'&&<div className="sv3-games-layout"><div>
+          {active?daily:<section className="se-panel sv3-season-note"><StationSprite index={15}/><h2>{upcoming?'Начнём играть 1 декабря':state.phase==='shop_only'?'Игры декабря завершены':'Спасибо за нашу зимнюю историю'}</h2><p>{upcoming?'Каждый день — короткое приключение, 5 снежинок за визит и 15 за успешную игру.':state.phase==='shop_only'?'Новых ежедневных заданий уже нет. До 8 января можно выбрать подарки за собранные снежинки.':'Станция, календарь, подарки и твои достижения сохранились.'}</p>{upcoming&&<SnowSubscription state={state}/>}<button type="button" className="se-secondary" onClick={()=>changeTab(upcoming?'station':'gifts')}>{upcoming?'Вернуться на станцию':'В лавку кота'}</button></section>}
+                <details className="se-panel se-details sw-rules">
+        <summary>Как играть</summary>
         <h3>Когда играем</h3>
         <p>
           1–31 декабря — ежедневные задания. 1–7 января — магазин без новых игр. С 8 января — итоги
@@ -361,6 +258,11 @@ export default function SnowEvent() {
           автоматически.
         </p>
       </details>
+
+        </div><SnowCalendar state={state}/></div>}
+        {tab==='gifts'&&<><SnowWallet state={state}/><SnowWorldRewards state={state} preview={previewId} refresh={()=>void refetch()}/></>}
+        {tab==='journey'&&<><div className="sv3-journey-layout"><QuazarJourney state={state} preview={previewId} refresh={()=>void refetch()}/><SnowCalendar state={state} showWeek={false}/></div><div className="sv3-personal-summary"><span>Твой вклад <strong>{state.progress.earned.toLocaleString('ru')} ❄</strong></span><span>Украшения <strong>{state.world.decorations.filter(d=>d.own).length} / 3</strong></span><span>Приключения <strong>{state.completed_days||0} / 31</strong></span><button type="button" onClick={()=>changeTab('station')}>К нашей станции ↗</button></div></>}
+      </section>
       <Dialog.Root
         open={!!game}
         onOpenChange={(open) => {
@@ -393,6 +295,7 @@ export default function SnowEvent() {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
+
     </div>
   );
 }
