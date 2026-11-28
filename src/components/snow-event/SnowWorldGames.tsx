@@ -235,7 +235,7 @@ export default function SnowWorldGames({
           ×
         </button>
       </div>
-      {!won && <p className="sw-game-instructions">{instructions[kind]}</p>}
+      {!won && <details className="sv3-game-help"><summary>Как играть</summary><p className="sw-game-instructions">{instructions[kind]}</p></details>}
       <div className="sw-game-stats">
         <strong>
           {result.caught} / {game.required}
@@ -249,7 +249,7 @@ export default function SnowWorldGames({
         </span>
       </div>
       {won ? (
-        <div className="sw-game-victory">
+        <div className="sw-game-victory"><div className="sv3-earned-flakes" aria-hidden="true">{[0,1,2,3,4,5,6].map(n=><span key={n} style={{animationDelay:`${n*80}ms`,left:`${10+n*13}%`}}>❄</span>)}</div>
           <StationSprite index={15} />
           <h3>{game.final ? 'Спасибо за весь этот декабрь!' : 'МЯУ! Отличная работа!'}</h3>
         </div>

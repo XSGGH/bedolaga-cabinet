@@ -1,0 +1,305 @@
+/* Graphite Violet winter village. Real components and server state, no alternate preview UI. */
+.snow-experience.snow-village { max-width:1360px; gap:16px; --sv3-surface:#20212b; --sv3-line:#41404f; }
+.snow-village .sv3-page-header {display:flex;align-items:center;gap:12px;}
+.snow-village .sv3-page-header>a {display:grid;place-items:center;width:44px;height:44px;flex:none;border:1px solid var(--sv3-line);border-radius:14px;text-decoration:none;color:#d2c3e7;}
+.snow-village .sv3-page-header h1 {font-size:clamp(23px,2.7vw,34px);line-height:1.2;letter-spacing:-.035em;margin:0;}
+.snow-village .sv3-page-header p {font-size:13px;margin:4px 0 0;}
+.sv3-header-season {margin-left:auto;color:#b6adc5;font-size:12px;white-space:nowrap;}
+.sv3-tabs {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:4px;background:#20212a;border:1px solid #3d3b4b;border-radius:16px;gap:4px;}
+.sv3-tabs>button {min-width:0;min-height:48px;display:flex;align-items:center;justify-content:center;gap:9px;padding:10px 6px;border-radius:11px;color:#c2bed1;font-size:15px;line-height:1.2;transition:background .2s,color .2s;}
+.sv3-tabs>button[aria-selected=true] {color:#f6eaff;background:#b18ad329;box-shadow:inset 0 0 0 1px #b397ce70;}
+.sv3-tab-panel {min-width:0;outline-offset:5px;}
+.sv3-station {position:relative;min-width:0;}
+.sv3-station-heading {display:flex;justify-content:space-between;align-items:center;gap:12px;margin:4px 0 14px;}
+.sv3-station-heading>div>span {font-size:12px;color:#b2a9c2;}
+.snow-village .sv3-station-heading h2 {font-size:clamp(19px,2vw,26px);margin-top:3px;}
+.sv3-play-short {display:flex;align-items:center;gap:12px;padding:10px 13px;border:1px solid #806495;border-radius:12px;font-size:13px;color:#dcc4ed;min-height:44px;flex:none;}
+.sv3-play-short:hover {background:#b18ad31c;}
+.sv3-zone-nav {display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:0 0 10px;}
+.sv3-zone-nav button {min-height:40px;min-width:40px;padding:8px 12px;border:1px solid transparent;border-radius:10px;font-size:13px;line-height:1.2;color:#c5bed2;}
+.sv3-zone-nav button[aria-pressed=true],.sv3-zone-nav button:hover {background:#b18ad31e;border-color:#806c9690;color:#f1e5ff;}
+.sv3-zone-nav .sv3-expand {margin-left:auto;border:1px solid #635774;font-size:23px;padding:4px 10px;}
+.sv3-map {position:relative;overflow:hidden;width:100%;border-radius:18px;background:#252236;isolation:isolate;}
+.sv3-map>svg {display:block;width:100%;height:100%;touch-action:pan-y;user-select:none;}
+.sv3-map-dialog .sv3-map>svg {touch-action:none;cursor:grab;}
+.sv3-map-dialog .sv3-map>svg:active {cursor:grabbing;}
+.sv3-map foreignObject {overflow:visible;pointer-events:all;}
+.sv3-map [role=button] {cursor:pointer;outline:none;}
+.sv3-map [role=button]:focus-visible {filter:drop-shadow(0 0 5px #f5d9a5);}
+.sv3-map [role=button]:hover {filter:drop-shadow(0 0 3px #edcf9d50);}
+.sv3-map .sv3-zone-hit {fill:transparent;stroke:transparent;stroke-width:3;}
+.sv3-map [role=button]:focus-visible .sv3-zone-hit,.sv3-map [role=button]:hover .sv3-zone-hit {fill:#d6b5f009;stroke:#e3c1f275;}
+.sv3-map .sv3-vote-zone {fill:#e9c6f116;stroke:#d7b3edaa;stroke-dasharray:7 9;}
+.sv3-cast {display:block;width:100%;aspect-ratio:3/4;background-image:url('/xsg-snow-assets/station-v3-cast.webp');background-size:400% 200%;background-repeat:no-repeat;pointer-events:none;}
+.sv3-moment-art {display:block;width:100%;aspect-ratio:1;background-image:url('/xsg-snow-assets/station-v3-moments.webp');background-size:500% 700%;background-repeat:no-repeat;pointer-events:none;}
+.sv3-stage-reveal {animation:sv3-appear .9s ease-out both;}
+.sv3-history-caption {position:absolute;left:12px;bottom:12px;max-width:calc(100% - 24px);padding:6px 12px;border-radius:10px;background:#191824e8;color:#f0e4fb;font-size:13px;pointer-events:none;}
+.sv3-world-progress {padding:14px 2px 8px;}
+.sv3-world-progress>div {display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+.sv3-world-progress strong {color:#e8d1a6;font-size:24px;line-height:1.2;}
+.sv3-world-progress strong>span {font-size:18px;}
+.sv3-world-progress>div>span {font-size:13px;color:#cbc0d6;}
+.sv3-world-progress progress {width:100%;height:6px;display:block;border:0;border-radius:9px;overflow:hidden;background:#393342;margin:10px 0;accent-color:#baa0d1;}
+.sv3-world-progress progress::-webkit-progress-bar {background:#393342;}
+.sv3-world-progress progress::-webkit-progress-value {background:linear-gradient(90deg,#a58fc3,#e3c48e);}
+.sv3-world-progress progress::-moz-progress-bar {background:#c7aed7;}
+.sv3-world-progress>p {font-size:13px;}
+.sv3-world-progress>p>span {color:#f0e4fb;}
+.sv3-station-actions {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:6px;}
+.sv3-station-actions button {display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;padding:12px 14px;border:1px solid #494052;border-radius:12px;background:#25232e;color:#d1c1e1;font-size:13px;line-height:1.4;min-height:46px;}
+.sv3-station-actions button:hover {border-color:#9f82b5;background:#302938;}
+.sv3-moment-note {display:flex;align-items:center;gap:12px;width:100%;padding:6px 10px;margin-top:10px;text-align:left;border-radius:12px;background:#25232c;border:1px solid #3c3746;}
+.sv3-moment-note>.sv3-moment-art {width:52px;flex:none;}
+.sv3-moment-note>span:nth-child(2) {display:grid;gap:2px;}
+.sv3-moment-note small {color:#b7aabf;font-size:12px;}
+.sv3-moment-note strong {font-size:14px;color:#ebd9bf;}
+.sv3-moment-note>span:last-child {margin-left:auto;color:#b69ecb;}
+.snow-village .sv3-return-note {font-size:12px;margin-top:8px;}
+.sv3-map-info {display:flex;align-items:start;gap:14px;padding:14px 16px;margin:10px 0;border:1px solid #6f5c7b;border-radius:14px;background:#2b2635;color:#e8e0f2;animation:sv3-appear .25s ease-out;}
+.sv3-map-info p {color:#c7bed1;font-size:14px;line-height:1.6;margin:4px 0 0;}
+.sv3-map-info button {min-width:40px;min-height:40px;margin-left:auto;flex:none;font-size:24px;color:#c8b4d8;}
+.sv3-countdown {display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;margin-bottom:14px;border-radius:12px;background:#282433;font-size:13px;color:#d6c5e4;}
+.sv3-countdown strong {white-space:nowrap;font-variant-numeric:tabular-nums;}
+/* Fullscreen map remains a real scene, never stretched into an arbitrary box. */
+.sv3-map-dialog {box-sizing:border-box;position:fixed;z-index:260;inset:12px;max-width:1360px;margin:auto;background:#1e1e28;color:#f0e9f7;border:1px solid #60506c;border-radius:22px;overflow:auto;overscroll-behavior:contain;padding:20px;box-shadow:0 24px 100px #0008;font-size:15px;line-height:1.5;}
+.sv3-map-dialog * {box-sizing:border-box;min-width:0;}
+.sv3-map-dialog>header {display:flex;justify-content:space-between;gap:20px;align-items:start;margin-bottom:14px;}
+.sv3-map-dialog h2 {font-size:23px;font-weight:700;margin:0;}
+.sv3-map-dialog header p {font-size:13px;color:#bdb1cc;margin:5px 0 0;}
+.sv3-close {width:44px;height:44px;font-size:28px;flex:none;border:1px solid #52465f;border-radius:13px;}
+.sv3-map-dialog :is(button,select,input):focus-visible {outline:2px solid #e5c9ff;outline-offset:3px;}
+.sv3-map-dialog button {cursor:pointer;}
+.sv3-map-dialog button:disabled {opacity:.5;cursor:default;}
+.sv3-modal-map {position:relative;max-width:1100px;margin-inline:auto;}
+.sv3-zoom {position:absolute;display:flex;gap:5px;right:10px;bottom:10px;}
+.sv3-zoom button {display:grid;place-items:center;width:44px;height:44px;background:#24202eef;border:1px solid #8e759f;border-radius:12px;font-size:23px;color:#ead6fc;}
+.sv3-history-tools {display:grid;gap:12px;margin-bottom:14px;}
+.sv3-segment {display:flex;gap:8px;flex-wrap:wrap;}
+.sv3-segment button,.sv3-inline button {padding:9px 12px;min-height:42px;border:1px solid #5a4d68;border-radius:10px;background:#292331;color:#d3bde7;font-size:13px;}
+.sv3-segment button[aria-pressed=true] {background:#b08bd42e;border-color:#b49acb;}
+.sv3-inline {display:flex;flex-wrap:wrap;gap:6px;}
+.sv3-history-tools label,.sv3-placement-fields label {display:grid;gap:6px;font-size:13px;color:#c4b7cf;}
+.sv3-map-dialog select {max-width:100%;width:100%;min-height:44px;background:#25212e;border:1px solid #645471;border-radius:10px;padding:9px;color:#f0e2fa;font-size:14px;}
+.sv3-map-dialog input[type=range] {width:100%;accent-color:#bc93de;min-height:28px;}
+.sv3-map-task {padding:14px 0 0;font-size:14px;}
+.sv3-map-task p {margin:0 0 12px;color:#cfc2da;}
+.sv3-map-task>small {display:block;margin-top:10px;color:#b5a7c3;}
+.sv3-map-task .se-button {display:flex;justify-content:center;align-items:center;min-height:46px;padding:10px 16px;border-radius:12px;background:#b69ad2;color:#201a2a;font-weight:650;}
+.sv3-placement-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px;}
+.sv3-consent {display:flex;align-items:center;gap:10px;min-height:44px;margin-bottom:12px;color:#c8b9d4;font-size:13px;}
+.sv3-consent input {width:20px;height:20px;accent-color:#b690d2;flex:none;}
+.sv3-moment-description {border-top:1px solid #494052;margin-top:16px;padding-top:16px;color:#e3cba7;}
+.sv3-moment-description p {color:#c9bdd4;font-size:14px;margin-bottom:0;}
+/* Game and calendar share the available desktop width, collapse for phones. */
+.sv3-games-layout,.sv3-journey-layout {display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,1fr);gap:16px;align-items:start;}
+.sv3-games-layout>div {display:grid;gap:12px;}
+.snow-village .sw-daily-card {padding:24px;}
+.snow-village .sw-daily-card h2 {font-size:25px;}
+.snow-village .sw-daily-card>.se-button {margin:18px 0 8px;min-height:48px;}
+.snow-village .sw-rules {padding:16px 20px;}
+.snow-village .sw-rules h3 {margin:18px 0 6px;}
+.snow-village .se-calendar {padding:20px;}
+.snow-village .se-calendar-grid {gap:5px;}
+.snow-village .se-week-bonus {margin-top:16px;}
+.snow-village .sv3-season-note>.sw-sprite {width:90px;margin:0 auto 10px;}
+.snow-village .sv3-season-note h2 {font-size:23px;}
+.snow-village .sv3-season-note .se-secondary {margin-top:14px;}
+.sv3-game-help {font-size:14px;border-bottom:1px solid #484056;margin-bottom:12px;padding-bottom:10px;}
+.sv3-game-help summary {cursor:pointer;min-height:36px;color:#c9b1df;}
+.sv3-earned-flakes {position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.sw-game-victory {position:relative;isolation:isolate;}
+.sv3-earned-flakes>span {position:absolute;color:#d8d7ff;font-size:25px;top:70%;animation:sv3-flakes 1.5s ease-out both;}
+/* Cat shop: cards are compact and every gift retains its actual API id and cost. */
+.snow-village .se-wallet {margin-bottom:14px;padding:16px 20px;}
+.snow-village .se-wallet strong {font-size:25px;}
+.snow-village .se-wallet p {font-size:12px;}
+.snow-village .sw-gift-shop {padding:20px;}
+.snow-village .sw-gift-shop .se-section-heading {align-items:center;margin-bottom:6px;}
+.sv3-shop-sign {width:54px;flex:none;}
+.snow-village .sv3-shop-intro {font-size:14px;max-width:780px;}
+.snow-village .sv3-gift-tabs {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:16px 0;padding:4px;border-radius:12px;background:#1b1b24;}
+.snow-village .sv3-gift-tabs button {padding:10px 6px;font-size:13px;min-height:44px;border-radius:9px;line-height:1.3;white-space:normal;}
+.snow-village .sw-gift-list {grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.snow-village .sw-gift {display:flex;flex-direction:column;gap:0;padding:14px;background:#24222d;border:1px solid #4e435c;border-radius:16px;}
+.snow-village .sw-gift-owned {border-color:#506f62;background:#232a2a;}
+.sv3-gift-open {width:100%;text-align:left;color:#f0e6f6;}
+.sv3-gift-art {display:grid;place-items:center;width:100%;height:105px;background:radial-gradient(ellipse at center,#c6a3e312,transparent 70%);margin-bottom:8px;}
+.sv3-gift-art>.sv3-cast {width:75px;}
+.sv3-gift-art>.sv3-moment-art {width:105px;}
+.sv3-gift-art-1 {background:radial-gradient(ellipse at center,#d7bf7c14,transparent 70%);}
+.sv3-gift-art-2 {background:radial-gradient(ellipse at center,#8abdb313,transparent 70%);}
+.snow-village .sv3-gift-open h3 {font-size:16px;line-height:1.35;}
+.snow-village .sw-gift-copy {flex:1;margin:5px 0 10px;}
+.snow-village .sw-gift-copy p {font-size:13px;line-height:1.45;margin:0;}
+.snow-village .sw-gift-copy small {font-size:11px;line-height:1.4;margin-top:5px;}
+.snow-village .sw-gift-footer {display:flex;flex-direction:column;align-items:stretch;gap:8px;flex-wrap:nowrap;margin-top:auto;padding-top:10px;}
+.snow-village .sw-gift-footer>strong {font-size:19px;}
+.snow-village .sw-gift-footer>button {text-align:left;font-size:12px;color:#ccb4df;min-height:40px;line-height:1.4;padding:7px 9px;border:1px solid #5b4c69;border-radius:9px;white-space:normal;}
+.snow-village .sw-gift-available .sw-gift-footer>button {background:#b995d829;color:#e6cefa;}
+.sv3-receipts {display:grid;gap:9px;}
+.sv3-receipts article {display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #484150;border-radius:13px;background:#25222c;}
+.sv3-receipts article>.sv3-cast {width:42px;flex:none;}
+.sv3-receipts article>div {flex:1;}
+.sv3-receipts article p,.sv3-receipts article small {font-size:12px;line-height:1.5;color:#baafc7;}
+.sv3-receipts article>strong {font-size:13px;color:#e3cba5;}
+.sv3-empty-gifts {text-align:center;padding:20px 0;}
+.sv3-empty-gifts>.sv3-cast {width:90px;margin:auto;}
+.sv3-gift-dialog-art {width:80px;margin:4px auto;}
+.sv3-gift-unboxing {text-align:center;}
+.sv3-gift-unboxing .se-button {width:100%;margin-top:18px;}
+.sv3-unbox-art {position:relative;display:flex;justify-content:center;align-items:end;height:180px;isolation:isolate;}
+.sv3-unbox-art>.sv3-cast:first-child {width:100px;animation:sv3-unbox .9s ease-out both;}
+.sv3-unbox-art>.sv3-cast:nth-child(2) {width:94px;animation:sv3-appear .6s .2s ease-out both;}
+.sv3-unbox-art>span {position:absolute;left:24%;bottom:30%;color:#e9d1a0;font-size:24px;animation:sv3-flakes 1.7s ease-out both;}
+.sv3-unbox-art>span:nth-last-child(2) {left:50%;animation-delay:.12s;}
+.sv3-unbox-art>span:last-child {left:75%;animation-delay:.3s;}
+/* An illustrated 26-step path, distinct from the December calendar. */
+.sv3-journey-route {position:relative;width:100%;max-width:480px;margin:10px auto 15px;border-radius:20px;background:radial-gradient(ellipse at 25% 20%,#a298c22b,transparent 70%),linear-gradient(160deg,#282735,#242430);overflow:hidden;}
+.sv3-journey-route svg {display:block;width:100%;height:auto;}
+.sv3-route-track {fill:none;stroke:url(#sv3-path-snow);stroke-width:19;stroke-linecap:round;opacity:.3;}
+.sv3-step-next circle {fill:#33303e;stroke:#696073;stroke-width:1;}
+.sv3-step-done circle {fill:#876ba2;stroke:#dbc1e9;stroke-width:1.5;}
+.sv3-journey-route text {font-size:10px;fill:#eae2f2;font-weight:650;}
+.sv3-route-destination {position:absolute;left:38%;top:9%;font-size:12px;max-width:60%;color:#e4c8a2;}
+.snow-village .sw-quazar-count {margin-top:8px;}
+.snow-village .sw-quazar-count strong {font-size:34px;}
+.snow-village .sw-quazar-spec {gap:6px;}
+.snow-village .sw-quazar-spec>* {padding:7px 10px;font-size:12px;}
+.sv3-personal-summary {display:flex;flex-wrap:wrap;gap:12px 24px;border-top:1px solid #49404e;padding:16px 2px;margin-top:16px;font-size:13px;color:#bfb3cc;}
+.sv3-personal-summary>span {display:flex;gap:10px;}
+.sv3-personal-summary strong {color:#e6d4f4;}
+.sv3-personal-summary button {margin-left:auto;color:#c6a9df;min-height:40px;}
+.snow-village .sw-celebration {margin-top:16px;}
+@keyframes sv3-appear {from{opacity:0;}to{opacity:1;}}
+@keyframes sv3-unbox {0%{opacity:0;transform:scale(.7) rotate(-8deg);}45%{opacity:1;transform:scale(1.07) rotate(4deg);}100%{transform:scale(1) rotate(0);}}
+@keyframes sv3-flakes {0%{opacity:0;transform:translateY(20px) scale(.5);}20%{opacity:1;}100%{opacity:0;transform:translateY(-130px) rotate(35deg) scale(1.1);}}
+@media(min-width:1100px){.snow-village .sv3-station>.sv3-map {max-height:none;}.snow-village .sv3-station {max-width:1200px;margin-inline:auto;}}
+@media(max-width:767px){
+ .snow-experience.snow-village {gap:12px;font-size:14px;}
+ .sv3-header-season {display:none;}
+ .snow-village .sv3-page-header {gap:10px;}
+ .snow-village .sv3-page-header p {font-size:12px;}
+ .snow-village .sv3-page-header h1 {font-size:23px;}
+ .sv3-tabs {gap:2px;padding:3px;border-radius:14px;}
+ .sv3-tabs>button {flex-direction:column;gap:4px;font-size:12px;min-height:60px;}
+ .sv3-tabs>button>span:first-child {font-size:19px;line-height:1.1;}
+ .sv3-station-heading {margin-bottom:10px;gap:8px;align-items:start;}
+ .snow-village .sv3-station-heading h2 {font-size:19px;}
+ .sv3-play-short {font-size:12px;padding:8px;max-width:110px;line-height:1.35;min-height:44px;}
+ .sv3-zone-nav {gap:2px;margin-bottom:7px;}
+ .sv3-zone-nav button {padding:7px 8px;font-size:11px;min-height:36px;}
+ .sv3-zone-nav .sv3-expand {font-size:21px;min-width:36px;padding:2px 6px;}
+ .sv3-map {border-radius:14px;}
+ .sv3-world-progress {padding-top:11px;}
+ .sv3-world-progress strong {font-size:22px;}
+ .sv3-world-progress>div>span {font-size:12px;text-align:right;max-width:62%;}
+ .sv3-world-progress>p {font-size:12px;}
+ .sv3-station-actions {gap:5px;}
+ .sv3-station-actions button {padding:9px 8px;font-size:11px;line-height:1.4;gap:4px;min-height:52px;align-items:start;}
+ .sv3-station-actions button>span {display:none;}
+ .sv3-moment-note {margin-top:8px;gap:9px;}
+ .sv3-moment-note>.sv3-moment-art {width:42px;}
+ .sv3-moment-note strong {font-size:13px;}
+ .sv3-moment-note small {font-size:11px;}
+ .sv3-countdown {font-size:11px;padding:8px 10px;}
+ .sv3-map-dialog {inset:0;border:0;border-radius:0;padding:16px 12px max(20px,env(safe-area-inset-bottom));}
+ .sv3-map-dialog h2 {font-size:21px;}
+ .sv3-map-dialog header p {font-size:12px;}
+ .sv3-map-dialog>header {gap:12px;}
+ .sv3-history-caption {font-size:11px;left:8px;bottom:8px;}
+ .sv3-history-tools {gap:9px;}
+ .sv3-segment {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;}
+ .sv3-segment button {font-size:12px;padding:8px;}
+ .sv3-placement-fields {gap:8px;}
+ .sv3-map-task .se-button {width:100%;font-size:13px;}
+ .sv3-games-layout,.sv3-journey-layout {grid-template-columns:minmax(0,1fr);gap:12px;}
+ .snow-village .sw-daily-card,.snow-village .se-calendar,.snow-village .sw-quazar {padding:17px;}
+ .snow-village .sw-daily-card h2 {font-size:23px;}
+ .snow-village .sw-rules {padding:14px 17px;}
+ .snow-village .se-wallet {padding:13px 15px;gap:12px;}
+ .snow-village .se-wallet strong {font-size:23px;}
+ .snow-village .sw-gift-shop {padding:15px 12px;}
+ .snow-village .sw-gift-shop h2 {font-size:23px;}
+ .snow-village .sv3-shop-intro {font-size:13px;}
+ .snow-village .sv3-gift-tabs {grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:12px 0;}
+ .snow-village .sv3-gift-tabs button {font-size:12px;padding:8px 5px;}
+ .snow-village .sw-gift-list {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+ .snow-village .sw-gift {padding:10px;border-radius:13px;}
+ .sv3-gift-art {height:86px;margin-bottom:6px;}
+ .sv3-gift-art>.sv3-cast {width:62px;}
+ .sv3-gift-art>.sv3-moment-art {width:86px;}
+ .snow-village .sv3-gift-open h3 {font-size:14px;}
+ .snow-village .sw-gift-copy p {font-size:12px;}
+ .snow-village .sw-gift-copy small {font-size:10px;}
+ .snow-village .sw-gift-footer>button {padding:7px 6px;font-size:11px;min-height:42px;}
+ .snow-village .sw-gift-footer>strong {font-size:17px;}
+ .sv3-receipts article {gap:9px;padding:10px;align-items:start;flex-wrap:wrap;}
+ .sv3-receipts article>div {flex-basis:calc(100% - 55px);}
+ .sv3-receipts article>strong {margin-left:51px;}
+ .sv3-journey-route {margin-top:10px;}
+ .sv3-personal-summary {gap:8px 18px;font-size:12px;}
+ .sv3-personal-summary button {width:100%;text-align:left;margin:0;}
+}
+@media(prefers-reduced-motion:reduce){.sv3-stage-reveal,.sv3-unbox-art>.sv3-cast,.sv3-unbox-art>span,.sv3-earned-flakes>span,.sv3-map-info {animation:none!important;}.sv3-earned-flakes>span,.sv3-unbox-art>span {display:none;}.sv3-tabs>button {transition:none;}}
+
+.sv3-subscription-note {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 15px;border:1px solid #62506b;border-radius:13px;background:#2b2533;font-size:13px;}
+.sv3-subscription-note a {flex:none;color:#d7b9ee;text-decoration:underline;text-underline-offset:3px;min-height:40px;display:flex;align-items:center;}
+.sv3-finale {pointer-events:none;}
+.sv3-finale text {fill:#ffe0a4;font-size:25px;animation:sv3-sparkle 2.4s ease-in-out 3;transform-box:fill-box;transform-origin:center;}
+.sv3-finale text:nth-child(2) {animation-delay:.4s;}
+.sv3-finale text:nth-child(3) {animation-delay:.9s;}
+@keyframes sv3-sparkle {0%,100%{opacity:.2;transform:scale(.65);}50%{opacity:1;transform:scale(1.15);}}
+@media(max-width:767px){.sv3-subscription-note {align-items:start;flex-direction:column;gap:4px;font-size:12px;}.snow-village .sw-celebration-entry {margin-top:12px;}}
+@media(prefers-reduced-motion:reduce){.sv3-finale text {animation:none;}}
+
+/* Keep the four destinations visible without covering the shared illustration. */
+.snow-village .sv3-tabs {
+  position: sticky;
+  top: 12px;
+  z-index: 30;
+  scroll-margin-top: 12px;
+  background: #22212de8;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 26px #12101955;
+}
+.snow-village .sv3-tabs > button > svg {
+  flex: none;
+  color: #c3a8d9;
+}
+.snow-village .sv3-tabs > button[aria-selected=true] > svg {
+  color: #ead7ff;
+}
+@media (max-width: 767px) {
+  .snow-village .sv3-tabs {
+    top: 70px;
+    scroll-margin-top: 70px;
+  }
+  .snow-village .sv3-tabs > button > svg {
+    width: 19px;
+    height: 19px;
+  }
+  .snow-village .sv3-zone-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .snow-village .sv3-zone-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .snow-village .sv3-zone-nav button {
+    flex: none;
+    white-space: nowrap;
+  }
+  .snow-village .sv3-station-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .snow-village .sv3-station-actions button {
+    min-height: 44px;
+    font-size: 12px;
+    align-items: center;
+  }
+  .snow-village .sv3-station-actions button:last-child {
+    grid-column: 1 / -1;
+  }
+}

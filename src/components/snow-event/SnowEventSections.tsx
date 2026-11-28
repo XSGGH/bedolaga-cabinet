@@ -229,7 +229,7 @@ export function SnowWallet({ state }: { state: SnowState }) {
   );
 }
 
-export function SnowCalendar({ state }: { state: SnowState }) {
+export function SnowCalendar({ state, showWeek = true }: { state: SnowState; showWeek?: boolean }) {
   const week = weekProgress(state);
   const games = Object.values(state.progress.days).filter((day) => day.game).length;
   return (
@@ -293,7 +293,7 @@ export function SnowCalendar({ state }: { state: SnowState }) {
         </span>
         <span>– Не сыграли</span>
       </div>
-      <div className="se-week-bonus">
+      {showWeek && <div className="se-week-bonus">
         <div>
           <strong>
             {week.over ? 'Бонусы четырёх недель' : `Неделя ${week.first}–${week.first + 6} декабря`}
@@ -318,7 +318,7 @@ export function SnowCalendar({ state }: { state: SnowState }) {
             ? '29–31 декабря — финальные ежедневные задания, без нового недельного бонуса.'
             : 'Пять выполненных игр за эту неделю — и кот добавит ещё 25 снежинок. Открытие календаря не считается игрой.'}
         </p>
-      </div>
+      </div>}
     </section>
   );
 }
