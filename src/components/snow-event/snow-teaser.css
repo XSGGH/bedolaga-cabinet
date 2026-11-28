@@ -1,0 +1,164 @@
+/* Public pre-launch screen: self-contained, deliberately independent of the game. */
+.snow-teaser {
+  width: min(100%, 1060px);
+  margin: 0 auto;
+  padding: clamp(4px, 1vw, 14px) 0 36px;
+  color: #f1ebf8;
+}
+.snow-teaser *, .snow-teaser *::before, .snow-teaser *::after { box-sizing: border-box; }
+.snow-teaser-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+  color: #9f9bab;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .11em;
+}
+.snow-teaser-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #cbb2e7;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+.snow-teaser-back:hover { color: #e2ccfa; }
+.snow-teaser-back:focus-visible { outline: 2px solid #e2ccfa; outline-offset: 4px; border-radius: 4px; }
+.snow-teaser-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(560px, 72vh, 670px);
+  padding: 58px 32px 92px;
+  overflow: hidden;
+  text-align: center;
+  border: 1px solid #55486a;
+  border-radius: 28px;
+  background:
+    radial-gradient(ellipse 60% 52% at 50% 18%, #60447b48, transparent 80%),
+    radial-gradient(ellipse 80% 42% at 50% 98%, #7462b454, transparent 88%),
+    linear-gradient(175deg, #292537 0%, #201f2f 49%, #171c30 100%);
+  box-shadow: inset 0 1px #ffffff0f, 0 20px 64px #09091322;
+}
+.snow-teaser-sky {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #e5d6ffad 98%, transparent),
+    radial-gradient(2px 2px at 24% 35%, #e9e9ff80 98%, transparent),
+    radial-gradient(1px 1px at 68% 12%, #fff7e5b0 98%, transparent),
+    radial-gradient(1px 1px at 83% 32%, #e0d7ffb5 98%, transparent),
+    radial-gradient(2px 2px at 91% 15%, #e9f2ff8a 98%, transparent),
+    radial-gradient(1px 1px at 58% 40%, #fff7e5a0 98%, transparent),
+    radial-gradient(1px 1px at 17% 64%, #ddc9f9a0 98%, transparent),
+    radial-gradient(1px 1px at 77% 67%, #e9f2ff8a 98%, transparent);
+}
+.snow-teaser-star { position: absolute; color: #f0ddff92; line-height: 1; font-size: 22px; }
+.snow-teaser-star-one { left: 16%; top: 19%; }
+.snow-teaser-star-two { right: 16%; top: 21%; font-size: 30px; }
+.snow-teaser-star-three { right: 12%; bottom: 28%; font-size: 16px; }
+.snow-teaser-star-four { left: 15%; bottom: 34%; font-size: 26px; }
+.snow-teaser-emblem {
+  position: absolute;
+  top: 38px;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 94px;
+  height: 94px;
+  transform: translateX(-50%);
+  border: 1px solid #d9c4f041;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 28%, #a182c254, #3b305b88 70%);
+  box-shadow: 0 0 0 14px #c7a9e40b, 0 0 54px #b394ec2c;
+  color: #e0d2ff;
+  font-size: 45px;
+  text-shadow: 0 2px 22px #c5b0ff99;
+}
+.snow-teaser-content { width: 100%; max-width: 700px; padding-top: 70px; }
+.snow-teaser-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #e7c992;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .17em;
+}
+.snow-teaser-eyebrow span { font-size: 14px; }
+.snow-teaser h1 {
+  margin: 17px 0 16px;
+  color: #faf7ff;
+  font-size: clamp(38px, 6.2vw, 76px);
+  font-weight: 750;
+  line-height: 1.09;
+  letter-spacing: -.045em;
+}
+.snow-teaser h1 span { display: block; color: #d0b5ee; }
+.snow-teaser-lead {
+  max-width: 475px;
+  margin: 0 auto;
+  color: #c3bdd1;
+  font-size: clamp(14px, 1.65vw, 17px);
+  line-height: 1.7;
+}
+.snow-teaser-clock { max-width: 470px; margin: 38px auto 0; }
+.snow-teaser-clock>p { margin: 0 0 13px; color: #a99fb8; font-size: 13px; }
+.snow-teaser-clock-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.snow-teaser-clock-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 94px;
+  padding: 14px 4px 11px;
+  border: 1px solid #81739172;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #ffffff10, #ffffff05);
+  box-shadow: inset 0 1px #ffffff0f;
+}
+.snow-teaser-clock-unit strong { font-size: clamp(29px, 3.6vw, 40px); font-weight: 700; line-height: 1.1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.snow-teaser-clock-unit span { margin-top: 6px; color: #b4a9c6; font-size: 12px; }
+.snow-teaser-date { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 26px; color: #d9c8e9; font-size: 13px; }
+.snow-teaser-date-dot { width: 6px; height: 6px; border-radius: 50%; background: #dbb8ff; box-shadow: 0 0 12px #dbb8ff; }
+.snow-teaser-drift { position: absolute; z-index: -1; left: -10%; width: 120%; border-radius: 50% 50% 0 0 / 100% 100% 0 0; pointer-events: none; }
+.snow-teaser-drift-back { height: 95px; bottom: -46px; background: #b0a6d731; transform: rotate(-4deg); }
+.snow-teaser-drift-front { height: 88px; bottom: -57px; background: #c8c2ea22; transform: rotate(5deg); }
+.snow-teaser-footer { padding: 18px 8px 0; text-align: center; color: #8f8b9d; font-size: 13px; }
+.snow-teaser-footer span { margin-left: 4px; color: #c8acd9; }
+@media (max-width: 600px) {
+  .snow-teaser { padding-bottom: 20px; }
+  .snow-teaser-navigation { margin-bottom: 10px; font-size: 9px; }
+  .snow-teaser-hero { min-height: 615px; padding: 50px 16px 77px; border-radius: 20px; }
+  .snow-teaser-emblem { top: 33px; width: 78px; height: 78px; font-size: 39px; }
+  .snow-teaser-content { padding-top: 52px; }
+  .snow-teaser h1 { margin-top: 14px; font-size: clamp(38px, 10.5vw, 57px); }
+  .snow-teaser-lead { max-width: 315px; font-size: 14px; line-height: 1.6; }
+  .snow-teaser-clock { margin-top: 34px; }
+  .snow-teaser-clock-grid { gap: 6px; }
+  .snow-teaser-clock-unit { min-height: 82px; padding: 12px 2px 10px; border-radius: 13px; }
+  .snow-teaser-clock-unit strong { font-size: clamp(27px, 7.5vw, 33px); }
+  .snow-teaser-clock-unit span { font-size: 10px; }
+  .snow-teaser-date { font-size: 12px; margin-top: 22px; }
+  .snow-teaser-star-one { left: 10%; top: 19%; }
+  .snow-teaser-star-two { right: 9%; top: 19%; }
+  .snow-teaser-star-three { right: 8%; bottom: 24%; }
+  .snow-teaser-star-four { left: 8%; bottom: 23%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .snow-teaser-emblem { animation: snow-teaser-glow 5s ease-in-out infinite; }
+  .snow-teaser-star { animation: snow-teaser-twinkle 4.8s ease-in-out infinite alternate; }
+  .snow-teaser-star-two { animation-delay: 1.6s; }
+  .snow-teaser-star-three { animation-delay: .9s; }
+  .snow-teaser-star-four { animation-delay: 2.3s; }
+}
+@keyframes snow-teaser-glow { 50% { box-shadow: 0 0 0 14px #c7a9e40f, 0 0 75px #b394ec55; } }
+@keyframes snow-teaser-twinkle { 50% { opacity: .42; } }
