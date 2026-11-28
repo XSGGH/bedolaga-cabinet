@@ -9,7 +9,7 @@ export const hasSubscription = (state: SnowState) =>
   state.subscription === 'active' || state.subscription === 'renewed';
 
 export function weekProgress(state: SnowState) {
-  const day = state.today.startsWith('2026-12-') ? Number(state.today.slice(-2)) : 31;
+  const day = state.today.startsWith('2026-12-') ? Number(state.today.slice(-2)) : state.today < '2026-12-01' ? 1 : 31;
   const week = Math.min(3, Math.floor((day - 1) / 7));
   const first = week * 7 + 1;
   const count = Array.from(

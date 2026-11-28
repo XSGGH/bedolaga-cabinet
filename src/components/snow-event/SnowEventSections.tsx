@@ -229,7 +229,12 @@ export function SnowWallet({ state }: { state: SnowState }) {
   );
 }
 
-export function SnowCalendar({ state, showWeek = true }: { state: SnowState; showWeek?: boolean }) {
+export function SnowCalendar({ state, showWeek = true, compact = false, onViewAll }: {
+  state: SnowState;
+  showWeek?: boolean;
+  compact?: boolean;
+  onViewAll?: () => void;
+}) {
   const week = weekProgress(state);
   const games = Object.values(state.progress.days).filter((day) => day.game).length;
   return (
@@ -237,12 +242,26 @@ export function SnowCalendar({ state, showWeek = true }: { state: SnowState; sho
       <div className="se-section-heading">
         <div>
           <p className="se-kicker">Декабрь · 2026</p>
-          <h2 id="se-calendar-title">Календарь приключений</h2>
+          <h2 id="se-calendar-title">{compact ? week.over ? 'Финал декабря' : 'Эта неделя' : 'Календарь приключений'}</h2>
         </div>
         <span className="se-pill">{games} / 31</span>
       </div>
-      <p>Снежинка отмечает выполненную игру.</p>
-      <div className="se-calendar-grid" role="table" aria-label="Календарь декабря 2026">
+      {!compact && <p>Снежинка отмечает выполненную игру.</p>}
+      {compact ? (
+        <div className="se-calendar-compact" aria-label={week.over ? 'Игры 29–31 декабря' : `Игры ${week.first}–${week.first + 6} декабря`}>
+          {Array.from({ length: week.over ? 3 : 7 }, (_, index) => {
+            const day = (week.over ? 29 : week.first) + index;
+            const date = `2026-12-${String(day).padStart(2, '0')}`;
+            const done = !!state.progress.days[date]?.game;
+            const today = date === state.today;
+            return <div key={day} className={`se-compact-day ${done ? 'is-done' : today ? 'is-today' : ''}`} aria-label={`${day} декабря: ${done ? 'игра выполнена' : today ? 'сегодня' : 'не выполнена'}`}>
+              <small>{['Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс', 'Пн'][(day - 1) % 7]}</small>
+              <strong>{day}</strong>
+              <span aria-hidden="true">{done ? '❄' : today ? '•' : ''}</span>
+            </div>;
+          })}
+        </div>
+      ) : <div className="se-calendar-grid" role="table" aria-label="Календарь декабря 2026">
         <div role="row" className="se-weekdays">
           {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((name) => (
             <span role="columnheader" key={name}>
@@ -283,8 +302,8 @@ export function SnowCalendar({ state, showWeek = true }: { state: SnowState; sho
             })}
           </div>
         ))}
-      </div>
-      <div className="se-calendar-key">
+      </div>}
+      {!compact && <div className="se-calendar-key">
         <span>
           <i className="se-key-done" /> Выполнено
         </span>
@@ -292,7 +311,7 @@ export function SnowCalendar({ state, showWeek = true }: { state: SnowState; sho
           <i className="se-key-today" /> Сегодня
         </span>
         <span>– Не сыграли</span>
-      </div>
+      </div>}
       {showWeek && <div className="se-week-bonus">
         <div>
           <strong>
@@ -313,12 +332,13 @@ export function SnowCalendar({ state, showWeek = true }: { state: SnowState; sho
             </span>
           ))}
         </div>
-        <p>
+        {!compact && <p>
           {week.over
             ? '29–31 декабря — финальные ежедневные задания, без нового недельного бонуса.'
             : 'Пять выполненных игр за эту неделю — и кот добавит ещё 25 снежинок. Открытие календаря не считается игрой.'}
-        </p>
+        </p>}
       </div>}
+      {compact && onViewAll && <button type="button" className="se-calendar-full" onClick={onViewAll}>Посмотреть весь декабрь <span aria-hidden="true">↗</span></button>}
     </section>
   );
 }

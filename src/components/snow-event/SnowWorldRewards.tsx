@@ -33,28 +33,29 @@ export default function SnowWorldRewards({ state, preview, refresh }: {
 }) {
   const [tab, setTab] = useState<'shop' | 'personal' | 'community' | 'received'>('shop');
   const [selected, setSelected] = useState<SnowReward | null>(null);
-  const [opened, setOpened] = useState<SnowReward | null>(null);
+  const [opened, setOpened] = useState<{ reward: SnowReward; option: string } | null>(null);
+  const awardedOption = opened?.reward.options?.find(option => option.kind === opened.option);
   const rewards = tab === 'shop' ? state.rewards : tab === 'personal' ? state.personal_rewards || [] : state.community_rewards || [];
   const tabs = [['shop','За снежинки'],['personal','За приключения'],['community','Общие подарки'],['received','Полученные']] as const;
   return <section className="se-panel sw-gift-shop" aria-labelledby="sw-gifts-title">
     <div className="se-section-heading"><div><p className="se-kicker">Выбирай маленькие зимние чудеса</p><h2 id="sw-gifts-title">Лавка кота</h2></div><WinterArt index={7} className="sv3-shop-sign"/></div>
-    <p className="sv3-shop-intro">Один набор — один подарок на выбор. Дополнительное время сохраняет оплаченные дни, а гигабайты пригодятся на специальных серверах.</p>
+    <p className="sv3-shop-intro">Меняй снежинки на подарки. Каждый набор можно получить один раз.</p>
     <nav className="sw-tabs sv3-gift-tabs" aria-label="Подарки события">{tabs.map(([key,name])=><button type="button" key={key} aria-pressed={tab===key} onClick={()=>setTab(key)}>{name}{key==='received' ? ` · ${state.progress.receipts.length}` : ''}</button>)}</nav>
     {tab==='community'&&<p className="sw-fine-print">Нужно заработать 100 личных снежинок. Уже открытые общие подарки доступны и поздним участникам до 8 января. Бонусы не продвигают станцию повторно.</p>}
     {tab==='received'?<div className="sv3-receipts">{state.progress.receipts.length?state.progress.receipts.slice().reverse().map(receipt=><article key={receipt.id}><WinterArt index={7}/><div><h3>{giftNames[receipt.reward_id]||receipt.name}</h3><p>{new Date(receipt.at).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})} МСК</p><small>{receipt.status==='sync_pending'?'Подарок оформлен · доставляем':receipt.after_end?`Новый срок: ${new Date(receipt.after_end).toLocaleDateString('ru-RU',{timeZone:'Europe/Moscow'})}`:'Подарок получен'}</small></div><strong>{receipt.cost?`${receipt.cost} ❄`:'Подарок'}</strong></article>):<div className="sv3-empty-gifts"><WinterArt index={7}/><h3>Первый сюрприз ещё впереди</h3><p>Здесь кот сохранит всё, что ты получил в лавке.</p></div>}</div>:<div className="sw-gift-list">{rewards.map((reward,index)=>{
       const status=giftState(state,reward), name=giftNames[reward.id]||reward.name;
       const labels:Record<string,string>={available:'Выбрать подарок',delivery:'Оформлено · доставляем',owned:'✓ Уже получено',closed:state.phase==='finished'?'Обмен завершён':'Откроется 1 декабря',subscription:'Нужна активная подписка',personal:`После ${reward.threshold} игровых дней`,community:(state.world?.total||0)<(reward.threshold||0)?`Общая цель: ${reward.threshold?.toLocaleString('ru')} ❄`:'Нужно 100 личных снежинок',ineligible:'Нет подходящей подписки',insufficient:`Ещё ${reward.cost-state.progress.balance} ❄`};
       const options=(reward.options||[]).filter(o=>o.kind!=='traffic'||state.subscriptions.some(sub=>sub.traffic)||!hasSubscription(state));
-      return <article className={`sw-gift sw-gift-${status}`} key={reward.id} data-reward={reward.id}>
+      return <article className={`sw-gift sw-gift-${status} ${reward.cost >= 720 ? 'sv3-gift-grand' : reward.cost >= 275 ? 'sv3-gift-rare' : ''}`} key={reward.id} data-reward={reward.id}>
         <button type="button" className="sv3-gift-open" aria-label={`${name} · ${labels[status]}`} onClick={()=>setSelected({...reward,name})}>
-          <span className={`sv3-gift-art sv3-gift-art-${index%3}`}>{tab==='shop'?index<5?<MomentArt index={[2,22,8,14,29][index]}/>:<WinterArt index={7}/>:<MomentArt index={tab==='personal'?23:25}/>}</span><h3>{name}</h3>
+          <span className={`sv3-gift-art sv3-gift-art-${index%3}`}>{tab==='shop'?index<5?<MomentArt index={[2,22,8,14,29][index]}/>:<WinterArt index={7}/>:<MomentArt index={tab==='personal'?23:25}/>}</span><h3>{name}{reward.cost >= 720 && <small className="sv3-gift-rarity">Главный сундук</small>}{reward.cost >= 275 && reward.cost < 720 && <small className="sv3-gift-rarity">Особенный подарок</small>}</h3>
         </button>
         <div className="sw-gift-copy"><p>{options.map(o=>o.name).join(' или ')}{reward.snow?`${options.length?' + ':''}${reward.snow} снежинок`:''}</p><small>{options.some(o=>o.kind==='traffic')?'Трафик — на 30 дней':'Время добавляется к сроку'}</small></div>
         <div className="sw-gift-footer"><strong>{reward.cost?`${reward.cost} ❄`:'Подарок'}</strong><button type="button" className={status==='owned'?'se-success':''} onClick={()=>setSelected({...reward,name})}>{labels[status]}</button></div>
       </article>;
     })}</div>}
-    {selected&&<GiftDialog key={selected.id} reward={selected} state={state} preview={preview} onClose={()=>setSelected(null)} onSuccess={()=>{setOpened(selected);refresh();}}/>}
-    <Dialog.Root open={!!opened} onOpenChange={value=>{if(!value)setOpened(null);}}><Dialog.Portal><Dialog.Overlay className="snow-event-overlay"/><Dialog.Content className="snow-dialog snow-event-dialog sv3-gift-unboxing"><Dialog.Title>Маленькое чудо — твоё!</Dialog.Title><Dialog.Description>Кот бережно оформил подарок. Его состояние сохранено в разделе «Полученные».</Dialog.Description><div className="sv3-unbox-art" aria-hidden="true"><WinterArt index={7}/><WinterArt index={6}/><span>❄</span><span>✦</span><span>❄</span></div><h3>{opened?.name}</h3><Dialog.Close className="se-button">Здорово!</Dialog.Close></Dialog.Content></Dialog.Portal></Dialog.Root>
+    {selected&&<GiftDialog key={selected.id} reward={selected} state={state} preview={preview} onClose={()=>setSelected(null)} onSuccess={option=>{setOpened({reward:selected,option});refresh();}}/>}
+    <Dialog.Root open={!!opened} onOpenChange={value=>{if(!value)setOpened(null);}}><Dialog.Portal><Dialog.Overlay className="snow-event-overlay"/><Dialog.Content className="snow-dialog snow-event-dialog sv3-gift-unboxing"><p className="sv3-unbox-kicker">✦ Сюрприз оформлен ✦</p><Dialog.Title>Маленькое чудо уже рядом!</Dialog.Title><Dialog.Description>Кот бережно оформил подарок. Статус доставки появится в «Полученных».</Dialog.Description><div className="sv3-unbox-art" aria-hidden="true"><span className="sv3-unbox-glow"/><WinterArt index={7}/><WinterArt index={6}/><span>❄</span><span>✦</span><span>❄</span></div><h3>{opened?.reward.name}</h3>{awardedOption&&<p className="sv3-unbox-reward">{awardedOption.name}</p>}<p className="sv3-unbox-quote">«Мур! Наш праздник стал чуточку волшебнее. Спасибо тебе!»</p><Dialog.Close className="se-button">Ура!</Dialog.Close></Dialog.Content></Dialog.Portal></Dialog.Root>
   </section>;
 }
 
@@ -69,7 +70,7 @@ function GiftDialog({
   state: SnowState;
   preview?: string;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (option: string) => void;
 }) {
   // The account has a single subscription; reward options depend on its tariff.
   const subscriptionId = state.subscriptions[0]?.id ?? 0;
@@ -133,17 +134,10 @@ function GiftDialog({
             </>
           )}
           {option === 'traffic' && (
-            <p className="sw-traffic-policy">
-              Трафик действует 30 дней на специальных серверах этой подписки. По действующим
-              правилам при смене тарифа неиспользованные пакеты сгорают. Если планируешь переход —
-              можно выбрать время.
-            </p>
+            <p className="sw-traffic-policy">Трафик действует 30 дней. При смене тарифа неиспользованный остаток сгорит.</p>
           )}
           {option === 'hours' && (
-            <p>
-              Время добавится точно к текущей дате окончания. Оплаченные дни сохранятся. Денежный
-              баланс не изменится.
-            </p>
+            <p>Подарочное время прибавится к оплаченному сроку. Деньги не спишутся.</p>
           )}
           {!!reward.snow && (
             <p>Ещё +{reward.snow} снежинок в кошелёк. Общая цель от этого бонуса не увеличится.</p>
@@ -178,7 +172,7 @@ function GiftDialog({
                   },
                   preview,
                 );
-                onSuccess();
+                onSuccess(option);
                 onClose();
               } catch (e) {
                 setError(snowError(e));

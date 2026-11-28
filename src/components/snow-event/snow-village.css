@@ -303,3 +303,121 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Seasonal event navigation lives at the bottom on phones, away from card headings.
+   It becomes icon-only when scrolling down and expands on the way back up. */
+.snow-village .sv3-page-header {scroll-margin-top:82px;}
+@media (max-width:767px) {
+  .snow-experience.snow-village {padding-bottom:calc(100px + env(safe-area-inset-bottom));}
+  .snow-village .sv3-tabs {
+    position:fixed;
+    top:auto;
+    bottom:calc(10px + env(safe-area-inset-bottom));
+    left:max(12px,env(safe-area-inset-left));
+    right:max(12px,env(safe-area-inset-right));
+    width:auto;
+    max-width:520px;
+    margin-inline:auto;
+    z-index:80;
+    border-color:#766583;
+    border-radius:18px;
+    background:#24222ff5;
+    backdrop-filter:blur(22px);
+    box-shadow:0 10px 35px #080711b9;
+    transition:padding .18s ease;
+  }
+  .snow-village .sv3-tabs>button {min-height:56px;padding:7px 4px;}
+  .snow-village .sv3-tabs.is-compact>button {min-height:44px;}
+  .snow-village .sv3-tabs.is-compact>button>span {display:none;}
+  .snow-village .sv3-tabs.is-compact>button>svg {width:21px;height:21px;}
+}
+
+/* The last unlocked station improvement is as visible as the numeric counter. */
+.sv3-stage-story {
+  display:flex;align-items:center;gap:14px;width:100%;margin-top:12px;
+  padding:12px 15px;text-align:left;border:1px solid #615271;border-radius:15px;
+  background:linear-gradient(110deg,#31293e,#25242e);color:#f3e4fb;
+  box-shadow:inset 0 1px #d8b6ff12;
+}
+.sv3-stage-story.has-news {border-color:#b693cd;box-shadow:0 0 0 1px #a584c633,0 7px 24px #100c1b44;}
+.sv3-stage-story>.sv3-moment-art {width:72px;flex:none;}
+.sv3-stage-story>span {display:grid;gap:3px;min-width:0;}
+.sv3-stage-story small {color:#dbb8eb;font-size:12px;line-height:1.35;}
+.sv3-stage-story strong {font-size:17px;line-height:1.3;}
+.sv3-stage-story em {font-style:normal;color:#cab1df;font-size:12px;}
+.sv3-stage-story:hover {border-color:#bf98d9;background:linear-gradient(110deg,#393047,#282532);}
+
+/* A single week's progress is enough on the Games screen. The complete calendar
+   remains on My Journey, avoiding two identical month-sized grids. */
+.se-calendar-compact {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:16px 0 5px;}
+.se-compact-day {display:grid;justify-items:center;gap:5px;min-width:0;padding:9px 2px;border:1px solid #423a4e;border-radius:12px;background:#1c1c26;color:#bdb5c8;}
+.se-compact-day small {font-size:11px;}
+.se-compact-day strong {font-size:16px;color:#eee2f7;}
+.se-compact-day span {font-size:15px;min-height:20px;line-height:20px;}
+.se-compact-day.is-done {border-color:#679989;background:#21302e;}
+.se-compact-day.is-done span {color:#a3e8ce;}
+.se-compact-day.is-today {border-color:#bd98dd;background:#382b46;}
+.se-calendar-full {display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:12px;padding:12px 2px 0;border-top:1px solid #453a50;color:#dbb9f2;font-size:13px;text-align:left;min-height:42px;}
+.se-calendar-full:hover {color:#f5ddff;}
+
+/* The gift catalog is legible as compact horizontal rows on a 390px phone. */
+.snow-village .sw-gift.sv3-gift-rare {border-color:#9375b1;background:linear-gradient(145deg,#30283b,#23212e);}
+.snow-village .sw-gift.sv3-gift-grand {border-color:#c6a475;background:linear-gradient(145deg,#3c3041,#24212d);box-shadow:inset 0 0 22px #e2b96f17;}
+.sv3-gift-rarity {display:block;width:max-content;margin-top:6px;color:#e5bf84;font-size:11px;font-weight:600;letter-spacing:.025em;}
+.sv3-gift-grand .sv3-gift-art {background:radial-gradient(ellipse at center,#f4be7152,transparent 70%);}
+.sv3-gift-rare .sv3-gift-art {background:radial-gradient(ellipse at center,#c5a2ec39,transparent 70%);}
+.sw-gift-dialog .sw-traffic-policy {font-size:12px;color:#d4bfdc;}
+
+/* A claim is a little celebration, not another settings confirmation. */
+.sv3-gift-unboxing {align-items:center;gap:11px;background:radial-gradient(circle at 50% 38%,#503663,#242430 68%);}
+.sv3-gift-unboxing .sv3-unbox-kicker {margin:0;color:#efd095;font-size:12px;font-weight:650;letter-spacing:.12em;text-transform:uppercase;}
+.sv3-gift-unboxing h2 {font-size:23px;text-align:center;}
+.sv3-gift-unboxing h3 {font-size:19px;line-height:1.3;margin:0;text-align:center;}
+.sv3-gift-unboxing .sv3-unbox-art {height:165px;width:100%;}
+.sv3-unbox-art>.sv3-unbox-glow {position:absolute;left:50%;bottom:0;width:230px;height:160px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,#e9ca9655 0%,#aa72d83d 42%,transparent 72%);z-index:-1;animation:sv3-reward-glow 1s ease-out both;}
+.sv3-unbox-art>.sv3-cast:nth-child(2) {width:100px;animation:sv3-unbox .9s ease-out both;}
+.sv3-unbox-art>.sv3-cast:nth-child(3) {width:94px;animation:sv3-appear .6s .2s ease-out both;}
+.sv3-gift-unboxing .sv3-unbox-reward {margin:0;padding:9px 16px;border:1px solid #ad8ac269;border-radius:99px;background:#35293e;color:#e9d4f6;font-weight:600;text-align:center;}
+.sv3-gift-unboxing .sv3-unbox-quote {margin:0;color:#d7c5df;font-size:13px;text-align:center;font-style:italic;}
+.sv3-gift-unboxing .se-button {margin-top:8px;}
+@keyframes sv3-reward-glow {from{opacity:0;transform:translateX(-50%) scale(.5);}to{opacity:1;transform:translateX(-50%) scale(1);}}
+
+/* A story told in five visual checkpoints is easier to follow on mobile
+   than 26 tiny numbered circles. The detailed desktop route is preserved. */
+.sv3-journey-story,.sv3-journey-milestones {display:none;}
+@media(max-width:767px) {
+  .snow-village .sw-gift-list {grid-template-columns:1fr;gap:9px;}
+  .snow-village .sw-gift {display:grid;grid-template-columns:minmax(0,1fr);gap:5px;padding:12px;}
+  .snow-village .sv3-gift-open {display:grid;grid-template-columns:85px minmax(0,1fr);align-items:center;gap:12px;min-height:85px;}
+  .snow-village .sv3-gift-art {width:85px;height:85px;margin:0;border-radius:12px;overflow:hidden;}
+  .snow-village .sv3-gift-art>.sv3-moment-art {width:85px;}
+  .snow-village .sv3-gift-art>.sv3-cast {width:64px;}
+  .snow-village .sv3-gift-open h3 {font-size:16px;line-height:1.3;}
+  .snow-village .sw-gift-copy {margin:0;min-height:0;}
+  .snow-village .sw-gift-copy p {font-size:13px;}
+  .snow-village .sw-gift-footer {flex-direction:row;align-items:center;justify-content:space-between;gap:10px;padding-top:7px;margin-top:3px;}
+  .snow-village .sw-gift-footer>strong {font-size:17px;white-space:nowrap;}
+  .snow-village .sw-gift-footer>button {width:auto;min-width:126px;text-align:center;padding:9px 12px;}
+  .sv3-stage-story {gap:10px;padding:10px;}
+  .sv3-stage-story>.sv3-moment-art {width:58px;}
+  .sv3-stage-story small {font-size:11px;}
+  .sv3-stage-story strong {font-size:15px;}
+  .sv3-journey-route {max-width:none;padding:15px 12px;}
+  .sv3-journey-route>svg,.sv3-route-destination {display:none!important;}
+  .sv3-journey-story {display:flex;align-items:center;gap:10px;}
+  .sv3-journey-story>.sv3-cast {width:66px;flex:none;}
+  .sv3-journey-story>div {display:grid;gap:3px;min-width:0;}
+  .sv3-journey-story span {color:#e4bd8a;font-size:11px;}
+  .sv3-journey-story strong {font-size:16px;line-height:1.25;}
+  .sv3-journey-story p {font-size:12px;color:#c8b9d0;line-height:1.45;margin:0;}
+  .sv3-journey-story small {color:#d1b0ed;font-size:11px;line-height:1.4;}
+  .sv3-journey-milestones {display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin;margin-top:14px;padding-bottom:5px;}
+  .sv3-journey-milestone {display:grid;justify-items:center;gap:5px;flex:0 0 112px;min-width:0;padding:9px 7px;border:1px solid #4b4158;border-radius:13px;background:#252431;opacity:.65;scroll-snap-align:start;text-align:center;}
+  .sv3-journey-milestone.is-next {opacity:1;border-color:#ae8bc2;background:#342a40;}
+  .sv3-journey-milestone.is-done {opacity:1;border-color:#6eac9b;background:#273332;}
+  .sv3-journey-milestone>.sv3-moment-art {width:56px;}
+  .sv3-journey-milestone>div {display:grid;gap:2px;}
+  .sv3-journey-milestone strong {font-size:12px;line-height:1.25;}
+  .sv3-journey-milestone span {color:#d7b6ed;font-size:11px;}
+}
+@media(prefers-reduced-motion:reduce) {.sv3-unbox-art>.sv3-unbox-glow{animation:none!important;}.snow-village .sv3-tabs{transition:none;}}
