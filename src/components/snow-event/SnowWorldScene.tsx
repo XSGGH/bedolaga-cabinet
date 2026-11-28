@@ -1,11 +1,10 @@
 import { useState, type CSSProperties } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { LuArrowLeft, LuArrowRight, LuCheck, LuGift, LuHistory, LuHouse, LuLightbulb, LuMapPin, LuSnowflake, LuSparkles, LuStar, LuVote } from 'react-icons/lu';
-import type { SnowState, StationStage } from '@/api/snowEvent';
+import { LuArrowLeft, LuArrowRight, LuCheck, LuGift, LuHistory, LuLightbulb, LuMapPin, LuSnowflake, LuSparkles, LuStar, LuVote } from 'react-icons/lu';
+import type { SnowState, StationDecoration, StationStage } from '@/api/snowEvent';
 import { hasSubscription } from './snowPresentation';
 import { momentFor } from './snowMoments';
-import { participantDecorations } from './snowGrammar';
-import StationPaint from './StationPaint';
+import SnowDiorama3D from './SnowDiorama3D';
 
 // Kept for the older game illustrations outside the station.
 export function StationSprite({ index, className = '', style }: { index: number; className?: string; style?: CSSProperties }) {
@@ -27,19 +26,43 @@ const ornaments = [
 ] as const;
 type Mode = 'history' | 'vote' | 'place';
 type ZoneId = typeof zones[number]['id'];
-// All 25 reveals must share one fixed camera and the same single approach path.
-const image = '/xsg-snow-assets/station-v5-empty.webp';
-// The original map and paving stay fixed; milestones reveal illustrated details.
-function StationIllustration({ stages, revealed, description }: {
+const chapters = [
+  'У единственной дорожки зажёгся первый фонарь.',
+  'В окнах современного дата-центра появился тёплый свет.',
+  'Фонари зажглись вокруг площади и вдоль дорожки.',
+  'У дата-центра открылся аккуратный парадный вход.',
+  'На фасаде засияла фирменная надпись XSG.',
+  'Мастерская подготовила первые подарки.',
+  'На центральной площади выросла настоящая зимняя ель.',
+  'На еловых ветвях появились первые украшения.',
+  'Сосны вокруг станции ожили от маленьких огней.',
+  'На большой ёлке зажглись сотни праздничных огоньков.',
+  'Уютный свет наполнил мастерскую.',
+  'Под ёлкой появились красиво упакованные подарки.',
+  'У ёлки поселился белый кот — хранитель праздника.',
+  'На вершине ели засияла звезда.',
+  'Свет подчеркнул архитектуру двух зданий.',
+  'Вечерняя станция стала ещё теплее.',
+  'У мастерской появилось уютное место для фотографий.',
+  'Над той же дорожкой установили настоящую металлическую арку.',
+  'На площади появился ледяной зимний арт-объект.',
+  'Мастерская подготовила подарочные сани.',
+  'В гости заглянул второй белый кот.',
+  'В парке открылась маленькая обсерватория.',
+  'Вдали мерцают нежные праздничные огни.',
+  'Зимний городок наполнился праздничным сиянием.',
+  'Все детали готовы. Этот праздник создали мы вместе.',
+];
+
+// The same actual 3D mesh world is shown at every milestone. The model, camera,
+// path, arch foundations and buildings never move or get redrawn by a model.
+function StationIllustration({ stages, revealed, description, decorations }: {
   stages: StationStage[];
   revealed: StationStage[];
   description: string;
+  decorations?: StationDecoration[];
 }) {
-  return <figure className="sv4-scene">
-    <img className="sv4-scene-base" src={image} width="1536" height="1024" alt={description} loading="lazy" draggable={false} />
-    <StationPaint count={revealed.length} />
-    <figcaption><LuMapPin aria-hidden="true" /> Преображение станции · {revealed.length}/{stages.length} этапов</figcaption>
-  </figure>;
+  return <SnowDiorama3D stage={Math.min(25, revealed.length)} label={`${description}, ${stages.length} этапов`} decorations={decorations} />;
 }
 
 export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, act }: {
@@ -50,7 +73,6 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
   act?: (action: string, body?: Record<string, unknown>) => Promise<boolean | void>;
 }) {
   const [mode, setMode] = useState<Mode | null>(null);
-  const [zone, setZone] = useState<ZoneId>('plaza');
   const [placeZone, setPlaceZone] = useState<ZoneId>('plaza');
   const [kind, setKind] = useState<string>('lantern');
   const [threshold, setThreshold] = useState(100);
@@ -75,9 +97,6 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
   const rights = [100, 300, 500].filter(value => state.progress.earned >= value && !used.includes(value));
   const picked = rights.includes(threshold) ? threshold : rights[0];
   const access = state.phase === 'active' && hasSubscription(state);
-  const selectedZone = zones.find(item => item.id === zone)!;
-  const selectedStages = stages.filter(stage => stage.zone === zone);
-  const zoneDecorations = decorations.filter(item => Math.floor(item.slot / 16) === zones.findIndex(item => item.id === zone));
   const placeZoneIndex = zones.findIndex(item => item.id === placeZone);
   const freeSlot = Array.from({ length: 16 }, (_, i) => placeZoneIndex * 16 + i)
     .find(slot => !decorations.some(item => item.slot === slot));
@@ -91,7 +110,7 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
       onSeen();
     }
     if (target === 'vote') setVoteChoice(vote?.own && zones.some(item => item.id === vote.own) ? vote.own as ZoneId : 'plaza');
-    if (target === 'place') setPlaceZone(zone);
+    if (target === 'place') setPlaceZone('plaza');
   };
 
   const historyCount = historyView === 'beginning' ? 0 : historyIndex === null ? reached.length : Math.min(reached.length, historyIndex + 1);
@@ -109,17 +128,15 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
 
   const present = (value: number) => value.toLocaleString('ru-RU');
   return <section className="sv3-station sv4-station" aria-label="Зимняя станция XSG">
-    <div className="sv3-station-heading">
-      <div><span>{reached.length ? `Вместе открыли ${reached.length} из ${stages.length} этапов` : 'Наш праздник только начинается'}</span><h2>Зимняя станция XSG</h2></div>
+    <div className="sv3-station-heading sd-heading">
+      <div><span>ОДИН МИР · 25 ГЛАВ · XSG</span><h2>Станция оживает</h2><p>С каждым этапом зимняя история становится ярче.</p></div>
       {onPlay && <button className="sv3-play-short" type="button" onClick={onPlay}>{state.phase === 'active' ? 'Играть' : 'О событии'} <LuArrowRight aria-hidden="true" /></button>}
     </div>
-    <div className="sv4-zone-shortcuts" role="group" aria-label="Посмотреть участок станции">
-      {zones.map(item => <button key={item.id} type="button" aria-pressed={zone === item.id} onClick={() => setZone(item.id)}>{item.name}</button>)}
-    </div>
-    <StationIllustration stages={stages} revealed={reached} description="Зимняя станция с постепенно появляющимися огнями и украшениями" />
-    <div className="sv4-station-caption">
-      <LuHouse aria-hidden="true" />
-      <div><strong>{current?.name ?? 'Всё начинается с первого огонька'}</strong><span>{current ? `Этап ${reached.length} из ${stages.length} · наша общая история` : 'Новые детали появятся по мере общего прогресса'}</span></div>
+    <StationIllustration stages={stages} revealed={reached} decorations={decorations} description="Зимняя станция с постепенно появляющимися огнями и украшениями" />
+    <div className="sv4-station-caption sd-chapter-card">
+      <div className="sd-chapter-index">{String(reached.length).padStart(2,'0')}</div>
+      <div><small>{current ? `ОТКРЫТА ГЛАВА ${reached.length} ИЗ ${stages.length}` : 'ИСТОРИЯ НАЧИНАЕТСЯ'}</small>
+        <strong>{current?.name ?? 'Первый снег'}</strong><span>{chapters[Math.min(24,reached.length - 1)] ?? 'Совсем скоро на станции появится первый огонёк.'}</span></div>
       <button type="button" onClick={() => open('history')}>История <LuArrowRight aria-hidden="true" /></button>
     </div>
     <div className="sv3-world-progress">
@@ -127,17 +144,13 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
       <progress max={goal} value={progress} aria-label="Прогресс до следующего этапа" />
       <p>{next ? <>Следом: <strong>{next.name}</strong></> : 'Спасибо всем, кто помог построить эту историю 💜'}</p>
     </div>
-    <div className="sv4-zone-explore">
-      <h3>Что происходит на станции?</h3>
-      <p>Выбери район над иллюстрацией, чтобы узнать, как он меняется.</p>
-      <div className="sv4-zone-story">
-        <strong>{selectedZone.name}</strong><p>{selectedZone.text}</p>
-        <span>{selectedStages.filter(item => item.threshold <= total).length} из {selectedStages.length} изменений открыто · {participantDecorations(zoneDecorations.length)}</span>
-        {selectedStages.length > 0 && <small>{selectedStages.filter(item => item.threshold <= total).slice(-1)[0] ? `Уже открыто: ${selectedStages.filter(item => item.threshold <= total).slice(-1)[0].name}` : `Впереди: ${selectedStages[0].name}`}</small>}
-      </div>
-    </div>
+    <div className="sd-story-timeline"><div><h3>25 глав одного праздника</h3><p>Открой любую пройденную главу, чтобы увидеть её в той же 3D-сцене.</p></div>
+      <div className="sd-timeline-grid" role="group" aria-label="Этапы зимнего события">
+        {stages.slice(0,25).map((stage,index)=><button key={stage.id} type="button" disabled={stage.threshold>total} title={stage.name}
+          className={index===reached.length-1?'is-current':''} onClick={()=>{open('history');showHistoryCount(index+1);}}>{stage.threshold<=total?<LuCheck aria-hidden="true" />:<LuSnowflake aria-hidden="true" />}<span>{index+1}</span></button>)}
+      </div></div>
     <div className="sv4-station-links">
-      <button type="button" onClick={() => open('history')}><LuHistory /> <span><strong>Как менялась станция</strong><small>Все этапы и было / стало</small></span><LuArrowRight /></button>
+      <button type="button" onClick={() => open('history')}><LuHistory /> <span><strong>История зимней станции</strong><small>Все открытые главы в одной сцене</small></span><LuArrowRight /></button>
       <button type="button" onClick={() => open('vote')}><LuVote /> <span><strong>Общий выбор</strong><small>{vote?.own ? 'Твой голос сохранён' : 'Куда направим огоньки?'}</small></span><LuArrowRight /></button>
       <button type="button" onClick={() => open('place')}><LuSparkles /> <span><strong>Моё украшение</strong><small>{rights.length ? `Доступно: ${rights.length}` : used.length ? `Поставлено: ${used.length}` : 'Право открывается за участие'}</small></span><LuArrowRight /></button>
     </div>
@@ -146,7 +159,7 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
       <Dialog.Portal><Dialog.Overlay className="snow-event-overlay" /><Dialog.Content className={`sv3-map-dialog sv4-dialog sv4-dialog--${mode ?? 'closed'}`}>
         <header>
           <div><Dialog.Title>{mode === 'history' ? 'Как менялась станция' : mode === 'vote' ? 'Куда отправим огоньки?' : 'Твоё украшение на станции'}</Dialog.Title>
-            <Dialog.Description>{mode === 'history' ? 'Посмотри, как менялся один и тот же пейзаж' : mode === 'vote' ? 'Выбираем место для следующего общего украшения' : 'Выбери украшение и уголок — свободное место подберём сами'}</Dialog.Description>
+            <Dialog.Description>{mode === 'history' ? 'Одна настоящая 3D-модель и одна камера на всех этапах' : mode === 'vote' ? 'Выбираем место для следующего общего украшения' : 'Выбери украшение и уголок — свободное место подберём сами'}</Dialog.Description>
           </div>
           <Dialog.Close className="sv3-close" aria-label="Закрыть">×</Dialog.Close>
         </header>
@@ -156,14 +169,15 @@ export default function SnowWorldScene({ state, onSeen, onPlay, busy = false, ac
               <button type="button" aria-pressed={historyCount === 0} onClick={() => showHistoryCount(0)}>Было</button>
               <button type="button" aria-pressed={historyCount === reached.length} onClick={() => showHistoryCount(reached.length)}>Сейчас · {reached.length}/{stages.length}</button>
             </div>
-            <StationIllustration stages={stages} revealed={historyStages} description="Облик зимней станции на выбранном этапе" />
+            <StationIllustration stages={stages} revealed={historyStages} decorations={historyCount===reached.length?decorations:[]} description="Облик зимней станции на выбранном этапе" />
             <div className="sv4-history-nav">
               <button type="button" disabled={historyCount === 0} onClick={() => showHistoryCount(historyCount - 1)} aria-label="Предыдущий этап"><LuArrowLeft/></button>
               <span><strong>{historyCount ? stages[historyCount - 1]?.name : 'Первый снег'}</strong><small>{historyCount} / {stages.length} · {historyCount ? `${present(stages[historyCount - 1]?.threshold || 0)} ❄` : 'Начало истории'}</small></span>
               <button type="button" disabled={historyCount === reached.length} onClick={() => showHistoryCount(historyCount + 1)} aria-label="Следующий этап"><LuArrowRight/></button>
             </div>
           </div>
-          <p className="sv4-hint">Нажми номер открытого этапа. Картинка останется на экране.</p>
+          <p className="sd-history-description">{historyCount>0?chapters[historyCount-1]:'Первые приготовления. Пространство станции ещё ждёт праздничных огней.'}</p>
+          <p className="sv4-hint">Выбирай открытые главы. Геометрия станции, камера и дорожки всегда одинаковы.</p>
           <div className="sv4-stage-grid" role="group" aria-label="Этапы преображения">
             {stages.map((stage, index) => <button key={stage.id} type="button" title={`${stage.name} · ${present(stage.threshold)} ❄`} aria-label={`Этап ${index + 1}: ${stage.name}`} disabled={stage.threshold > total} aria-pressed={historyCount === index + 1} onClick={() => showHistoryCount(index + 1)}>{index + 1}</button>)}
           </div>

@@ -545,6 +545,78 @@
 .sw-workshop-drop.sv4-cart-ready .sv4-cart-icon {stroke:#ffe0a6;}
 .snow-village .sv3-gift-art:has(.sv4-gift-emblem) {width:85px;height:85px;overflow:visible;background:none;}
 .snow-village .sv3-gift-art>.sv4-gift-emblem {width:76px;height:76px;}
+
+/* Snow Event 3D diorama. One actual GLB scene replaces all painterly masks,
+   approximate SVG buildings, sprite stickers and artificial map hotspots. */
+.snow-village .sv4-station {max-width:1120px;margin-inline:auto;}
+.snow-village .sd-heading {margin:8px 0 20px;align-items:center;}
+.snow-village .sd-heading>div>span {color:#d6b9ec;font-size:11px;font-weight:750;letter-spacing:.18em;}
+.snow-village .sd-heading h2 {font-size:clamp(25px,3vw,36px);font-weight:760;letter-spacing:-.045em;margin:6px 0 0;line-height:1.08;}
+.snow-village .sd-heading p {margin:6px 0 0;color:#bcb6c8;font-size:13px;}
+.snow-village .sd-heading .sv3-play-short {background:#ae90c921;padding:11px 18px;}
+.sd-scene {position:relative;width:100%;margin:0;aspect-ratio:16/10;isolation:isolate;overflow:hidden;border-radius:24px;background:radial-gradient(ellipse at 50% 30%,#47365e,#201c32 80%);border:1px solid #706285;box-shadow:0 28px 75px #08071565,0 2px 6px #140d2130;}
+.sd-scene-canvas {position:absolute;inset:0;width:100%;height:100%;}
+.sd-scene-canvas canvas {display:block;width:100%;height:100%;}
+.sd-scene-poster {position:absolute;inset:0;display:grid;place-items:center;background:#282234;}
+.sd-scene-poster img {display:block;width:100%;height:100%;object-fit:cover;object-position:center center;}
+.sd-loading {position:absolute;left:50%;bottom:60px;transform:translateX(-50%);white-space:nowrap;padding:9px 15px;border-radius:30px;border:1px solid #ffffff55;background:#1c152bc9;color:#f3e8ff;backdrop-filter:blur(12px);font-size:12px;}
+.sd-scene figcaption {position:absolute;bottom:0;left:0;right:0;display:flex;align-items:end;justify-content:space-between;gap:12px;padding:38px 22px 17px;background:linear-gradient(0deg,#17121ccf,transparent);color:#ede8f2;font-size:12px;pointer-events:none;}
+.sd-scene figcaption>span {display:flex;align-items:center;gap:8px;}
+.sd-scene figcaption i {width:8px;height:8px;border-radius:50%;background:#abf0d2;box-shadow:0 0 12px #9cfcdb80;}
+.sd-scene figcaption strong {font-variant-numeric:tabular-nums;font-size:12px;font-weight:600;letter-spacing:.09em;}
+.sd-chapter-card {margin-top:16px;padding:21px 23px;gap:18px;background:linear-gradient(115deg,#302839,#252430);border-color:#655477;border-radius:18px;box-shadow:0 8px 24px #0a071b30;}
+.sd-chapter-index {display:grid;place-items:center;flex:none;width:63px;height:63px;border-radius:15px;background:linear-gradient(135deg,#6a5379,#372c43);border:1px solid #9b7aad;color:#f2d7ff;font-size:28px;font-weight:750;font-variant-numeric:tabular-nums;letter-spacing:-.045em;}
+.sd-chapter-card>div:nth-child(2) {display:grid;gap:6px;}
+.sd-chapter-card small {font-size:10px;letter-spacing:.09em;color:#cfb2e4;font-weight:700;}
+.sd-chapter-card strong {font-size:19px;color:#fff3ff;letter-spacing:-.025em;}
+.sd-chapter-card span {font-size:13px;line-height:1.55;color:#c9bdd1;}
+.sd-chapter-card button {align-self:center;color:#f2d5ff;border:1px solid #856b9b;padding:10px 13px;white-space:nowrap;}
+.sd-chapter-card button:hover {background:#b38ed034;}
+.snow-village .sd-story-timeline {margin:23px 0 15px;padding:21px 22px;background:#22222c;border:1px solid #464152;border-radius:18px;}
+.sd-story-timeline h3 {font-size:19px;letter-spacing:-.025em;margin:0;color:#f2eaf9;}
+.sd-story-timeline p {margin:5px 0 16px;color:#b9b2c4;font-size:13px;line-height:1.5;}
+.sd-timeline-grid {display:grid;grid-template-columns:repeat(25,minmax(0,1fr));gap:5px;}
+.sd-timeline-grid button {display:grid;place-items:center;gap:2px;min-width:0;min-height:48px;border-radius:10px;border:1px solid #766487;background:linear-gradient(#3f3450,#302a3d);font-size:10px;color:#ead8f4;transition:background .2s,border-color .2s;}
+.sd-timeline-grid button svg {width:12px;height:12px;color:#a4e5c7;}
+.sd-timeline-grid button.is-current {background:#755b8c;border-color:#e9c7fb;box-shadow:0 0 0 2px #c39be22a;}
+.sd-timeline-grid button:disabled {opacity:.43;background:#292833;cursor:default;border-color:#494351;}
+.sd-timeline-grid button:disabled svg {color:#81798c;}
+.sd-timeline-grid button:not(:disabled):hover {background:#614b71;}
+.sd-history-description {margin:14px 0 4px;padding:12px 14px;background:#282432;border-left:3px solid #b690ca;color:#dacddd;font-size:13px;line-height:1.55;}
+.sv4-dialog .sd-scene {margin:9px auto;max-width:720px;border-radius:16px;}
+.sv4-dialog .sd-scene figcaption {padding:25px 13px 9px;}
+.snow-village .sv4-station .sv3-world-progress {margin:15px 2px 0;padding:15px 0 12px;border-top:1px solid #484051;}
+.snow-village .sv4-station .sv3-world-progress>div strong {font-size:27px;}
+.snow-village .sv4-station .sv3-world-progress progress {height:7px;background:#393442;}
+.snow-village .sv4-station .sv3-world-progress>p {margin-top:7px;color:#c8bbd0;}
+.snow-village .sv4-station .sv4-station-links {grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:20px;}
+.snow-village .sv4-station .sv4-station-links>button {min-height:84px;background:#24222e;border-radius:15px;}
+.snow-village .sv4-station .sv4-station-links>button>span small {margin-top:5px;font-size:11px;line-height:1.45;}
+.snow-village .sv4-station .sv4-daily-story {margin-top:14px;border-radius:13px;background:#2b2834;border:1px solid #4e405d;}
+@media(max-width:950px) {.sd-timeline-grid {grid-template-columns:repeat(13,minmax(0,1fr));}.snow-village .sv4-station .sv4-station-links {grid-template-columns:1fr;}.snow-village .sv4-station .sv4-station-links>button {min-height:60px;}}
+@media(max-width:767px) {
+  .snow-village .sd-heading {margin:5px 0 12px;align-items:start;}
+  .snow-village .sd-heading h2 {font-size:24px;}
+  .snow-village .sd-heading>div>span {font-size:9px;letter-spacing:.11em;}
+  .snow-village .sd-heading p {font-size:12px;max-width:230px;line-height:1.4;}
+  .snow-village .sd-heading .sv3-play-short {padding:9px 10px;font-size:11px;}
+  .sd-scene {border-radius:17px;aspect-ratio:1.15;}
+  .sd-scene figcaption {padding:36px 11px 10px;font-size:10px;}
+  .sd-loading {bottom:36px;font-size:10px;}
+  .sd-chapter-card {padding:13px 12px;gap:10px;margin-top:11px;border-radius:14px;align-items:start;}
+  .sd-chapter-index {width:43px;height:43px;border-radius:11px;font-size:20px;}
+  .sd-chapter-card small {font-size:9px;}
+  .sd-chapter-card strong {font-size:15px;}
+  .sd-chapter-card span {font-size:11px;line-height:1.45;}
+  .sd-chapter-card button {padding:7px 8px;align-self:start;font-size:11px;}
+  .snow-village .sd-story-timeline {margin:15px 0 10px;padding:14px 12px;border-radius:14px;}
+  .sd-story-timeline h3 {font-size:16px;}
+  .sd-story-timeline p {font-size:12px;}
+  .sd-timeline-grid {grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
+  .sd-timeline-grid button {min-height:42px;grid-auto-flow:column;justify-content:center;gap:6px;font-size:12px;}
+  .sd-timeline-grid button svg {width:13px;height:13px;}
+  .sv4-dialog .sd-scene {aspect-ratio:1.2;}
+}
 .sv3-receipts .sv4-gift-emblem {width:60px;height:60px;}
 .sv3-receipts .sv4-gift-emblem svg {width:31px;height:31px;}
 .sv3-empty-gifts .sv4-gift-emblem {margin:0 auto 13px;}
