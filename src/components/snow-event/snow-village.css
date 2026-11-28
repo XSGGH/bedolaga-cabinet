@@ -421,3 +421,126 @@
   .sv3-journey-milestone span {color:#d7b6ed;font-size:11px;}
 }
 @media(prefers-reduced-motion:reduce) {.sv3-unbox-art>.sv3-unbox-glow{animation:none!important;}.snow-village .sv3-tabs{transition:none;}}
+
+/* V4: one complete illustration at a time. No masked fragments, sprite
+   stickers, zoom controls or invisible tap targets on the station. */
+.snow-village .sv4-station {max-width:850px;margin-inline:auto;}
+.sv4-scene {position:relative;margin:0;overflow:hidden;border:1px solid #58506d;border-radius:16px;background:#241e37;box-shadow:0 9px 30px #0d0b1940;}
+.sv4-scene img {display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;user-select:none;}
+.sv4-scene figcaption {display:flex;align-items:center;gap:5px;position:absolute;bottom:9px;left:9px;max-width:calc(100% - 18px);padding:6px 9px;border:1px solid #ffffff26;border-radius:9px;background:#1c192bdc;backdrop-filter:blur(6px);color:#f2e9ff;font-size:11px;}
+.sv4-scene figcaption svg {width:12px;height:12px;flex:none;}
+.sv4-station-caption {display:flex;align-items:center;gap:11px;margin:11px 0;padding:11px 13px;background:#292634;border:1px solid #4f435d;border-radius:13px;}
+.sv4-station-caption>svg {width:26px;height:26px;color:#d7b6ef;flex:none;}
+.sv4-station-caption>div {display:grid;gap:2px;min-width:0;flex:1;}
+.sv4-station-caption strong {font-size:14px;line-height:1.3;}
+.sv4-station-caption span {font-size:11px;color:#bfb2cc;}
+.sv4-station-caption button {display:flex;align-items:center;gap:4px;min-height:38px;flex:none;padding:6px 8px;border-radius:9px;color:#ebcafa;font-size:12px;}
+.sv4-station-caption button:hover {background:#ad83c526;}
+.sv4-zone-explore {padding:15px 0 10px;}
+.sv4-zone-explore h3,.sv4-dialog-body h3,.sv4-story-list h3 {margin:0 0 5px;font-size:17px;color:#f3eaf8;}
+.sv4-zone-explore>p {margin:0 0 12px;color:#bdb1cc;font-size:12px;line-height:1.45;}
+.sv4-zone-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.sv4-zone-grid>button {display:flex;align-items:center;gap:8px;min-height:47px;padding:10px 12px;border:1px solid #54455e;border-radius:11px;background:#25232f;color:#d1c3de;text-align:left;font-size:13px;}
+.sv4-zone-grid>button svg {color:#bda4d9;flex:none;width:17px;height:17px;}
+.sv4-zone-grid>button[aria-pressed=true] {border-color:#c1a0dd;background:#4c395d;color:#fff;}
+.sv4-zone-grid>button:focus-visible,.sv4-station-links button:focus-visible {outline:2px solid #e3bdf7;outline-offset:2px;}
+.sv4-zone-story {margin-top:9px;padding:13px 15px;border:1px solid #5a4b6e;border-radius:12px;background:linear-gradient(120deg,#2b283a,#21222e);}
+.sv4-zone-story strong {font-size:15px;color:#f6e5ff;}
+.sv4-zone-story p {margin:5px 0 9px;color:#c6bad4;font-size:13px;line-height:1.5;}
+.sv4-zone-story span,.sv4-zone-story small {display:block;color:#d4b9ec;font-size:12px;line-height:1.4;}
+.sv4-zone-story small {margin-top:5px;color:#b9aaba;}
+.sv4-station-links {display:grid;gap:8px;margin-top:8px;}
+.sv4-station-links>button {display:flex;align-items:center;gap:12px;min-height:60px;width:100%;padding:11px 14px;text-align:left;border:1px solid #4c435c;border-radius:12px;background:#24232f;color:#e8d7f4;}
+.sv4-station-links>button:hover {background:#332b40;border-color:#a88bba;}
+.sv4-station-links>button>svg:first-child {width:21px;height:21px;color:#d6b4f0;flex:none;}
+.sv4-station-links>button>svg:last-child {width:17px;height:17px;flex:none;margin-left:auto;}
+.sv4-station-links>button>span {display:grid;gap:2px;}
+.sv4-station-links strong {font-size:13px;}
+.sv4-station-links small {font-size:11px;color:#bbafc9;}
+.sv4-daily-story {display:flex;align-items:center;gap:11px;margin-top:14px;padding:10px 13px;color:#edd4a9;font-size:13px;}
+.sv4-daily-story>span {display:grid;gap:3px;}
+.sv4-daily-story small {font-size:11px;color:#bfa5cd;}
+.sv4-dialog {max-width:780px;}
+.sv4-dialog .sv4-scene {max-width:720px;margin:12px auto;}
+.sv4-dialog .sv4-compare {display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.sv4-compare button {min-height:44px;padding:9px;border:1px solid #574668;border-radius:10px;background:#242331;color:#d4c6e0;font-size:13px;}
+.sv4-compare button[aria-pressed=true] {background:#584066;border-color:#c2a0de;color:white;}
+.sv4-hint {margin:10px 0 15px;color:#bcb2c8;font-size:12px;line-height:1.55;}
+.sv4-story-list {display:grid;gap:7px;padding-top:13px;}
+.sv4-story-list>button {display:flex;align-items:center;gap:13px;width:100%;min-height:59px;padding:9px 12px;text-align:left;border:1px solid #4c4258;border-radius:11px;background:#252430;color:#e7ddec;}
+.sv4-story-list>button:disabled {opacity:.5;cursor:default;}
+.sv4-story-list>button[aria-pressed=true] {border-color:#b993d5;background:#3b3049;}
+.sv4-story-list>button>span:last-child {display:grid;gap:4px;}
+.sv4-story-list strong {font-size:13px;}
+.sv4-story-list small,.sv4-story-list em {font-size:11px;color:#bdb1c7;font-style:normal;}
+.sv4-stage-dot {display:grid;place-items:center;flex:none;width:29px;height:29px;border:1px solid #675777;border-radius:50%;color:#cebedf;font-size:11px;}
+.sv4-stage-dot.is-done {background:#305043;border-color:#71ad8c;color:#b8f5dc;}
+.sv4-dialog-body {display:grid;gap:12px;}
+.sv4-dialog-body>p {margin:0;color:#c8bbd2;font-size:13px;line-height:1.5;}
+.sv4-dialog-body .sv4-zone-story {margin-top:0;}
+.sv4-dialog-body .se-button {width:100%;min-height:48px;justify-content:center;}
+.sv4-dialog-body details {border-top:1px solid #5a4d64;padding:12px 4px;font-size:12px;color:#c6b9d1;}
+.sv4-dialog-body summary {cursor:pointer;}
+.sv4-ornament-list {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
+.sv4-ornament-list>button {display:grid;justify-items:center;gap:5px;min-height:76px;padding:10px 5px;border:1px solid #5e506d;border-radius:11px;background:#292331;color:#dfd1ed;font-size:12px;}
+.sv4-ornament-list>button svg {width:22px;height:22px;}
+.sv4-ornament-list>button[aria-pressed=true] {border-color:#c1a0da;background:#4b395a;color:#fff;}
+.sv4-field {display:grid;gap:6px;color:#c9bdd8;font-size:13px;}
+.sv4-field select {min-height:44px;}
+.sv4-success {display:flex;align-items:center;gap:7px;color:#a0f0c8!important;padding:10px 12px;border-radius:10px;background:#284338;}
+.sv4-own-decorations {padding:12px;border:1px solid #4c455c;border-radius:11px;background:#242631;}
+.sv4-own-decorations p {display:flex;gap:7px;align-items:center;margin:5px 0;color:#d1c1dd;font-size:12px;}
+@media(max-width:767px) {
+  .sv4-dialog {padding:16px 13px calc(96px + env(safe-area-inset-bottom));}
+  .sv4-station-caption {gap:7px;padding:9px;}
+  .sv4-station-caption>svg {width:20px;height:20px;}
+  .sv4-station-caption button {font-size:11px;padding:5px;}
+  .sv4-station-caption strong {font-size:13px;}
+  .sv4-scene figcaption {font-size:10px;}
+  .sv4-zone-grid {gap:6px;}
+  .sv4-zone-grid>button {font-size:12px;padding:8px;min-height:45px;}
+  .sv4-ornament-list {grid-template-columns:repeat(3,minmax(0,1fr));}
+}
+
+/* Unified, sharp SVG emblems; the old atlas frames produced cropped objects
+   and phantom white fragments around rewards and the journey. */
+.sv4-gift-emblem {display:grid;place-items:center;flex:none;width:76px;height:76px;border-radius:19px;background:radial-gradient(circle at 30% 20%,#e4ccff62,transparent 50%),linear-gradient(145deg,#584571,#2c2640);border:1px solid #ac8acb;box-shadow:inset 0 2px 8px #eee0ff25,0 8px 18px #09061144;}
+.sv4-gift-emblem svg {width:42px;height:42px;color:#efd3a0;stroke-width:1.6;filter:drop-shadow(0 3px 7px #c7a6ea66);}
+.sv4-gift-emblem-1 {background:radial-gradient(circle at 30% 10%,#b1ece77a,transparent 55%),linear-gradient(145deg,#345a58,#202c3f);border-color:#76b0a5;}
+.sv4-gift-emblem-2 {background:radial-gradient(circle at 30% 10%,#ffe6ad8f,transparent 55%),linear-gradient(145deg,#675141,#30283b);border-color:#c9a071;}
+.sv4-gift-emblem-3 {background:radial-gradient(circle at 30% 10%,#cac0ff7a,transparent 55%),linear-gradient(145deg,#48486d,#27263f);border-color:#989cda;}
+.sv4-gift-emblem-4 {background:radial-gradient(circle at 30% 10%,#c2cee97a,transparent 55%),linear-gradient(145deg,#4d5672,#292a40);border-color:#8198c6;}
+.sv4-shop-sign {width:60px;height:60px;margin-left:auto;}
+.sv4-shop-sign svg {width:30px;height:30px;}
+.snow-village .sv3-gift-art:has(.sv4-gift-emblem) {width:85px;height:85px;overflow:visible;background:none;}
+.snow-village .sv3-gift-art>.sv4-gift-emblem {width:76px;height:76px;}
+.sv3-receipts .sv4-gift-emblem {width:60px;height:60px;}
+.sv3-receipts .sv4-gift-emblem svg {width:31px;height:31px;}
+.sv3-empty-gifts .sv4-gift-emblem {margin:0 auto 13px;}
+.sw-gift-dialog .sv4-gift-dialog-art {margin:14px auto;width:100px;height:100px;}
+.sw-gift-dialog .sv4-gift-dialog-art svg {width:56px;height:56px;}
+.sv4-unbox-art {display:grid;place-items:center;position:relative;height:146px;width:100%;}
+.sv4-unbox-art:before {content:'';position:absolute;width:200px;height:130px;border-radius:50%;background:radial-gradient(ellipse,#d9bfff77,transparent 65%);}
+.sv4-unbox-art .sv4-gift-emblem {position:relative;width:104px;height:104px;transform:rotate(-6deg);box-shadow:0 9px 40px #b994df77;}
+.sv4-unbox-art .sv4-gift-emblem svg {width:57px;height:57px;}
+.sv4-journey {display:grid;gap:18px;margin:14px 0;padding:14px;border:1px solid #57516a;border-radius:16px;background:linear-gradient(140deg,#2c283d,#242431);}
+.sv4-journey-current {display:flex;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px solid #594c66;}
+.sv4-journey-current>svg {width:30px;height:30px;color:#efd2a8;flex:none;}
+.sv4-journey-current strong {font-size:16px;line-height:1.3;}
+.sv4-journey-current p {color:#c9bad7;font-size:12px;line-height:1.4;margin:4px 0 0;}
+.sv4-journey-steps {list-style:none;display:grid;gap:0;margin:0;padding:0;}
+.sv4-journey-steps li {display:grid;grid-template-columns:42px minmax(0,1fr);gap:12px;position:relative;min-height:84px;}
+.sv4-journey-steps li:not(:last-child):after {content:'';position:absolute;top:43px;bottom:0;left:20px;width:2px;background:#5e4e70;}
+.sv4-journey-steps li.is-done:not(:last-child):after {background:#78bda1;}
+.sv4-journey-icon {display:grid;place-items:center;width:42px;height:42px;border-radius:50%;border:1px solid #756583;background:#312d3e;color:#baaccd;}
+.sv4-journey-icon svg {width:21px;height:21px;}
+.sv4-journey-steps li.is-done .sv4-journey-icon {background:#2d4b43;border-color:#75bda3;color:#9af0cb;}
+.sv4-journey-steps li.is-current .sv4-journey-icon {background:#58416b;border-color:#d4aeef;color:#f5d9ff;box-shadow:0 0 0 3px #bb8ed522;}
+.sv4-journey-steps li>div {display:grid;align-content:start;gap:3px;padding:0 0 17px;}
+.sv4-journey-steps li small {font-size:11px;color:#c4a3dc;}
+.sv4-journey-steps li strong {font-size:14px;color:#f2e7f8;}
+.sv4-journey-steps li p {margin:0;color:#baafc7;font-size:12px;line-height:1.4;}
+@media(max-width:767px) {
+  .sv4-journey {max-width:none;padding:12px;}
+  .snow-village .sv3-gift-art:has(.sv4-gift-emblem) {width:85px;height:85px;}
+}
